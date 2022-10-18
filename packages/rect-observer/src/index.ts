@@ -12,6 +12,12 @@ export interface Rect {
  * Below uses document rect but after scrolling?
  * Maybe transforming an element creates a new context?
  * - this doesnt work with transform-based layouts
+ * How about:
+ * - one observer per element, includes scroll observer
+ * - offset rect (before transform, relative to document)
+ * - client rect (after transform, relative to window)
+ * - manually add children to parent observers
+ * - This avoids having to walk the tree or add mutation observers but makes construction more difficult
  */
 
 export type RectListener = (rect: Rect) => void;
@@ -110,13 +116,9 @@ export class RectObserver {
     }
   }
 
-  addTransformListener() {
+  addTransformListener() {}
 
-  }
-
-  removeTransformListener() {
-    
-  }
+  removeTransformListener() {}
 
   disconnect(): void {
     this.measuredElements.clear();

@@ -1,0 +1,8 @@
+{
+  "name": "@nonphoto-animate/rect-observer",
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  }
+}
