@@ -19,19 +19,23 @@
  * - this should be solved the same way as layout, remeasure the element on resize
  */
 
-function measureOne(element: HTMLElement) {
-  const map: Map<HTMLElement, string> = new Map();
-  let parent: HTMLElement | null = element;
-  while (parent != null) {
-    map.set(parent, parent.style.transform);
-    parent.style.transform = "";
-    parent = parent.parentElement;
+/*
+ * All scrolling elements must be positioned
+ * non-relative-positioned elements are not allowed as children of static-positioned elements
+ */
+
+function* walk(root: HTMLElement) {
+  const treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, {
+    acceptNode() {
+      return NodeFilter.FILTER_ACCEPT;
+    },
+  });
+
+  let currentNode = treeWalker.currentNode;
+  while (currentNode) {
+    yield currentNode as HTMLElement;
+    currentNode = treeWalker.nextNode();
   }
-  const rect = element.getBoundingClientRect();
-  for (let [element, transform] of map.entries()) {
-    element.style.transform = transform;
-  }
-  return rect;
 }
 
 export class Rect {
@@ -39,236 +43,159 @@ export class Rect {
   y: number;
   width: number;
   height: number;
+
+  constructor() {
+    this.x = 0;
+    this.y = 0;
+    this.width = 0;
+    this.height = 0;
+  }
 }
 
-function createRect(): Rect {
-  return {
-    x: 0,
-    y: 0,
-    width: 0,
-    height: 0,
-  };
-}
-
-export interface Transform {
+class Transform {
   translate: [number, number];
   rotate: number;
   scale: [number, number];
+
+  constructor() {
+    this.translate = [0, 0];
+    this.rotate = 0;
+    this.scale = [0, 0];
+  }
+
+  static from(source: Transform) {
+    const result = new Transform();
+    result.translate[0] = source.translate[0];
+    result.translate[1] = source.translate[1];
+    result.rotate = source.rotate;
+    result.scale[0] = source.scale[0];
+    result.scale[1] = source.scale[1];
+    return result;
+  }
+
+  multiply(that: Transform) {
+    return this;
+  }
+
+  toStyleString() {
+    return `translate(${this.translate[0]}px, ${this.translate[1]}px) rotateZ(${this.rotate}rad) scale(${this.scale[0]}, ${this.scale[1]})`;
+  }
 }
 
-function createTransform(): Transform {
-  return {
-    translate: [0, 0],
-    rotate: 0,
-    scale: [0, 0],
-  };
+export type RectListener = (rect: Rect) => void;
+
+export type TransformListener = (rect: Transform) => void;
+
+class ElementState {
+  parentTransform: Transform;
+  layoutTransform: Transform;
+  styleTransform: Transform;
+  scrollTransform: Transform;
+  offsetRect: Rect;
+  rectListeners: Set<RectListener>;
+  transformListeners: Set<TransformListener>;
+
+  constructor() {
+    this.parentTransform = new Transform();
+    this.layoutTransform = new Transform();
+    this.styleTransform = new Transform();
+    this.scrollTransform = new Transform();
+    this.offsetRect = new Rect();
+    this.rectListeners = new Set();
+    this.transformListeners = new Set();
+  }
 }
 
-export type LayoutListener = (rect: Rect, transform: Transform) => void;
+export class LayoutObserver {
+  private elementState: WeakMap<HTMLElement, ElementState>;
 
-interface LayoutControllerOptions {
-  willScroll?: boolean;
-  willPosition?: boolean;
-}
-
-class LayoutController {
-  private element: HTMLElement;
-  private listeners: Set<LayoutListener>;
-  private children: Set<LayoutController>;
-  private rect: Rect;
-  private transform: Transform; // relative to rect
-  private willScroll: boolean;
-  private willPosition: boolean;
-  private scrollX: number;
-  private scrollY: number;
-
-  private static instances: WeakMap<HTMLElement, LayoutController> =
-    new WeakMap();
-
-  constructor(
-    element: HTMLElement,
-    { willScroll, willPosition }: LayoutControllerOptions = {}
-  ) {
+  constructor() {
     this.onScroll = this.onScroll.bind(this);
 
-    this.element = element;
-    this.willScroll = willScroll;
-    this.willPosition = willPosition;
-    this.listeners = new Set();
-    this.children = new Set();
-    this.rect = createRect();
-    this.transform = createTransform();
+    this.elementState = new WeakMap();
 
-    if (this.willScroll) {
-      this.element.addEventListener("scroll", this.onScroll);
-    }
-
-    LayoutController.instances.set(this.element, this);
+    window.addEventListener("scroll", this.onScroll);
   }
 
-  private static *walk(root: HTMLElement) {
-    const treeWalker = document.createTreeWalker(
-      root,
-      NodeFilter.SHOW_ELEMENT,
-      {
-        acceptNode(node) {
-          return this.instances.has(node as HTMLElement)
-            ? NodeFilter.FILTER_ACCEPT
-            : NodeFilter.FILTER_SKIP;
-        },
+  private updateChildren(element: HTMLElement, state: ElementState) {
+    const transform = Transform.from(state.parentTransform)
+      .multiply(state.layoutTransform)
+      .multiply(state.styleTransform)
+      .multiply(state.scrollTransform);
+
+    for (const child of element.children) {
+      if (child instanceof HTMLElement) {
+        this.onParentUpdate(child, transform);
       }
-    );
-
-    let currentNode = treeWalker.currentNode;
-
-    while (currentNode) {
-      yield this.instances.get(currentNode as HTMLElement);
-      currentNode = treeWalker.nextNode();
     }
   }
 
-  static measure(root: HTMLElement) {
-    for (const instance of this.walk(root)) {
-      instance.beforeMeasure();
-    }
-
-    for (const instance of this.walk(root)) {
-      instance.measure();
-    }
-
-    for (const instance of this.walk(root)) {
-      instance.afterMeasure();
+  private onScroll(event: Event) {
+    const element =
+      event.target === window ? document.body : (event.target as HTMLElement);
+    if (this.elementState.has(element)) {
+      const state = this.elementState.get(element);
+      state.scrollTransform.translate[0] = element.scrollLeft;
+      state.scrollTransform.translate[1] = element.scrollTop;
+      this.updateChildren(element, state);
     }
   }
 
-  private onScroll() {}
-
-  private beforeMeasure() {
-    this.element.style.transform = "";
-    this.children.clear();
+  private onParentUpdate(element: HTMLElement, parentTransform: Transform) {
+    if (this.elementState.has(element)) {
+      const state = this.elementState.get(element);
+      state.parentTransform = parentTransform;
+      const transform = Transform.from(state.parentTransform).multiply(
+        state.layoutTransform
+      );
+      for (const listener of state.transformListeners) {
+        listener(transform);
+      }
+      this.updateChildren(element, state);
+    }
   }
 
-  private measure(parent, scrollX, scrollY) {
-    if (parent.element === (this.element.offsetParent as HTMLElement)) {
-      parent.children.add(this);
+  setTransform(element: HTMLElement, transform: Transform) {
+    if (this.elementState.has(element)) {
+      const state = this.elementState.get(element);
+      state.styleTransform = transform;
+      element.style.transform = transform.toStyleString();
+      this.updateChildren(element, state);
+    }
+  }
+
+  private measureElement(element, scrollX, scrollY) {
+    if (!this.elementState.has(element)) {
+      this.elementState.set(element, new ElementState());
+    }
+    const state = this.elementState.get(element);
+    const offsetRect = element.getBoundingClientRect();
+    state.offsetRect.x = offsetRect.x - scrollX;
+    state.offsetRect.y = offsetRect.y - scrollY;
+    state.offsetRect.width = offsetRect.width;
+    state.offsetRect.height = offsetRect.height;
+
+    for (const child of element.children) {
+      this.measureElement(
+        child,
+        scrollX + element.scrollLeft,
+        scrollY + element.scrollTop
+      );
+    }
+  }
+
+  measure() {
+    const transforms = new WeakMap();
+
+    for (const element of walk(document.body)) {
+      transforms.set(element, element.style.transform);
+      element.style.transform = "";
     }
 
-    // TODO: Replace with getComputedStyle
-    this.position = this.element.style.position;
-    switch (this.position) {
-      case "static":
-      case "relative":
-        parent.children.add(this);
-        break;
-      case "absolute":
-      case "sticky":
-        LayoutController.instances
-          .get(this.element.offsetParent as HTMLElement)
-          .children.add(this);
-        break;
+    this.measureElement(document.body, window.scrollX, window.scrollY);
+
+    for (const element of walk(document.body)) {
+      element.style.transform = transforms.get(element);
     }
-
-    const rect = this.element.getBoundingClientRect();
-    this.rect = {
-      x: rect.x - scrollX,
-      y: rect.y - scrollY,
-      width: rect.width,
-      height: rect.height,
-    };
   }
-
-  private afterMeasure() {
-    // this.element.style.transform = ...;
-  }
-
-  setTransform(transform: Transform) {}
 }
-
-// export class RectObserver {
-//   measuredElements: Map<Element, { rect: Rect; listeners: Set<RectListener> }>;
-//   scrollingElements: Map<Element, { scrollLeft: number; scrollTop: number }>;
-
-//   constructor() {
-//     this.scrollListener = this.scrollListener.bind(this);
-//     this.measuredElements = new Map();
-//     this.scrollingElements = new Map();
-//   }
-
-//   measureAll(root: HTMLElement) {
-//     const map: Map<HTMLElement, string> = new Map();
-//     const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
-//     let currentNode: HTMLElement | null = walker.currentNode as HTMLElement;
-//     while ((currentNode = walker.nextNode() as HTMLElement)) {
-//       if (currentNode.style.transform != null) {
-//         map.set(currentNode, currentNode.style.transform);
-//         currentNode.style.transform = "";
-//       }
-//     }
-//     for (const [element, state] of this.measuredElements.entries()) {
-//       const rect = element.getBoundingClientRect();
-//       for (const listener of state.listeners) {
-//         listener.call(null, rect);
-//       }
-//     }
-//     for (const [element, transform] of map.entries()) {
-//       element.style.transform = transform;
-//     }
-//   }
-
-//   scrollListener(event: Event): void {
-//     if (!(event.target instanceof Element)) return;
-//     const prev = this.scrollingElements.get(event.target);
-//     if (prev == null) return;
-//     for (let [element, state] of this.measuredElements.entries()) {
-//       if (event.target.contains(element)) {
-//         state.rect.x += prev.scrollLeft - event.target.scrollLeft;
-//         state.rect.y += prev.scrollTop - event.target.scrollTop;
-//         for (let listener of state.listeners) {
-//           listener.call(null, state.rect);
-//         }
-//       }
-//     }
-//   }
-
-//   observeScrollingElement(element: Element) {
-//     this.scrollingElements.set(element, { scrollLeft: 0, scrollTop: 0 });
-//     element.addEventListener("scroll", this.scrollListener, {
-//       passive: true,
-//     });
-//   }
-
-//   unobserveScrollingElement(element: Element) {
-//     this.scrollingElements.delete(element);
-//     element.removeEventListener("scroll", this.scrollListener);
-//   }
-
-//   addRectListener(element: Element, listener: RectListener): void {
-//     if (this.measuredElements.has(element)) {
-//       this.measuredElements.get(element)?.listeners.add(listener);
-//     } else {
-//       this.measuredElements.set(element, {
-//         rect: measureOne(element),
-//         listeners: new Set([listener]),
-//       });
-//     }
-//   }
-
-//   removeRectListener(element: Element, listener: RectListener): void {
-//     const state = this.measuredElements.get(element);
-//     if (state != null) {
-//       state.listeners.delete(listener);
-//       if (state.listeners.size < 1) {
-//         this.measuredElements.delete(element);
-//       }
-//     }
-//   }
-
-//   addTransformListener() {}
-
-//   removeTransformListener() {}
-
-//   disconnect(): void {
-//     this.measuredElements.clear();
-//     this.scrollingElements.clear();
-//   }
-// }
