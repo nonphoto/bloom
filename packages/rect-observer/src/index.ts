@@ -52,135 +52,42 @@ export class Rect {
   }
 }
 
-class Transform {
-  translate: [number, number];
-  rotate: number;
-  scale: [number, number];
-
-  constructor() {
-    this.translate = [0, 0];
-    this.rotate = 0;
-    this.scale = [0, 0];
-  }
-
-  static from(source: Transform) {
-    const result = new Transform();
-    result.translate[0] = source.translate[0];
-    result.translate[1] = source.translate[1];
-    result.rotate = source.rotate;
-    result.scale[0] = source.scale[0];
-    result.scale[1] = source.scale[1];
-    return result;
-  }
-
-  multiply(that: Transform) {
-    return this;
-  }
-
-  toStyleString() {
-    return `translate(${this.translate[0]}px, ${this.translate[1]}px) rotateZ(${this.rotate}rad) scale(${this.scale[0]}, ${this.scale[1]})`;
-  }
-}
-
 export type RectListener = (rect: Rect) => void;
 
-export type TransformListener = (rect: Transform) => void;
-
-class ElementState {
-  parentTransform: Transform;
-  layoutTransform: Transform;
-  styleTransform: Transform;
-  scrollTransform: Transform;
-  offsetRect: Rect;
-  rectListeners: Set<RectListener>;
-  transformListeners: Set<TransformListener>;
+export class RectObserver {
+  private rects: WeakMap<HTMLElement, Rect>;
+  private listeners: WeakMap<HTMLElement, Set<RectListener>>;
 
   constructor() {
-    this.parentTransform = new Transform();
-    this.layoutTransform = new Transform();
-    this.styleTransform = new Transform();
-    this.scrollTransform = new Transform();
-    this.offsetRect = new Rect();
-    this.rectListeners = new Set();
-    this.transformListeners = new Set();
-  }
-}
-
-export class LayoutObserver {
-  private elementState: WeakMap<HTMLElement, ElementState>;
-
-  constructor() {
-    this.onScroll = this.onScroll.bind(this);
-
-    this.elementState = new WeakMap();
-
-    window.addEventListener("scroll", this.onScroll);
+    this.rects = new WeakMap();
+    this.listeners = new WeakMap();
   }
 
-  private updateChildren(element: HTMLElement, state: ElementState) {
-    const transform = Transform.from(state.parentTransform)
-      .multiply(state.layoutTransform)
-      .multiply(state.styleTransform)
-      .multiply(state.scrollTransform);
+  private measureElement(
+    element: HTMLElement,
+    scrollX: number,
+    scrollY: number
+  ) {
+    if (this.listeners.has(element)) {
+      if (!this.rects.has(element)) {
+        this.rects.set(element, new Rect());
+      }
+      const rect = this.rects.get(element);
+      const clientRect = element.getBoundingClientRect();
+      rect.x = clientRect.x - scrollX;
+      rect.y = clientRect.y - scrollY;
+      rect.width = clientRect.width;
+      rect.height = clientRect.height;
+    }
 
     for (const child of element.children) {
       if (child instanceof HTMLElement) {
-        this.onParentUpdate(child, transform);
+        this.measureElement(
+          child,
+          scrollX + element.scrollLeft,
+          scrollY + element.scrollTop
+        );
       }
-    }
-  }
-
-  private onScroll(event: Event) {
-    const element =
-      event.target === window ? document.body : (event.target as HTMLElement);
-    if (this.elementState.has(element)) {
-      const state = this.elementState.get(element);
-      state.scrollTransform.translate[0] = element.scrollLeft;
-      state.scrollTransform.translate[1] = element.scrollTop;
-      this.updateChildren(element, state);
-    }
-  }
-
-  private onParentUpdate(element: HTMLElement, parentTransform: Transform) {
-    if (this.elementState.has(element)) {
-      const state = this.elementState.get(element);
-      state.parentTransform = parentTransform;
-      const transform = Transform.from(state.parentTransform).multiply(
-        state.layoutTransform
-      );
-      for (const listener of state.transformListeners) {
-        listener(transform);
-      }
-      this.updateChildren(element, state);
-    }
-  }
-
-  setTransform(element: HTMLElement, transform: Transform) {
-    if (this.elementState.has(element)) {
-      const state = this.elementState.get(element);
-      state.styleTransform = transform;
-      element.style.transform = transform.toStyleString();
-      this.updateChildren(element, state);
-    }
-  }
-
-  private measureElement(element, scrollX, scrollY) {
-    if (!this.elementState.has(element)) {
-      this.elementState.set(element, new ElementState());
-    }
-    const state = this.elementState.get(element);
-    const offsetRect = element.getBoundingClientRect();
-    state.offsetRect.x = offsetRect.x - scrollX;
-    state.offsetRect.y = offsetRect.y - scrollY;
-    state.offsetRect.width = offsetRect.width;
-    state.offsetRect.height = offsetRect.height;
-
-    for (const child of element.children) {
-      this.measureElement(
-        child,
-        scrollX + element.scrollLeft,
-        scrollY + element.scrollTop
-      );
     }
   }
 
@@ -189,13 +96,32 @@ export class LayoutObserver {
 
     for (const element of walk(document.body)) {
       transforms.set(element, element.style.transform);
-      element.style.transform = "";
+      element.style.transform = "none";
     }
 
     this.measureElement(document.body, window.scrollX, window.scrollY);
 
     for (const element of walk(document.body)) {
       element.style.transform = transforms.get(element);
+
+      if (this.listeners.has(element) && this.rects.has(element)) {
+        for (const listener of this.listeners.get(element)) {
+          listener.call(undefined, this.rects.get(element));
+        }
+      }
+    }
+  }
+
+  addListener(element: HTMLElement, listener: RectListener) {
+    if (!this.listeners.has(element)) {
+      this.listeners.set(element, new Set());
+    }
+    this.listeners.get(element).add(listener);
+  }
+
+  removeListener(element: HTMLElement, listener: RectListener) {
+    if (this.listeners.has(element)) {
+      this.listeners.get(element).delete(listener);
     }
   }
 }
