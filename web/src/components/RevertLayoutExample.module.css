@@ -1,5 +1,6 @@
 .outer,
-.inner {
+.inner,
+.shadow {
   border-radius: 1rem;
 }
 
@@ -7,12 +8,29 @@
   width: 50vmin;
   height: 50vmin;
   display: grid;
+  overflow: scroll;
   background: lightgray;
 }
 
-.inner {
-  place-self: end;
+.inner,
+.shadow {
+  grid-area: 1 / -1;
+  place-self: center;
   width: 50%;
   height: 50%;
+}
+
+.inner {
   background: turquoise;
+}
+
+.shadow {
+  background: yellow;
+}
+
+.spacer {
+  width: 200%;
+  height: 200%;
+  display: grid;
+  overflow: hidden;
 }

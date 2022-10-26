@@ -8,10 +8,11 @@ import {
   difference,
 } from "@nonphoto-animate/rect-observer";
 
-export default function ReverLayoutExample() {
+export default function RevertLayoutExample() {
   let outerElement, innerElement;
 
   const [time, setTime] = createSignal(0);
+  const [scroll, setScroll] = createSignal(vec2.create(), { equals: false });
   const [outerRect, setOuterRect] = createSignal(mat2d.create(), {
     equals: false,
   });
@@ -19,22 +20,48 @@ export default function ReverLayoutExample() {
     equals: false,
   });
   const outerTransform = createMemo(
-    (prev) => mat2d.fromRotation(prev, time() / 1000),
+    (prev) => {
+      const seconds = time() / 10000;
+      mat2d.fromRotation(prev, seconds * 1.2);
+      // mat2d.scale(
+      //   prev,
+      //   prev,
+      //   vec2.fromValues(Math.cos(seconds), Math.sin(seconds))
+      // );
+      return prev;
+    },
     mat2d.create(),
     { equals: false }
   );
-  const translation = createMemo(
+  const layoutTranslation = createMemo(
     (prev) => difference(prev, outerRect(), innerRect()),
+    vec2.create(),
+    {
+      equals: false,
+    }
+  );
+  const clientTranslation = createMemo(
+    (prev) => vec2.sub(prev, layoutTranslation(), scroll()),
     vec2.create(),
     { equals: false }
   );
 
   const innerTransform = createMemo(
     (prev) => {
-      mat2d.copy(prev, outerTransform());
-      mat2d.translate(prev, prev, translation());
+      mat2d.translate(prev, outerTransform(), clientTranslation());
       mat2d.invert(prev, prev);
-      mat2d.translate(prev, prev, translation());
+      mat2d.translate(prev, prev, layoutTranslation());
+      return prev;
+    },
+    mat2d.create(),
+    { equals: false }
+  );
+
+  const shadowTransform = createMemo(
+    (prev) => {
+      mat2d.translate(prev, outerTransform(), clientTranslation());
+      mat2d.invert(prev, prev);
+      mat2d.translate(prev, prev, clientTranslation());
       return prev;
     },
     mat2d.create(),
@@ -71,12 +98,25 @@ export default function ReverLayoutExample() {
         ref={outerElement}
         class={classes.outer}
         style={{ transform: toStyleString(outerTransform()) }}
+        onScroll={(event) => {
+          setScroll((prev) => {
+            prev[0] = event.target.scrollLeft;
+            prev[1] = event.target.scrollTop;
+            return prev;
+          });
+        }}
       >
-        <div
-          ref={innerElement}
-          class={classes.inner}
-          style={{ transform: toStyleString(innerTransform()) }}
-        ></div>
+        <div class={classes.spacer}>
+          <div
+            class={classes.shadow}
+            style={{ transform: toStyleString(shadowTransform()) }}
+          ></div>
+          <div
+            ref={innerElement}
+            class={classes.inner}
+            style={{ transform: toStyleString(innerTransform()) }}
+          ></div>
+        </div>
       </div>
     </>
   );

@@ -61,8 +61,8 @@ export class RectObserver {
       }
       const rect = this.rects.get(element);
       const clientRect = element.getBoundingClientRect();
-      rect.x = clientRect.x - scrollX;
-      rect.y = clientRect.y - scrollY;
+      rect.x = clientRect.x + scrollX;
+      rect.y = clientRect.y + scrollY;
       rect.width = clientRect.width;
       rect.height = clientRect.height;
     }
