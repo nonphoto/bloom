@@ -4,8 +4,8 @@
 }
 
 .outer {
-  width: 300px;
-  height: 300px;
+  width: 50vmin;
+  height: 50vmin;
   display: flex;
   background: lightgray;
 }

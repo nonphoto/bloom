@@ -1,11 +1,5 @@
 import classes from "./RevertLayoutExample.module.css";
-import {
-  createEffect,
-  createMemo,
-  createSignal,
-  onCleanup,
-  onMount,
-} from "solid-js";
+import { batch, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 import { mat2d, vec2 } from "gl-matrix";
 import {
   RectObserver,
@@ -16,8 +10,12 @@ import {
 export default function ReverLayoutExample() {
   let outerElement, innerElement;
 
-  const [outerRect, setOuterRect] = createSignal(mat2d.create());
-  const [innerRect, setInnerRect] = createSignal(mat2d.create());
+  const [outerRect, setOuterRect] = createSignal(mat2d.create(), {
+    equals: false,
+  });
+  const [innerRect, setInnerRect] = createSignal(mat2d.create(), {
+    equals: false,
+  });
   const [rotation, setRotation] = createSignal(0);
   const outerTransform = createMemo(
     (prev) => mat2d.fromRotation(prev, rotation()),
@@ -44,23 +42,23 @@ export default function ReverLayoutExample() {
 
   const observer = new RectObserver();
 
+  function onResize() {
+    batch(() => {
+      observer.measure();
+    });
+  }
+
   onMount(() => {
     observer.addListener(outerElement, setOuterRect);
     observer.addListener(innerElement, setInnerRect);
-    observer.measure();
+    window.addEventListener("resize", onResize);
+    onResize();
   });
 
   onCleanup(() => {
     observer.removeListener(outerElement, setOuterRect);
     observer.removeListener(innerElement, setInnerRect);
-  });
-
-  function onInput(event) {
-    setRotation(Number(event.target.value));
-  }
-
-  createEffect(() => {
-    console.log(innerTransform());
+    window.addEventListener("resize", onResize);
   });
 
   return (
@@ -70,7 +68,9 @@ export default function ReverLayoutExample() {
         <input
           id="rotate"
           type="number"
-          onInput={onInput}
+          onInput={(event) => {
+            setRotation(Number(event.target.value));
+          }}
           step="0.1"
           value={rotation()}
         ></input>
