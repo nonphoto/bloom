@@ -1,4 +1,5 @@
 import classes from "./RevertLayoutExample.module.css";
+import createRAF from "@solid-primitives/raf";
 import { batch, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 import { mat2d, vec2 } from "gl-matrix";
 import {
@@ -10,15 +11,15 @@ import {
 export default function ReverLayoutExample() {
   let outerElement, innerElement;
 
+  const [time, setTime] = createSignal(0);
   const [outerRect, setOuterRect] = createSignal(mat2d.create(), {
     equals: false,
   });
   const [innerRect, setInnerRect] = createSignal(mat2d.create(), {
     equals: false,
   });
-  const [rotation, setRotation] = createSignal(0);
   const outerTransform = createMemo(
-    (prev) => mat2d.fromRotation(prev, rotation()),
+    (prev) => mat2d.fromRotation(prev, time() / 1000),
     mat2d.create(),
     { equals: false }
   );
@@ -48,7 +49,10 @@ export default function ReverLayoutExample() {
     });
   }
 
+  const [, start] = createRAF(setTime);
+
   onMount(() => {
+    start();
     observer.addListener(outerElement, setOuterRect);
     observer.addListener(innerElement, setInnerRect);
     window.addEventListener("resize", onResize);
@@ -63,18 +67,6 @@ export default function ReverLayoutExample() {
 
   return (
     <>
-      <div class={classes.input}>
-        <label for="rotate">Rotate</label>
-        <input
-          id="rotate"
-          type="number"
-          onInput={(event) => {
-            setRotation(Number(event.target.value));
-          }}
-          step="0.1"
-          value={rotation()}
-        ></input>
-      </div>
       <div
         ref={outerElement}
         class={classes.outer}

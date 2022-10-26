@@ -6,13 +6,12 @@
 .outer {
   width: 50vmin;
   height: 50vmin;
-  display: flex;
+  display: grid;
   background: lightgray;
 }
 
 .inner {
-  align-self: end;
-  justify-self: end;
+  place-self: end;
   width: 50%;
   height: 50%;
   background: turquoise;
