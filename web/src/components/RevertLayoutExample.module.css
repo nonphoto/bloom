@@ -1,0 +1,19 @@
+.outer,
+.inner {
+  border-radius: 1rem;
+}
+
+.outer {
+  width: 300px;
+  height: 300px;
+  display: flex;
+  background: lightgray;
+}
+
+.inner {
+  align-self: end;
+  justify-self: end;
+  width: 50%;
+  height: 50%;
+  background: turquoise;
+}

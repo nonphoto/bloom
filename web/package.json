@@ -11,7 +11,13 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@babel/core": "7.19.6",
     "@nonphoto-animate/rect-observer": "workspace:0.0.0",
-    "astro": "^1.5.0"
+    "astro": "^1.5.0",
+    "gl-matrix": "3.4.3"
+  },
+  "devDependencies": {
+    "@astrojs/solid-js": "1.2.1",
+    "solid-js": "^1.4.3"
   }
 }

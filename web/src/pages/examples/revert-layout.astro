@@ -1,0 +1,15 @@
+---
+import Layout from "@components/Layout.astro"
+import RevertLayoutExample from "@components/RevertLayoutExample.jsx"
+---
+
+<Layout title="Revert Layout Example">
+  <RevertLayoutExample client:idle/>
+</Layout>
+
+<style>
+  :global(body) {
+    display: flex;
+    margin: 0;
+  }
+</style>

@@ -1,3 +1,8 @@
+import { Rect, create as createRect } from "./rect";
+
+export * from "./transform";
+export * from "./rect";
+
 /* TODO: Difference between
  * - document rect (before scrolling, relative to document)
  * - client rect (after scrolling, relative to window)
@@ -38,30 +43,12 @@ function* walk(root: HTMLElement) {
   }
 }
 
-export class Rect {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-
-  constructor() {
-    this.x = 0;
-    this.y = 0;
-    this.width = 0;
-    this.height = 0;
-  }
-}
-
 export type RectListener = (rect: Rect) => void;
 
 export class RectObserver {
-  private rects: WeakMap<HTMLElement, Rect>;
-  private listeners: WeakMap<HTMLElement, Set<RectListener>>;
-
-  constructor() {
-    this.rects = new WeakMap();
-    this.listeners = new WeakMap();
-  }
+  private readonly rects: WeakMap<HTMLElement, Rect> = new WeakMap();
+  private readonly listeners: WeakMap<HTMLElement, Set<RectListener>> =
+    new WeakMap();
 
   private measureElement(
     element: HTMLElement,
@@ -70,7 +57,7 @@ export class RectObserver {
   ) {
     if (this.listeners.has(element)) {
       if (!this.rects.has(element)) {
-        this.rects.set(element, new Rect());
+        this.rects.set(element, createRect());
       }
       const rect = this.rects.get(element);
       const clientRect = element.getBoundingClientRect();
