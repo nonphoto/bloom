@@ -1,9 +1,11 @@
 {
-  "name": "@nonphoto-animate/rect-observer",
+  "name": "@nonphoto/animate",
   "version": "0.0.0",
   "type": "module",
   "exports": {
-    ".": "./index.ts"
+    "./rect-observer": "./src/rect-observer.ts",
+    "./rect": "./src/rect.ts",
+    "./transform": "./src/transform.ts"
   },
   "devDependencies": {
     "typescript": "4.8.4"

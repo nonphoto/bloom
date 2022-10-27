@@ -1,8 +1,5 @@
 import { Rect, create as createRect } from "./rect";
 
-export * from "./transform";
-export * from "./rect";
-
 /* TODO: Difference between
  * - document rect (before scrolling, relative to document)
  * - client rect (after scrolling, relative to window)

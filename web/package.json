@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@babel/core": "7.19.6",
-    "@nonphoto-animate/rect-observer": "workspace:0.0.0",
+    "@nonphoto/animate": "workspace:0.0.0",
     "@solid-primitives/raf": "2.1.3",
     "astro": "^1.5.0",
     "gl-matrix": "3.4.3"
