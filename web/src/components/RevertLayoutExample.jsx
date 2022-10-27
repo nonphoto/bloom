@@ -4,17 +4,17 @@ import { batch, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 import { mat2d, vec2 } from "gl-matrix";
 import { RectObserver } from "@nonphoto/animate/rect-observer";
 import { toStyleString } from "@nonphoto/animate/transform";
-import { difference } from "@nonphoto/animate/rect";
+import * as rect from "@nonphoto/animate/rect";
 
 export default function RevertLayoutExample() {
   let outerElement, innerElement;
 
   const [time, setTime] = createSignal(0);
   const [scroll, setScroll] = createSignal(vec2.create(), { equals: false });
-  const [outerRect, setOuterRect] = createSignal(mat2d.create(), {
+  const [outerRect, setOuterRect] = createSignal(rect.create(), {
     equals: false,
   });
-  const [innerRect, setInnerRect] = createSignal(mat2d.create(), {
+  const [innerRect, setInnerRect] = createSignal(rect.create(), {
     equals: false,
   });
   const outerTransform = createMemo(
@@ -32,11 +32,9 @@ export default function RevertLayoutExample() {
     { equals: false }
   );
   const layoutTranslation = createMemo(
-    (prev) => difference(prev, outerRect(), innerRect()),
+    (prev) => vec2.sub(prev, innerRect().position, outerRect().position),
     vec2.create(),
-    {
-      equals: false,
-    }
+    { equals: false }
   );
   const clientTranslation = createMemo(
     (prev) => vec2.sub(prev, layoutTranslation(), scroll()),

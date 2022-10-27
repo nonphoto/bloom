@@ -1,4 +1,5 @@
-import { Rect, create as createRect } from "./rect";
+import { vec2 } from "gl-matrix";
+import { Rect, create as createRect, fromDOMRect } from "./rect";
 
 /* TODO: Difference between
  * - document rect (before scrolling, relative to document)
@@ -57,11 +58,10 @@ export class RectObserver {
         this.rects.set(element, createRect());
       }
       const rect = this.rects.get(element);
+      console.log(rect);
       const clientRect = element.getBoundingClientRect();
-      rect.x = clientRect.x + scrollX;
-      rect.y = clientRect.y + scrollY;
-      rect.width = clientRect.width;
-      rect.height = clientRect.height;
+      fromDOMRect(rect, clientRect);
+      vec2.add(rect.position, rect.position, vec2.fromValues(scrollX, scrollY));
     }
 
     for (const child of element.children) {

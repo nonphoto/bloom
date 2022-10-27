@@ -1,23 +1,31 @@
-import type { vec2 } from "gl-matrix";
+import { vec2, mat2d } from "gl-matrix";
 
-export interface Rect {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
+export type Rect = {
+  position: vec2;
+  size: vec2;
+};
 
-export function create(): Rect {
+export function create() {
   return {
-    x: 0,
-    y: 0,
-    width: 0,
-    height: 0,
+    position: vec2.create(),
+    size: vec2.create(),
   };
 }
 
-export function difference(out: vec2, a: Rect, b: Rect): vec2 {
-  out[0] = b.x + b.width / 2 - (a.x + a.width / 2);
-  out[1] = b.y + b.height / 2 - (a.y + a.height / 2);
+export function fromDOMRect(out: Rect, source: DOMRect) {
+  out.position[0] = source.x + source.width / 2;
+  out.position[1] = source.y + source.height / 2;
+  out.size[0] = source.width;
+  out.size[1] = source.height;
+  return out;
+}
+
+export function divide(out: mat2d, a: Rect, b: Rect) {
+  out[0] = a.size[0] / b.size[0];
+  out[1] = 0;
+  out[2] = 0;
+  out[3] = a.size[1] / b.size[1];
+  out[4] = a.position[0] - b.position[0];
+  out[5] = a.position[1] - b.position[1];
   return out;
 }
