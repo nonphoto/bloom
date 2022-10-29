@@ -30,6 +30,27 @@ export function divide(out: mat2d, a: Rect, b: Rect) {
   return out;
 }
 
+export function fit(
+  out: Rect,
+  a: Rect,
+  b: Rect,
+  compare: (a: number, b: number) => number
+) {
+  const sx = a.size[0] / b.size[0];
+  const sy = a.size[1] / b.size[1];
+  vec2.copy(out.position, a.position);
+  vec2.scale(out.size, b.size, compare(sx, sy));
+  return out;
+}
+
+export function contain(out: Rect, a: Rect, b: Rect) {
+  return fit(out, a, b, Math.min);
+}
+
+export function cover(out: Rect, a: Rect, b: Rect) {
+  return fit(out, a, b, Math.max);
+}
+
 export function copy(out: Rect, a: Rect) {
   vec2.copy(out.position, a.position);
   vec2.copy(out.size, a.size);
