@@ -19,6 +19,28 @@ import { toStyleString } from "@nonphoto/animate/transform";
 
 const areas = xprod([1, 2], [1, 2]);
 
+function borderRadius(radius, size, scale) {
+  const x = (radius / (size[0] * scale[0])) * 100;
+  const y = (radius / (size[1] * scale[1])) * 100;
+  console.log(x, y);
+  return `${x}% / ${y}%`;
+}
+
+function boxShadow(
+  inset,
+  offsetX,
+  offsetY,
+  blurRadius,
+  spreadRadius,
+  color,
+  scale
+) {
+  const meanScale = (scale[0] + scale[1]) / 2;
+  return `${inset ? "inset " : ""}${offsetX / scale[0]}px ${
+    offsetY / scale[1]
+  }px ${blurRadius / meanScale}px ${spreadRadius / meanScale}px ${color}`;
+}
+
 export default function SharedElementExample() {
   let element;
 
@@ -111,6 +133,12 @@ export default function SharedElementExample() {
     })
   );
 
+  const scaling = createMemo(
+    (prev) => vec2.set(prev, transform()[0], transform()[3]),
+    vec2.create(),
+    { equals: false }
+  );
+
   return (
     <div
       class={classes.grid}
@@ -128,6 +156,18 @@ export default function SharedElementExample() {
           "grid-row-start": areas[areaIndex()][0],
           "grid-column-start": areas[areaIndex()][1],
           transform: toStyleString(transform()),
+          "border-radius": layoutRect()
+            ? borderRadius(1000, layoutRect().size, scaling())
+            : 0,
+          "box-shadow": boxShadow(
+            true,
+            0,
+            0,
+            0,
+            10,
+            "darkturquoise",
+            scaling()
+          ),
         }}
       ></div>
     </div>
