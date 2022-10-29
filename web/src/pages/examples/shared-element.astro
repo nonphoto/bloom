@@ -1,0 +1,17 @@
+---
+import Layout from "@components/Layout.astro"
+import SharedElementExample from "@components/SharedElementExample.jsx"
+---
+
+<Layout title="Revert Layout Example">
+  <SharedElementExample client:idle/>
+</Layout>
+
+<style>
+  :global(body) {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    margin: 0;
+  }
+</style>

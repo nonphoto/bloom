@@ -29,3 +29,13 @@ export function divide(out: mat2d, a: Rect, b: Rect) {
   out[5] = a.position[1] - b.position[1];
   return out;
 }
+
+export function copy(out: Rect, a: Rect) {
+  vec2.copy(out.position, a.position);
+  vec2.copy(out.size, a.size);
+  return out;
+}
+
+export function clone(a: Rect) {
+  return copy(create(), a);
+}

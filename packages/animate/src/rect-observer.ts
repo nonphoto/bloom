@@ -43,7 +43,7 @@ function* walk(root: HTMLElement) {
 
 export type RectListener = (rect: Rect) => void;
 
-export class RectObserver {
+export default class RectObserver {
   private readonly rects: WeakMap<HTMLElement, Rect> = new WeakMap();
   private readonly listeners: WeakMap<HTMLElement, Set<RectListener>> =
     new WeakMap();
@@ -58,7 +58,6 @@ export class RectObserver {
         this.rects.set(element, createRect());
       }
       const rect = this.rects.get(element);
-      console.log(rect);
       const clientRect = element.getBoundingClientRect();
       fromDOMRect(rect, clientRect);
       vec2.add(rect.position, rect.position, vec2.fromValues(scrollX, scrollY));

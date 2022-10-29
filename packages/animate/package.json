@@ -3,8 +3,10 @@
   "version": "0.0.0",
   "type": "module",
   "exports": {
+    "./animation-driver": "./src/animation-driver.ts",
     "./rect-observer": "./src/rect-observer.ts",
     "./rect": "./src/rect.ts",
+    "./spring": "./src/spring.ts",
     "./transform": "./src/transform.ts"
   },
   "devDependencies": {

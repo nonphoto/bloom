@@ -15,7 +15,8 @@
     "@nonphoto/animate": "workspace:0.0.0",
     "@solid-primitives/raf": "2.1.3",
     "astro": "^1.5.0",
-    "gl-matrix": "3.4.3"
+    "gl-matrix": "3.4.3",
+    "ramda": "0.28.0"
   },
   "devDependencies": {
     "@astrojs/solid-js": "1.2.1",
