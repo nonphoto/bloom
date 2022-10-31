@@ -15,8 +15,7 @@ import Spring from "@nonphoto/animate/spring";
 import RectObserver from "@nonphoto/animate/rect-observer";
 import * as rect from "@nonphoto/animate/rect";
 import type Rect from "@nonphoto/animate/rect";
-import { toStyleString } from "@nonphoto/animate/transform";
-import { borderRadius } from "@nonphoto/animate/style";
+import { borderRadius, transform } from "@nonphoto/animate/style";
 import type { EffectFunction, Signal } from "solid-js/types/reactive/signal";
 
 const areas = xprod([1, 2], [1, 2]);
@@ -89,7 +88,6 @@ export default function SharedElementExample() {
     }
     return out;
   });
-
   const [combinedTransform] = createMat2d((out) =>
     mat2d.multiply(out, outerTransform(), innerTransform())
   );
@@ -193,7 +191,7 @@ export default function SharedElementExample() {
           ref={outerElement}
           class={classes.outer}
           style={{
-            transform: toStyleString(outerTransform()),
+            transform: transform(outerTransform()),
             "border-radius": outerRect()
               ? borderRadius(50, outerRect().size, outerTransform())
               : undefined,
@@ -203,7 +201,7 @@ export default function SharedElementExample() {
             ref={innerElement}
             class={classes.inner}
             style={{
-              transform: toStyleString(innerTransform()),
+              transform: transform(innerTransform()),
               "border-radius": innerRect()
                 ? borderRadius(50, innerRect().size, combinedTransform())
                 : undefined,

@@ -20,3 +20,7 @@ export function boxShadow(
     offsetY / transform[3]
   }px ${blurRadius / meanScale}px ${spreadRadius / meanScale}px ${color}`;
 }
+
+export function transform(m: mat2d) {
+  return `matrix(${m.join(", ")})`;
+}

@@ -8,8 +8,7 @@
     "./rect-observer": "./src/rect-observer.ts",
     "./rect": "./src/rect.ts",
     "./spring": "./src/spring.ts",
-    "./style": "./src/style.ts",
-    "./transform": "./src/transform.ts"
+    "./style": "./src/style.ts"
   },
   "devDependencies": {
     "typescript": "4.8.4"
