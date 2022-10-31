@@ -1,9 +1,7 @@
 import classes from "./SharedElementExample.module.css";
 import {
-  Accessor,
   batch,
   createEffect,
-  createMemo,
   createSignal,
   on,
   onCleanup,
@@ -18,28 +16,32 @@ import RectObserver from "@nonphoto/animate/rect-observer";
 import * as rect from "@nonphoto/animate/rect";
 import type Rect from "@nonphoto/animate/rect";
 import { toStyleString } from "@nonphoto/animate/transform";
+import { borderRadius } from "@nonphoto/animate/style";
+import type { EffectFunction, Signal } from "solid-js/types/reactive/signal";
 
 const areas = xprod([1, 2], [1, 2]);
 
-function borderRadius(radius: number, size: vec2, transform: mat2d) {
-  const x = (radius / (size[0] * transform[0])) * 100;
-  const y = (radius / (size[1] * transform[3])) * 100;
-  return `${x}% / ${y}%`;
+function createMutable<T>(
+  fn: EffectFunction<T, T>,
+  { create }: { create: () => T }
+): Signal<T> {
+  const [value, setValue] = createSignal(create(), { equals: false });
+  createEffect(() => {
+    setValue(fn);
+  });
+  return [value, setValue];
 }
 
-function boxShadow(
-  inset: boolean,
-  offsetX: number,
-  offsetY: number,
-  blurRadius: number,
-  spreadRadius: number,
-  color: string,
-  transform: mat2d
-) {
-  const meanScale = (transform[0] + transform[3]) / 2;
-  return `${inset ? "inset " : ""}${offsetX / transform[0]}px ${
-    offsetY / transform[3]
-  }px ${blurRadius / meanScale}px ${spreadRadius / meanScale}px ${color}`;
+function createMat2d(fn: EffectFunction<mat2d, mat2d>) {
+  return createMutable<mat2d>(fn, mat2d);
+}
+
+function createVec2(fn: EffectFunction<vec2, vec2>) {
+  return createMutable<vec2>(fn, vec2);
+}
+
+function createRect(fn: EffectFunction<Rect, Rect>) {
+  return createMutable<Rect>(fn, rect);
 }
 
 export default function SharedElementExample() {
@@ -57,60 +59,39 @@ export default function SharedElementExample() {
     undefined,
     { equals: false }
   );
-  const outerTransform = createMemo<mat2d>(
-    (prev) =>
-      animatedOuterRect() && outerRect()
-        ? rect.divide(prev, animatedOuterRect(), outerRect())
-        : prev,
-    mat2d.create(),
-    { equals: false }
+  const [outerTransform] = createMat2d((out) =>
+    animatedOuterRect() && outerRect()
+      ? rect.divide(out, animatedOuterRect(), outerRect())
+      : out
   );
-  const layoutTranslation = createMemo<vec2>(
-    (prev) => {
-      if (innerRect() && outerRect()) {
-        vec2.sub(prev, innerRect().position, outerRect().position);
-      }
-      return prev;
-    },
-    vec2.create(),
-    { equals: false }
-  );
-  const outerTransformInverse = createMemo<mat2d>(
-    (prev) => {
-      mat2d.translate(prev, outerTransform(), layoutTranslation());
-      mat2d.invert(prev, prev);
-      mat2d.translate(prev, prev, layoutTranslation());
-      return prev;
-    },
-    mat2d.create(),
-    { equals: false }
-  );
-  const innerTargetRect = createMemo<Rect>(
-    (prev) => {
-      if (animatedOuterRect() && innerRect()) {
-        rect.cover(prev, animatedOuterRect(), innerRect());
-      }
-      return prev;
-    },
-    rect.create(),
-    { equals: false }
-  );
-  const innerTransform = createMemo<mat2d>(
-    (prev) => {
-      if (innerRect()) {
-        rect.divide(prev, innerTargetRect(), innerRect());
-        mat2d.multiply(prev, outerTransformInverse(), prev);
-      }
-      return prev;
-    },
-    mat2d.create(),
-    { equals: false }
-  );
+  const [layoutTranslation] = createVec2((out) => {
+    if (innerRect() && outerRect()) {
+      vec2.sub(out, innerRect().position, outerRect().position);
+    }
+    return out;
+  });
+  const [outerTransformInverse] = createMat2d((out) => {
+    mat2d.translate(out, outerTransform(), layoutTranslation());
+    mat2d.invert(out, out);
+    mat2d.translate(out, out, layoutTranslation());
+    return out;
+  });
+  const [animatedInnerRect] = createRect((out) => {
+    if (animatedOuterRect() && innerRect()) {
+      rect.cover(out, animatedOuterRect(), innerRect());
+    }
+    return out;
+  });
+  const [innerTransform] = createMat2d((out) => {
+    if (innerRect()) {
+      rect.divide(out, animatedInnerRect(), innerRect());
+      mat2d.multiply(out, outerTransformInverse(), out);
+    }
+    return out;
+  });
 
-  const combinedTransform = createMemo<mat2d>(
-    (prev) => mat2d.multiply(prev, outerTransform(), innerTransform()),
-    mat2d.create(),
-    { equals: false }
+  const [combinedTransform] = createMat2d((out) =>
+    mat2d.multiply(out, outerTransform(), innerTransform())
   );
 
   let springX = new Spring();
@@ -164,27 +145,21 @@ export default function SharedElementExample() {
       if (outerRect()) {
         if (animatedOuterRect()) {
           springX = new Spring({
-            stiffness: 10,
             initialPosition: animatedOuterRect().position[0],
             targetPosition: outerRect().position[0],
             initialVelocity: springX.velocity,
           });
           springY = new Spring({
-            stiffness: 10,
             initialPosition: animatedOuterRect().position[1],
             targetPosition: outerRect().position[1],
             initialVelocity: springY.velocity,
           });
           springWidth = new Spring({
-            stiffness: 10,
-
             initialPosition: animatedOuterRect().size[0],
             targetPosition: outerRect().size[0],
             initialVelocity: springWidth.velocity,
           });
           springHeight = new Spring({
-            stiffness: 10,
-
             initialPosition: animatedOuterRect().size[1],
             targetPosition: outerRect().size[1],
             initialVelocity: springHeight.velocity,
