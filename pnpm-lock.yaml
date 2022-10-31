@@ -21,6 +21,7 @@ importers:
       '@nonphoto/animate': workspace:0.0.0
       '@nonphoto/css': 1.0.2
       '@solid-primitives/raf': 2.1.3
+      '@types/ramda': 0.28.18
       astro: ^1.5.0
       gl-matrix: 3.4.3
       ramda: 0.28.0
@@ -35,6 +36,7 @@ importers:
       ramda: 0.28.0
     devDependencies:
       '@astrojs/solid-js': 1.2.1_halbqdcynamd2xnv2lolknuczy
+      '@types/ramda': 0.28.18
       solid-js: 1.6.0
 
 packages:
@@ -640,6 +642,12 @@ packages:
   /@types/parse5/6.0.3:
     resolution: {integrity: sha512-SuT16Q1K51EAVPz1K29DJ/sXjhSQ0zjvsypYJ6tlwVsRV9jwW5Adq2ch8Dq8kDBCkYnELS7N7VNCSB5nC56t/g==}
     dev: false
+
+  /@types/ramda/0.28.18:
+    resolution: {integrity: sha512-DlhIC80d1ArfB1jz8C5OzavJfIj6hmEOQzCzy7Nt0FRqXJbmWTt05vI+f3rfC+3AR1VQwvyCMaCyZv++HGk+6w==}
+    dependencies:
+      ts-toolbelt: 6.15.5
+    dev: true
 
   /@types/resolve/1.20.2:
     resolution: {integrity: sha512-60BCwRFOZCQhDncwQdxxeOEEkbc5dIMccYLwbxsS4TUNeVECQ/pBJ0j09mrHOl/JJvpRPGwO9SvE4nR2Nb/a4Q==}
@@ -3336,6 +3344,10 @@ packages:
   /trough/2.1.0:
     resolution: {integrity: sha512-AqTiAOLcj85xS7vQ8QkAV41hPDIJ71XJB4RCUrzo/1GM2CQwhkJGaf9Hgr7BOugMRpgGUrqRg/DrBDl4H40+8g==}
     dev: false
+
+  /ts-toolbelt/6.15.5:
+    resolution: {integrity: sha512-FZIXf1ksVyLcfr7M317jbB67XFJhOO1YqdTcuGaq9q5jLUoTikukZ+98TPjKiP2jC5CgmYdWWYs0s2nLSU0/1A==}
+    dev: true
 
   /tsconfig-resolver/3.0.1:
     resolution: {integrity: sha512-ZHqlstlQF449v8glscGRXzL6l2dZvASPCdXJRWG4gHEZlUVx2Jtmr+a2zeVG4LCsKhDXKRj5R3h0C/98UcVAQg==}

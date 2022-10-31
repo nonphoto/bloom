@@ -2,7 +2,7 @@ import classes from "./RevertLayoutExample.module.css";
 import createRAF from "@solid-primitives/raf";
 import { batch, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 import { mat2d, vec2 } from "gl-matrix";
-import { RectObserver } from "@nonphoto/animate/rect-observer";
+import RectObserver from "@nonphoto/animate/rect-observer";
 import { toStyleString } from "@nonphoto/animate/transform";
 import * as rect from "@nonphoto/animate/rect";
 

@@ -3,6 +3,10 @@
   "compilerOptions": {
     "moduleResolution": "Node",
     "baseUrl": ".",
+    "lib": ["DOM"],
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js",
+    "types": ["node", "solid-js"],
     "paths": {
       "@components/*": ["src/components/*"]
     }

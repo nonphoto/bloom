@@ -8,15 +8,25 @@
   align-self: center;
 }
 
+.shadow {
+  border-radius: 50px;
+  background-color: yellow;
+}
+
 .outer {
-  border-radius: 1000px;
-  background: paleturquoise;
   position: relative;
+  background: magenta;
+  width: 100%;
+  height: 100%;
+  border-radius: 50px;
+  mix-blend-mode: multiply;
 }
 
 .inner {
   position: absolute;
+  background: cyan;
   inset: 0;
   aspect-ratio: 1 / 1;
-  box-shadow: inset 0 0 0 10 dodgerblue;
+  border-radius: 50px;
+  mix-blend-mode: multiply;
 }
