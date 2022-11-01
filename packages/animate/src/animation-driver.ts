@@ -35,7 +35,9 @@ export default class AnimationDriver {
   }
 
   stop() {
-    cancelAnimationFrame(this.requestId);
+    if (this.requestId) {
+      cancelAnimationFrame(this.requestId);
+    }
     this.requestId = this.initialTime = this.currentTime = undefined;
   }
 }
