@@ -19,7 +19,11 @@ export default class AnimationDriver {
     this.initialTime ??= nextTime;
     this.currentTime ??= nextTime;
     this.requestId = requestAnimationFrame(this.update);
-    this.onUpdate(nextTime - this.initialTime, nextTime - this.currentTime);
+    this.onUpdate.call(
+      undefined,
+      nextTime - this.initialTime,
+      nextTime - this.currentTime
+    );
     this.currentTime = nextTime;
   }
 

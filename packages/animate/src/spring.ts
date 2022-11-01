@@ -2,181 +2,172 @@ export interface SpringOptions {
   stiffness: number;
   damping: number;
   mass: number;
-  initialPosition: number;
-  targetPosition: number;
-  initialVelocity: number;
+  time: number;
+  startPosition: number;
+  endPosition: number;
+  startVelocity: number;
   restVelocityThreshold: number;
   restPositionThreshold: number;
 }
 
 export default class Spring {
-  private _options: SpringOptions;
-  private _computed: {
-    v0: number;
-    x0: number;
-    zeta: number;
-    omega0: number;
-    omega1: number;
-    omega2: number;
-  };
-  private _state: {
-    position: number;
-    velocity: number;
-    envelope: number;
-  };
+  private _stiffness: number;
+  private _damping: number;
+  private _mass: number;
+  private time: number;
+  private _position: number;
+  private _velocity: number;
+  private envelope: number;
+  private v0: number;
+  private x0: number;
+  private zeta: number;
+  private omega0: number;
+  private omega1: number;
+  private omega2: number;
+
+  startPosition: number;
+  endPosition: number;
+  startVelocity: number;
+  restVelocityThreshold: number;
+  restPositionThreshold: number;
 
   constructor(options?: Partial<SpringOptions>) {
-    const {
-      stiffness = 100,
-      damping = 10,
-      mass = 1,
-      initialPosition = 0,
-      targetPosition = 1,
-      initialVelocity = 0,
-      restVelocityThreshold = 0.001,
-      restPositionThreshold = 0.001,
-    } = options ?? {};
+    this.stiffness = options?.stiffness ?? 100;
+    this.damping = options?.damping ?? 10;
+    this.mass = options?.mass ?? 1;
+    this.time = options?.time ?? 0;
+    this.startPosition = options?.startPosition ?? 0;
+    this.endPosition = options?.endPosition ?? 1;
+    this.startVelocity = options?.startVelocity ?? 0;
+    this.restVelocityThreshold = options?.restVelocityThreshold ?? 0.001;
+    this.restPositionThreshold = options?.restPositionThreshold ?? 0.001;
+    this._position = this.startPosition;
+    this._velocity = this.startVelocity;
+    this.envelope = 0;
+  }
 
-    if (mass <= 0) {
-      throw Error("Mass must be greater than 0");
-    }
-
-    if (stiffness <= 0) {
+  set stiffness(value) {
+    if (value <= 0) {
       throw Error("Stiffness must be greater than 0");
     }
 
-    if (damping <= 0) {
+    this._stiffness = value;
+  }
+
+  get stiffness() {
+    return this._stiffness;
+  }
+
+  set damping(value) {
+    if (value <= 0) {
       throw Error("Damping must be greater than 0");
     }
 
-    const v0 = -initialVelocity,
-      x0 = targetPosition - initialPosition,
-      zeta = damping / (2 * Math.sqrt(stiffness * mass)),
-      omega0 = Math.sqrt(stiffness / mass) / 1000,
-      omega1 = omega0 * Math.sqrt(1.0 - zeta * zeta),
-      omega2 = omega0 * Math.sqrt(zeta * zeta - 1.0);
+    this._damping = value;
+  }
 
-    this._options = Object.freeze({
-      stiffness,
-      damping,
-      mass,
-      initialPosition,
-      targetPosition,
-      initialVelocity,
-      restVelocityThreshold,
-      restPositionThreshold,
-    });
-    this._computed = Object.freeze({ v0, x0, zeta, omega0, omega1, omega2 });
-    this._state = {
-      position: this._options.initialPosition,
-      velocity: this._options.initialVelocity,
-      envelope: 0,
-    };
+  get damping() {
+    return this._damping;
+  }
+
+  set mass(value) {
+    if (value <= 0) {
+      throw Error("Damping must be greater than 0");
+    }
+
+    this._mass = value;
+  }
+
+  get mass() {
+    return this._mass;
   }
 
   get position() {
-    return this.isAtRest ? this._options.targetPosition : this._state.position;
+    return this.isAtRest ? this.endPosition : this._position;
   }
 
   get velocity() {
-    return this.isAtRest ? 0 : this._state.velocity;
+    return this.isAtRest ? 0 : this._velocity;
   }
 
   get isAtRest() {
     return (
-      this._options.stiffness !== 0 &&
-      Math.abs(this._state.velocity) <= this._options.restVelocityThreshold &&
-      Math.abs(this._options.targetPosition - this._state.position) <=
-        this._options.restPositionThreshold
+      this.stiffness !== 0 &&
+      Math.abs(this._velocity) <= this.restVelocityThreshold &&
+      Math.abs(this.endPosition - this._position) <= this.restPositionThreshold
     );
   }
 
   get isOvershooting() {
-    return this._options.initialPosition < this._options.targetPosition
-      ? this._state.position > this._options.targetPosition
-      : this._state.position < this._options.targetPosition;
+    return this.startPosition < this.endPosition
+      ? this._position > this.endPosition
+      : this._position < this.endPosition;
   }
 
-  setTime(t: number) {
-    if (this._computed.zeta < 1) {
-      this._state.envelope = Math.exp(
-        -this._computed.zeta * this._computed.omega0 * t
-      );
-      this._state.position =
-        this._options.targetPosition -
-        this._state.envelope *
-          (((this._computed.v0 +
-            this._computed.zeta * this._computed.omega0 * this._computed.x0) /
-            this._computed.omega1) *
-            Math.sin(this._computed.omega1 * t) +
-            this._computed.x0 * Math.cos(this._computed.omega1 * t));
-      this._state.velocity =
-        this._computed.zeta *
-          this._computed.omega0 *
-          this._state.envelope *
-          ((Math.sin(this._computed.omega1 * t) *
-            (this._computed.v0 +
-              this._computed.zeta *
-                this._computed.omega0 *
-                this._computed.x0)) /
-            this._computed.omega1 +
-            this._computed.x0 * Math.cos(this._computed.omega1 * t)) -
-        this._state.envelope *
-          (Math.cos(this._computed.omega1 * t) *
-            (this._computed.v0 +
-              this._computed.zeta * this._computed.omega0 * this._computed.x0) -
-            this._computed.omega1 *
-              this._computed.x0 *
-              Math.sin(this._computed.omega1 * t));
-    } else if (this._computed.zeta === 1) {
-      this._state.envelope = Math.exp(-this._computed.omega0 * t);
-      this._state.position =
-        this._options.targetPosition -
-        this._state.envelope *
-          (this._computed.x0 +
-            (this._computed.v0 + this._computed.omega0 * this._computed.x0) *
-              t);
-      this._state.velocity =
-        this._state.envelope *
-        (this._computed.v0 * (t * this._computed.omega0 - 1) +
-          t *
-            this._computed.x0 *
-            (this._computed.omega0 * this._computed.omega0));
+  update() {
+    this.v0 = -this.startVelocity;
+    this.x0 = this.endPosition - this.startPosition;
+    this.zeta = this.damping / (2 * Math.sqrt(this.stiffness * this.mass));
+    this.omega0 = Math.sqrt(this.stiffness / this.mass) / 1000;
+    this.omega1 = this.omega0 * Math.sqrt(1.0 - this.zeta * this.zeta);
+    this.omega2 = this.omega0 * Math.sqrt(this.zeta * this.zeta - 1.0);
+
+    if (this.zeta < 1) {
+      this.envelope = Math.exp(-this.zeta * this.omega0 * this.time);
+      this._position =
+        this.endPosition -
+        this.envelope *
+          (((this.v0 + this.zeta * this.omega0 * this.x0) / this.omega1) *
+            Math.sin(this.omega1 * this.time) +
+            this.x0 * Math.cos(this.omega1 * this.time));
+      this._velocity =
+        this.zeta *
+          this.omega0 *
+          this.envelope *
+          ((Math.sin(this.omega1 * this.time) *
+            (this.v0 + this.zeta * this.omega0 * this.x0)) /
+            this.omega1 +
+            this.x0 * Math.cos(this.omega1 * this.time)) -
+        this.envelope *
+          (Math.cos(this.omega1 * this.time) *
+            (this.v0 + this.zeta * this.omega0 * this.x0) -
+            this.omega1 * this.x0 * Math.sin(this.omega1 * this.time));
+    } else if (this.zeta === 1) {
+      this.envelope = Math.exp(-this.omega0 * this.time);
+      this._position =
+        this.endPosition -
+        this.envelope *
+          (this.x0 + (this.v0 + this.omega0 * this.x0) * this.time);
+      this._velocity =
+        this.envelope *
+        (this.v0 * (this.time * this.omega0 - 1) +
+          this.time * this.x0 * (this.omega0 * this.omega0));
     } else {
-      this._state.envelope = Math.exp(
-        -this._computed.zeta * this._computed.omega0 * t
-      );
-      this._state.position =
-        this._options.targetPosition -
-        (this._state.envelope *
-          ((this._computed.v0 +
-            this._computed.zeta * this._computed.omega0 * this._computed.x0) *
-            Math.sinh(this._computed.omega2 * t) +
-            this._computed.omega2 *
-              this._computed.x0 *
-              Math.cosh(this._computed.omega2 * t))) /
-          this._computed.omega2;
-      this._state.velocity =
-        (this._state.envelope *
-          this._computed.zeta *
-          this._computed.omega0 *
-          (Math.sinh(this._computed.omega2 * t) *
-            (this._computed.v0 +
-              this._computed.zeta * this._computed.omega0 * this._computed.x0) +
-            this._computed.x0 *
-              this._computed.omega2 *
-              Math.cosh(this._computed.omega2 * t))) /
-          this._computed.omega2 -
-        (this._state.envelope *
-          (this._computed.omega2 *
-            Math.cosh(this._computed.omega2 * t) *
-            (this._computed.v0 +
-              this._computed.zeta * this._computed.omega0 * this._computed.x0) +
-            this._computed.omega2 *
-              this._computed.omega2 *
-              this._computed.x0 *
-              Math.sinh(this._computed.omega2 * t))) /
-          this._computed.omega2;
+      this.envelope = Math.exp(-this.zeta * this.omega0 * this.time);
+      this._position =
+        this.endPosition -
+        (this.envelope *
+          ((this.v0 + this.zeta * this.omega0 * this.x0) *
+            Math.sinh(this.omega2 * this.time) +
+            this.omega2 * this.x0 * Math.cosh(this.omega2 * this.time))) /
+          this.omega2;
+      this._velocity =
+        (this.envelope *
+          this.zeta *
+          this.omega0 *
+          (Math.sinh(this.omega2 * this.time) *
+            (this.v0 + this.zeta * this.omega0 * this.x0) +
+            this.x0 * this.omega2 * Math.cosh(this.omega2 * this.time))) /
+          this.omega2 -
+        (this.envelope *
+          (this.omega2 *
+            Math.cosh(this.omega2 * this.time) *
+            (this.v0 + this.zeta * this.omega0 * this.x0) +
+            this.omega2 *
+              this.omega2 *
+              this.x0 *
+              Math.sinh(this.omega2 * this.time))) /
+          this.omega2;
     }
   }
 }

@@ -92,28 +92,38 @@ export default function SharedElementExample() {
     mat2d.multiply(out, outerTransform(), innerTransform())
   );
 
-  let springX = new Spring();
-  let springY = new Spring();
-  let springWidth = new Spring();
-  let springHeight = new Spring();
+  const springX = new Spring();
+  const springY = new Spring();
+  const springWidth = new Spring();
+  const springHeight = new Spring();
 
   const animation = new AnimationDriver((time: DOMHighResTimeStamp) => {
-    untrack(() => {
-      springX.setTime(time);
-      springY.setTime(time);
-      springWidth.setTime(time);
-      springHeight.setTime(time);
-      if (animatedOuterRect()) {
-        setAnimatedOuterRect((prev: Rect | undefined) => {
-          if (prev) {
-            prev.position[0] = springX.position;
-            prev.position[1] = springY.position;
-            prev.size[0] = springWidth.position;
-            prev.size[1] = springHeight.position;
-          }
-          return prev;
-        });
+    springX.time = time;
+    springY.time = time;
+    springWidth.time = time;
+    springHeight.time = time;
+    springX.update();
+    springY.update();
+    springWidth.update();
+    springHeight.update();
+
+    if (
+      springX.isAtRest &&
+      springY.isAtRest &&
+      springWidth.isAtRest &&
+      springHeight.isAtRest
+    ) {
+      animation.stop();
+    }
+
+    setAnimatedOuterRect((prev: Rect | undefined) => {
+      if (prev) {
+        prev.position[0] = springX.position;
+        prev.position[1] = springY.position;
+        prev.size[0] = springWidth.position;
+        prev.size[1] = springHeight.position;
       }
+      return prev;
     });
   });
 
@@ -142,26 +152,18 @@ export default function SharedElementExample() {
     on(outerRect, () => {
       if (outerRect()) {
         if (animatedOuterRect()) {
-          springX = new Spring({
-            initialPosition: animatedOuterRect().position[0],
-            targetPosition: outerRect().position[0],
-            initialVelocity: springX.velocity,
-          });
-          springY = new Spring({
-            initialPosition: animatedOuterRect().position[1],
-            targetPosition: outerRect().position[1],
-            initialVelocity: springY.velocity,
-          });
-          springWidth = new Spring({
-            initialPosition: animatedOuterRect().size[0],
-            targetPosition: outerRect().size[0],
-            initialVelocity: springWidth.velocity,
-          });
-          springHeight = new Spring({
-            initialPosition: animatedOuterRect().size[1],
-            targetPosition: outerRect().size[1],
-            initialVelocity: springHeight.velocity,
-          });
+          springX.startPosition = animatedOuterRect().position[0];
+          springX.endPosition = outerRect().position[0];
+          springX.startVelocity = springX.velocity;
+          springY.startPosition = animatedOuterRect().position[1];
+          springY.endPosition = outerRect().position[1];
+          springY.startVelocity = springY.velocity;
+          springWidth.startPosition = animatedOuterRect().size[0];
+          springWidth.endPosition = outerRect().size[0];
+          springWidth.startVelocity = springWidth.velocity;
+          springHeight.startPosition = animatedOuterRect().size[1];
+          springHeight.endPosition = outerRect().size[1];
+          springHeight.startVelocity = springHeight.velocity;
           animation.start();
         } else {
           setAnimatedOuterRect(rect.clone(outerRect()));
