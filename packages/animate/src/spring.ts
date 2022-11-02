@@ -10,11 +10,11 @@ export interface SpringOptions {
   restPositionThreshold: number;
 }
 
-export default class Spring {
+export class Spring {
   private _stiffness: number;
   private _damping: number;
   private _mass: number;
-  private time: number;
+  private _time: number;
   private _position: number;
   private _velocity: number;
   private envelope: number;
@@ -72,7 +72,7 @@ export default class Spring {
 
   set mass(value) {
     if (value <= 0) {
-      throw Error("Damping must be greater than 0");
+      throw Error("Mass must be greater than 0");
     }
 
     this._mass = value;
@@ -80,6 +80,18 @@ export default class Spring {
 
   get mass() {
     return this._mass;
+  }
+
+  set time(value) {
+    if (value < 0) {
+      throw Error("Time must not be negative");
+    }
+
+    this._time = value;
+  }
+
+  get time() {
+    return this._time;
   }
 
   get position() {

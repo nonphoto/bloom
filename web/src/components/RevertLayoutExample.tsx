@@ -2,12 +2,12 @@ import classes from "./RevertLayoutExample.module.css";
 import createRAF from "@solid-primitives/raf";
 import { batch, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 import { mat2d, vec2 } from "gl-matrix";
-import RectObserver from "@nonphoto/animate/rect-observer";
-import { toStyleString } from "@nonphoto/animate/transform";
-import * as rect from "@nonphoto/animate/rect";
+import * as rect from "@nonphoto/rect";
+import { transform } from "@nonphoto/style";
 
 export default function RevertLayoutExample() {
-  let outerElement, innerElement;
+  let outerElement: HTMLDivElement | undefined,
+    innerElement: HTMLDivElement | undefined;
 
   const [time, setTime] = createSignal(0);
   const [scroll, setScroll] = createSignal(vec2.create(), { equals: false });
@@ -17,7 +17,7 @@ export default function RevertLayoutExample() {
   const [innerRect, setInnerRect] = createSignal(rect.create(), {
     equals: false,
   });
-  const outerTransform = createMemo(
+  const outerTransform = createMemo<mat2d>(
     (prev) => {
       const seconds = time() / 10000;
       mat2d.fromRotation(prev, seconds * 1.2);
@@ -31,18 +31,18 @@ export default function RevertLayoutExample() {
     mat2d.create(),
     { equals: false }
   );
-  const layoutTranslation = createMemo(
+  const layoutTranslation = createMemo<vec2>(
     (prev) => vec2.sub(prev, innerRect().position, outerRect().position),
     vec2.create(),
     { equals: false }
   );
-  const clientTranslation = createMemo(
+  const clientTranslation = createMemo<vec2>(
     (prev) => vec2.sub(prev, layoutTranslation(), scroll()),
     vec2.create(),
     { equals: false }
   );
 
-  const innerTransform = createMemo(
+  const innerTransform = createMemo<mat2d>(
     (prev) => {
       mat2d.translate(prev, outerTransform(), clientTranslation());
       mat2d.invert(prev, prev);
@@ -53,7 +53,7 @@ export default function RevertLayoutExample() {
     { equals: false }
   );
 
-  const shadowTransform = createMemo(
+  const shadowTransform = createMemo<mat2d>(
     (prev) => {
       mat2d.translate(prev, outerTransform(), clientTranslation());
       mat2d.invert(prev, prev);
@@ -64,7 +64,7 @@ export default function RevertLayoutExample() {
     { equals: false }
   );
 
-  const observer = new RectObserver();
+  const observer = new rect.RectObserver();
 
   function onResize() {
     batch(() => {
@@ -76,15 +76,15 @@ export default function RevertLayoutExample() {
 
   onMount(() => {
     start();
-    observer.addListener(outerElement, setOuterRect);
-    observer.addListener(innerElement, setInnerRect);
+    observer.addListener(outerElement!, setOuterRect);
+    observer.addListener(innerElement!, setInnerRect);
     window.addEventListener("resize", onResize);
     onResize();
   });
 
   onCleanup(() => {
-    observer.removeListener(outerElement, setOuterRect);
-    observer.removeListener(innerElement, setInnerRect);
+    observer.removeListener(outerElement!, setOuterRect);
+    observer.removeListener(innerElement!, setInnerRect);
     window.addEventListener("resize", onResize);
   });
 
@@ -93,7 +93,7 @@ export default function RevertLayoutExample() {
       <div
         ref={outerElement}
         class={classes.outer}
-        style={{ transform: toStyleString(outerTransform()) }}
+        style={{ transform: transform(outerTransform()) }}
         onScroll={(event) => {
           setScroll((prev) => {
             prev[0] = event.target.scrollLeft;
@@ -105,12 +105,12 @@ export default function RevertLayoutExample() {
         <div class={classes.spacer}>
           <div
             class={classes.shadow}
-            style={{ transform: toStyleString(shadowTransform()) }}
+            style={{ transform: transform(shadowTransform()) }}
           ></div>
           <div
             ref={innerElement}
             class={classes.inner}
-            style={{ transform: toStyleString(innerTransform()) }}
+            style={{ transform: transform(innerTransform()) }}
           ></div>
         </div>
       </div>

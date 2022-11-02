@@ -2,15 +2,15 @@
   "name": "@nonphoto/animate",
   "version": "0.0.0",
   "type": "module",
+  "types": "./dist/index.d.ts",
   "exports": {
-    "./animation-driver": "./src/animation-driver.ts",
-    "./mat2d": "./src/mat2d.ts",
-    "./rect-observer": "./src/rect-observer.ts",
-    "./rect": "./src/rect.ts",
-    "./spring": "./src/spring.ts",
-    "./style": "./src/style.ts"
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts"
   },
   "devDependencies": {
+    "tsup": "6.3.0",
     "typescript": "4.8.4"
   },
   "dependencies": {

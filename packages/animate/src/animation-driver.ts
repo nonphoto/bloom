@@ -1,9 +1,9 @@
-type AnimationDriverCallback = (
+export type AnimationDriverCallback = (
   time: DOMHighResTimeStamp,
   deltaTime: DOMHighResTimeStamp
 ) => void;
 
-export default class AnimationDriver {
+export class AnimationDriver {
   private onUpdate: AnimationDriverCallback;
   private initialTime: DOMHighResTimeStamp;
   private currentTime: DOMHighResTimeStamp;

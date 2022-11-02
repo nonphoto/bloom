@@ -6,16 +6,13 @@ import {
   on,
   onCleanup,
   onMount,
-  untrack,
 } from "solid-js";
 import { xprod } from "ramda";
 import { mat2d, vec2 } from "gl-matrix";
-import AnimationDriver from "@nonphoto/animate/animation-driver";
-import Spring from "@nonphoto/animate/spring";
-import RectObserver from "@nonphoto/animate/rect-observer";
-import * as rect from "@nonphoto/animate/rect";
-import type Rect from "@nonphoto/animate/rect";
-import { borderRadius, transform } from "@nonphoto/animate/style";
+import { AnimationDriver, Spring } from "@nonphoto/animate";
+import * as rect from "@nonphoto/rect";
+import type { Rect } from "@nonphoto/rect";
+import * as style from "@nonphoto/style";
 import type { EffectFunction, Signal } from "solid-js/types/reactive/signal";
 
 const areas = xprod([1, 2], [1, 2]);
@@ -48,24 +45,24 @@ export default function SharedElementExample() {
     innerElement: HTMLDivElement | undefined;
 
   const [areaIndex, setAreaIndex] = createSignal(0);
-  const [outerRect, setOuterRect] = createSignal<Rect>(undefined, {
+  const [outerRect, setOuterRect] = createSignal<Rect | undefined>(undefined, {
     equals: false,
   });
-  const [innerRect, setInnerRect] = createSignal<Rect>(undefined, {
+  const [innerRect, setInnerRect] = createSignal<Rect | undefined>(undefined, {
     equals: false,
   });
-  const [animatedOuterRect, setAnimatedOuterRect] = createSignal<Rect>(
-    undefined,
-    { equals: false }
-  );
-  const [outerTransform] = createMat2d((out) =>
-    animatedOuterRect() && outerRect()
-      ? rect.divide(out, animatedOuterRect(), outerRect())
-      : out
-  );
+  const [animatedOuterRect, setAnimatedOuterRect] = createSignal<
+    Rect | undefined
+  >(undefined, { equals: false });
+  const [outerTransform] = createMat2d((out) => {
+    if (animatedOuterRect() && outerRect()) {
+      rect.divide(out, animatedOuterRect()!, outerRect()!);
+    }
+    return out;
+  });
   const [layoutTranslation] = createVec2((out) => {
     if (innerRect() && outerRect()) {
-      vec2.sub(out, innerRect().position, outerRect().position);
+      vec2.sub(out, innerRect()!.position, outerRect()!.position);
     }
     return out;
   });
@@ -77,13 +74,13 @@ export default function SharedElementExample() {
   });
   const [animatedInnerRect] = createRect((out) => {
     if (animatedOuterRect() && innerRect()) {
-      rect.cover(out, animatedOuterRect(), innerRect());
+      rect.cover(out, animatedOuterRect()!, innerRect()!);
     }
     return out;
   });
   const [innerTransform] = createMat2d((out) => {
     if (innerRect()) {
-      rect.divide(out, animatedInnerRect(), innerRect());
+      rect.divide(out, animatedInnerRect(), innerRect()!);
       mat2d.multiply(out, outerTransformInverse(), out);
     }
     return out;
@@ -127,7 +124,7 @@ export default function SharedElementExample() {
     });
   });
 
-  const observer = new RectObserver();
+  const observer = new rect.RectObserver();
 
   function onResize() {
     batch(() => {
@@ -136,15 +133,19 @@ export default function SharedElementExample() {
   }
 
   onMount(() => {
-    observer.addListener(outerElement, setOuterRect);
-    observer.addListener(innerElement, setInnerRect);
+    if (outerElement && innerElement) {
+      observer.addListener(outerElement, setOuterRect);
+      observer.addListener(innerElement, setInnerRect);
+    }
     window.addEventListener("resize", onResize);
     onResize();
   });
 
   onCleanup(() => {
-    observer.removeListener(outerElement, setOuterRect);
-    observer.removeListener(innerElement, setInnerRect);
+    if (outerElement && innerElement) {
+      observer.removeListener(outerElement, setOuterRect);
+      observer.removeListener(innerElement, setInnerRect);
+    }
     window.addEventListener("resize", onResize);
   });
 
@@ -152,21 +153,21 @@ export default function SharedElementExample() {
     on(outerRect, () => {
       if (outerRect()) {
         if (animatedOuterRect()) {
-          springX.startPosition = animatedOuterRect().position[0];
-          springX.endPosition = outerRect().position[0];
+          springX.startPosition = animatedOuterRect()!.position[0];
+          springX.endPosition = outerRect()!.position[0];
           springX.startVelocity = springX.velocity;
-          springY.startPosition = animatedOuterRect().position[1];
-          springY.endPosition = outerRect().position[1];
+          springY.startPosition = animatedOuterRect()!.position[1];
+          springY.endPosition = outerRect()!.position[1];
           springY.startVelocity = springY.velocity;
-          springWidth.startPosition = animatedOuterRect().size[0];
-          springWidth.endPosition = outerRect().size[0];
+          springWidth.startPosition = animatedOuterRect()!.size[0];
+          springWidth.endPosition = outerRect()!.size[0];
           springWidth.startVelocity = springWidth.velocity;
-          springHeight.startPosition = animatedOuterRect().size[1];
-          springHeight.endPosition = outerRect().size[1];
+          springHeight.startPosition = animatedOuterRect()!.size[1];
+          springHeight.endPosition = outerRect()!.size[1];
           springHeight.startVelocity = springHeight.velocity;
           animation.start();
         } else {
-          setAnimatedOuterRect(rect.clone(outerRect()));
+          setAnimatedOuterRect(rect.clone(outerRect()!));
         }
       }
     })
@@ -193,9 +194,9 @@ export default function SharedElementExample() {
           ref={outerElement}
           class={classes.outer}
           style={{
-            transform: transform(outerTransform()),
+            transform: style.transform(outerTransform()),
             "border-radius": outerRect()
-              ? borderRadius(50, outerRect().size, outerTransform())
+              ? style.borderRadius(50, outerRect()!.size, outerTransform())
               : undefined,
           }}
         >
@@ -203,9 +204,9 @@ export default function SharedElementExample() {
             ref={innerElement}
             class={classes.inner}
             style={{
-              transform: transform(innerTransform()),
+              transform: style.transform(innerTransform()),
               "border-radius": innerRect()
-                ? borderRadius(50, innerRect().size, combinedTransform())
+                ? style.borderRadius(50, innerRect()!.size, combinedTransform())
                 : undefined,
             }}
           ></div>

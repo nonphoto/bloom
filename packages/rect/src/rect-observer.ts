@@ -43,7 +43,7 @@ function* walk(root: HTMLElement) {
 
 export type RectListener = (rect: Rect) => void;
 
-export default class RectObserver {
+export class RectObserver {
   private readonly rects: WeakMap<HTMLElement, Rect> = new WeakMap();
   private readonly listeners: WeakMap<HTMLElement, Set<RectListener>> =
     new WeakMap();

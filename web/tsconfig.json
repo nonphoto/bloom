@@ -4,10 +4,11 @@
     "strict": true,
     "moduleResolution": "Node",
     "baseUrl": ".",
+    "checkJs": true,
     "lib": ["DOM"],
     "jsx": "preserve",
     "jsxImportSource": "solid-js",
-    "types": ["node", "solid-js"],
+    "types": ["solid-js"],
     "paths": {
       "@components/*": ["src/components/*"]
     }

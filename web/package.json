@@ -1,5 +1,5 @@
 {
-  "name": "@example/basics",
+  "name": "web",
   "type": "module",
   "version": "0.0.1",
   "private": true,
@@ -14,6 +14,8 @@
     "@babel/core": "7.19.6",
     "@nonphoto/animate": "workspace:0.0.0",
     "@nonphoto/css": "1.0.2",
+    "@nonphoto/rect": "workspace:0.0.0",
+    "@nonphoto/style": "workspace:0.0.0",
     "@solid-primitives/raf": "2.1.3",
     "astro": "^1.5.0",
     "gl-matrix": "3.4.3",
