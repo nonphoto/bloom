@@ -1,0 +1,69 @@
+.middle {
+  position: relative;
+}
+
+.middle::before {
+  content: "";
+  position: absolute;
+  border-left: var(--border-style) var(--border-width);
+  inset: var(--border-radius) auto var(--border-radius) 0;
+  width: 0;
+}
+
+.middle::after {
+  content: "";
+  position: absolute;
+  border-right: var(--border-style) var(--border-width);
+  inset: var(--border-radius) 0 var(--border-radius) auto;
+  width: 0;
+}
+
+.top {
+  position: absolute;
+  border-top: var(--border-style) var(--border-width);
+  inset: 0 var(--border-radius) auto var(--border-radius);
+  height: 0;
+}
+
+.top::before {
+  content: "";
+  position: absolute;
+  border-top-left-radius: var(--border-radius);
+  border-top: var(--border-style) var(--border-width);
+  border-left: var(--border-style) var(--border-width);
+  inset: 0 100% auto auto;
+}
+
+.top::after {
+  content: "";
+  position: absolute;
+  border-top-left-radius: var(--border-radius);
+  border-top: var(--border-style) var(--border-width);
+  border-left: var(--border-style) var(--border-width);
+  inset: 0 auto auto 100%;
+}
+
+.bottom {
+  position: absolute;
+  border-bottom: var(--border-style) var(--border-width);
+  inset: auto var(--border-radius) 0 var(--border-radius);
+  height: 0;
+}
+
+.bottom::before {
+  content: "";
+  position: absolute;
+  border-bottom-left-radius: var(--border-radius);
+  border-bottom: var(--border-style) var(--border-width);
+  border-left: var(--border-style) var(--border-width);
+  inset: auto 100% 0 auto;
+}
+
+.bottom::after {
+  content: "";
+  position: absolute;
+  border-bottom-left-radius: var(--border-radius);
+  border-bottom: var(--border-style) var(--border-width);
+  border-left: var(--border-style) var(--border-width);
+  inset: auto auto 0 100%;
+}
