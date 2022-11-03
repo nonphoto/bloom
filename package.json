@@ -3,6 +3,10 @@
     "packages/*",
     "web"
   ],
+  "scripts": {
+    "build": "pnpm turbo build",
+    "dev": "pnpm turbo dev"
+  },
   "packageManager": "pnpm@7.13.4",
   "engines": {
     "node": ">=16.16.0"
