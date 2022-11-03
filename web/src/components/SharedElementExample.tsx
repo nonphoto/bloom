@@ -153,18 +153,18 @@ export default function SharedElementExample() {
     on(outerRect, () => {
       if (outerRect()) {
         if (animatedOuterRect()) {
-          springX.startPosition = animatedOuterRect()!.position[0];
-          springX.endPosition = outerRect()!.position[0];
+          springX.startPosition = springX.position;
           springX.startVelocity = springX.velocity;
-          springY.startPosition = animatedOuterRect()!.position[1];
-          springY.endPosition = outerRect()!.position[1];
+          springX.endPosition = outerRect()!.position[0];
+          springY.startPosition = springY.position;
           springY.startVelocity = springY.velocity;
-          springWidth.startPosition = animatedOuterRect()!.size[0];
-          springWidth.endPosition = outerRect()!.size[0];
+          springY.endPosition = outerRect()!.position[1];
+          springWidth.startPosition = springWidth.position;
           springWidth.startVelocity = springWidth.velocity;
-          springHeight.startPosition = animatedOuterRect()!.size[1];
-          springHeight.endPosition = outerRect()!.size[1];
+          springWidth.endPosition = outerRect()!.size[0];
+          springHeight.startPosition = springHeight.position;
           springHeight.startVelocity = springHeight.velocity;
+          springHeight.endPosition = outerRect()!.size[1];
           animation.start();
         } else {
           setAnimatedOuterRect(rect.clone(outerRect()!));
