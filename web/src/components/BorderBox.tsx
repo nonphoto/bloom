@@ -1,7 +1,7 @@
 import classes from "./BorderBox.module.css";
 import type { Rect } from "@nonphoto/rect";
 import type { mat2d } from "gl-matrix";
-import type { ParentComponent } from "solid-js";
+import { createEffect, ParentComponent } from "solid-js";
 
 const BorderBox: ParentComponent<{
   rect?: Rect;
@@ -10,20 +10,26 @@ const BorderBox: ParentComponent<{
   borderRadius: number;
   borderStyle: string;
   class: string;
+  ref?: HTMLDivElement;
 }> = (props) => {
   const borderRadius = () => props.borderRadius + "px";
   const borderWidth = () => props.borderWidth + "px";
+
+  createEffect(() => {
+    console.log(props.transform);
+  });
+
   return (
     <div
-      class={props.class}
+      ref={props.ref}
+      class={`${props.class} ${classes.grid}`}
       style={{
-        position: "relative",
         "--border-radius": borderRadius(),
         "--border-style": props.borderStyle,
         "--border-width": borderWidth(),
       }}
     >
-      {props.children}
+      <div class={classes.content}>{props.children}</div>
       <div aria-hidden="true" class={classes.topCorners} />
       <div aria-hidden="true" class={classes.bottomCorners} />
       <div aria-hidden="true" class={classes.middleEdges} />
