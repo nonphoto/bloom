@@ -9,10 +9,11 @@ import {
 } from "solid-js";
 import { xprod } from "ramda";
 import { mat2d, vec2 } from "gl-matrix";
-import { AnimationDriver, Spring } from "@nonphoto/animate";
-import * as rect from "@nonphoto/rect";
-import type { Rect } from "@nonphoto/rect";
-import * as style from "@nonphoto/style";
+import { AnimationDriver, Spring } from "chloranthy/animation";
+import * as rect from "chloranthy/rect";
+import type { Rect } from "chloranthy/rect";
+import * as style from "chloranthy/style";
+import { RectObserver } from "chloranthy/dom";
 import type { EffectFunction, Signal } from "solid-js/types/reactive/signal";
 
 const areas = xprod([1, 2], [1, 2]);
@@ -124,7 +125,7 @@ export default function SharedElementExample() {
     });
   });
 
-  const observer = new rect.RectObserver();
+  const observer = new RectObserver();
 
   function onResize() {
     batch(() => {

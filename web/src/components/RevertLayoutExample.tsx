@@ -2,8 +2,9 @@ import classes from "./RevertLayoutExample.module.css";
 import createRAF from "@solid-primitives/raf";
 import { batch, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 import { mat2d, vec2 } from "gl-matrix";
-import * as rect from "@nonphoto/rect";
-import { transform } from "@nonphoto/style";
+import * as rect from "chloranthy/rect";
+import { RectObserver } from "chloranthy/dom";
+import { transform } from "chloranthy/style";
 
 export default function RevertLayoutExample() {
   let outerElement: HTMLDivElement | undefined,
@@ -64,7 +65,7 @@ export default function RevertLayoutExample() {
     { equals: false }
   );
 
-  const observer = new rect.RectObserver();
+  const observer = new RectObserver();
 
   function onResize() {
     batch(() => {

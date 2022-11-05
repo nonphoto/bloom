@@ -1,5 +1,5 @@
 import classes from "./BorderBox.module.css";
-import type { Rect } from "@nonphoto/rect";
+import type { Rect } from "chloranthy/rect";
 import type { mat2d } from "gl-matrix";
 import { createEffect, ParentComponent } from "solid-js";
 

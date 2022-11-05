@@ -1,6 +1,6 @@
 import classes from "./BorderBoxExample.module.css";
 import BorderBox from "./BorderBox";
-import { AnimationDriver } from "@nonphoto/animate";
+import { AnimationDriver } from "chloranthy/animation";
 import { createSignal, onMount } from "solid-js";
 import { mat2d, vec2 } from "gl-matrix";
 

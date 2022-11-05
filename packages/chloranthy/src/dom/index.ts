@@ -1,5 +1,5 @@
 import { vec2 } from "gl-matrix";
-import { Rect, create as createRect, fromDOMRect } from "./rect";
+import { Rect, create as createRect, fromDOMRect } from "../rect";
 
 /* TODO: Difference between
  * - document rect (before scrolling, relative to document)
