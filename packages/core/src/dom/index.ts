@@ -1,5 +1,5 @@
-import { vec2 } from "gl-matrix";
-import { Rect, create as createRect, fromDOMRect } from "../rect";
+import { vec2 } from 'gl-matrix'
+import { Rect, create as createRect, fromDOMRect } from '../rect'
 
 /* TODO: Difference between
  * - document rect (before scrolling, relative to document)
@@ -30,66 +30,57 @@ import { Rect, create as createRect, fromDOMRect } from "../rect";
 function* walk(root: HTMLElement) {
   const treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, {
     acceptNode() {
-      return NodeFilter.FILTER_ACCEPT;
+      return NodeFilter.FILTER_ACCEPT
     },
-  });
+  })
 
-  let currentNode = treeWalker.currentNode;
+  let currentNode = treeWalker.currentNode
   while (currentNode) {
-    yield currentNode as HTMLElement;
-    currentNode = treeWalker.nextNode();
+    yield currentNode as HTMLElement
+    currentNode = treeWalker.nextNode()
   }
 }
 
-export type RectListener = (rect: Rect) => void;
+export type RectListener = (rect: Rect) => void
 
 export class RectObserver {
-  private readonly rects: WeakMap<HTMLElement, Rect> = new WeakMap();
-  private readonly listeners: WeakMap<HTMLElement, Set<RectListener>> =
-    new WeakMap();
+  private readonly rects: WeakMap<HTMLElement, Rect> = new WeakMap()
+  private readonly listeners: WeakMap<HTMLElement, Set<RectListener>> = new WeakMap()
 
-  private measureElement(
-    element: HTMLElement,
-    scrollX: number,
-    scrollY: number
-  ) {
+  private measureElement(element: HTMLElement, scrollX: number, scrollY: number) {
     if (this.listeners.has(element)) {
       if (!this.rects.has(element)) {
-        this.rects.set(element, createRect());
+        this.rects.set(element, createRect())
       }
-      const rect = this.rects.get(element);
-      const clientRect = element.getBoundingClientRect();
-      fromDOMRect(rect, clientRect);
-      vec2.add(rect.position, rect.position, vec2.fromValues(scrollX, scrollY));
+      const rect = this.rects.get(element)
+      const clientRect = element.getBoundingClientRect()
+      fromDOMRect(rect, clientRect)
+      vec2.add(rect.position, rect.position, vec2.fromValues(scrollX, scrollY))
     }
 
     for (const child of element.children) {
       if (child instanceof HTMLElement) {
-        this.measureElement(
-          child,
-          scrollX + element.scrollLeft,
-          scrollY + element.scrollTop
-        );
+        this.measureElement(child, scrollX + element.scrollLeft, scrollY + element.scrollTop)
       }
     }
   }
 
   measure() {
-    const transforms = new WeakMap();
+    const transforms = new WeakMap()
 
     for (const element of walk(document.body)) {
-      transforms.set(element, element.style.transform);
-      element.style.transform = "none";
+      transforms.set(element, element.style.transform)
+      element.style.transform = 'none'
     }
 
-    this.measureElement(document.body, window.scrollX, window.scrollY);
+    this.measureElement(document.body, window.scrollX, window.scrollY)
 
     for (const element of walk(document.body)) {
-      element.style.transform = transforms.get(element);
+      element.style.transform = transforms.get(element)
 
       if (this.listeners.has(element) && this.rects.has(element)) {
         for (const listener of this.listeners.get(element)) {
-          listener.call(undefined, this.rects.get(element));
+          listener.call(undefined, this.rects.get(element))
         }
       }
     }
@@ -97,14 +88,14 @@ export class RectObserver {
 
   addListener(element: HTMLElement, listener: RectListener) {
     if (!this.listeners.has(element)) {
-      this.listeners.set(element, new Set());
+      this.listeners.set(element, new Set())
     }
-    this.listeners.get(element).add(listener);
+    this.listeners.get(element).add(listener)
   }
 
   removeListener(element: HTMLElement, listener: RectListener) {
     if (this.listeners.has(element)) {
-      this.listeners.get(element).delete(listener);
+      this.listeners.get(element).delete(listener)
     }
   }
 }
