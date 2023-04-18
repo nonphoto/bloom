@@ -1,0 +1,39 @@
+.container {
+  width: 20rem;
+  height: 20rem;
+  margin: 10rem;
+  background: #aab5;
+  border-radius: 1rem;
+}
+
+.outer {
+  overflow: auto;
+  position: relative;
+}
+
+.fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 5rem;
+  height: 5rem;
+  background: cyan;
+}
+
+.sticky {
+  position: sticky;
+  top: 7.5rem;
+  left: 7.5rem;
+  width: 5rem;
+  height: 5rem;
+  background: magenta;
+}
+
+.absolute {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5rem;
+  height: 5rem;
+  background: yellow;
+}

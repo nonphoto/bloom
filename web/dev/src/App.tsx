@@ -1,5 +1,5 @@
-import SharedElementExample from './components/SharedElementExample'
+import ScrollingLayoutExample from './components/ScrollingLayoutExample'
 
 export default function App() {
-  return <SharedElementExample />
+  return <ScrollingLayoutExample />
 }
