@@ -2,12 +2,10 @@ import classes from './SharedElementExample.module.css'
 import { batch, createEffect, createSignal, on, onCleanup, onMount } from 'solid-js'
 import { xprod } from 'ramda'
 import { mat2d, vec2 } from 'gl-matrix'
-import { AnimationDriver, Spring } from 'chloranthy/animation'
-import * as rect from 'chloranthy/rect'
-import type { Rect } from 'chloranthy/rect'
-import * as style from 'chloranthy/style'
-import { RectObserver } from 'chloranthy/dom'
+import { AnimationDriver, Spring, RectObserver, rect, style } from '@chloranthy/core'
 import type { EffectFunction, Signal } from 'solid-js/types/reactive/signal'
+
+type Rect = rect.Rect
 
 const areas = xprod([1, 2], [1, 2])
 
@@ -171,8 +169,8 @@ export default function SharedElementExample() {
       <div
         class={classes.shadow}
         style={{
-          'grid-row-start': areas[areaIndex()][0],
-          'grid-column-start': areas[areaIndex()][1],
+          'grid-row-start': areas[areaIndex()]?.[0],
+          'grid-column-start': areas[areaIndex()]?.[1],
         }}
       >
         <div

@@ -10,10 +10,14 @@
     "serve": "vite preview"
   },
   "devDependencies": {
+    "@types/ramda": "0.29.0",
+    "typescript-plugin-css-modules": "5.0.1",
     "vite": "^4.0.4",
     "vite-plugin-solid": "^2.5.0"
   },
   "dependencies": {
-    "@chloranthy/core": "^0.0.1"
+    "@chloranthy/core": "^0.0.1",
+    "gl-matrix": "3.4.3",
+    "ramda": "0.29.0"
   }
 }

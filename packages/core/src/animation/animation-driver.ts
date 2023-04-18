@@ -5,8 +5,8 @@ export type AnimationDriverCallback = (
 
 export class AnimationDriver {
   private onUpdate: AnimationDriverCallback
-  private initialTime: DOMHighResTimeStamp
-  private currentTime: DOMHighResTimeStamp
+  private initialTime?: DOMHighResTimeStamp
+  private currentTime?: DOMHighResTimeStamp
   private requestId?: number
 
   constructor(onUpdate: AnimationDriverCallback) {

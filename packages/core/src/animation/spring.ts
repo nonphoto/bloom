@@ -32,10 +32,10 @@ export class Spring {
   restPositionThreshold: number
 
   constructor(options?: Partial<SpringOptions>) {
-    this.stiffness = options?.stiffness ?? 100
-    this.damping = options?.damping ?? 10
-    this.mass = options?.mass ?? 1
-    this.time = options?.time ?? 0
+    this._stiffness = options?.stiffness ?? 100
+    this._damping = options?.damping ?? 10
+    this._mass = options?.mass ?? 1
+    this._time = options?.time ?? 0
     this.startPosition = options?.startPosition ?? 0
     this.endPosition = options?.endPosition ?? 1
     this.startVelocity = options?.startVelocity ?? 0
@@ -43,7 +43,7 @@ export class Spring {
     this.restPositionThreshold = options?.restPositionThreshold ?? 0.001
     this._position = this.startPosition
     this._velocity = this.startVelocity
-    this.envelope = 0
+    this.envelope = this.v0 = this.x0 = this.zeta = this.omega0 = this.omega1 = this.omega2 = 0
   }
 
   set stiffness(value) {

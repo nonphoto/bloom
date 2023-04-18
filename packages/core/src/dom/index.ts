@@ -34,7 +34,7 @@ function* walk(root: HTMLElement) {
     },
   })
 
-  let currentNode = treeWalker.currentNode
+  let currentNode: Node | null = treeWalker.currentNode
   while (currentNode) {
     yield currentNode as HTMLElement
     currentNode = treeWalker.nextNode()
@@ -53,9 +53,11 @@ export class RectObserver {
         this.rects.set(element, createRect())
       }
       const rect = this.rects.get(element)
-      const clientRect = element.getBoundingClientRect()
-      fromDOMRect(rect, clientRect)
-      vec2.add(rect.position, rect.position, vec2.fromValues(scrollX, scrollY))
+      if (rect) {
+        const clientRect = element.getBoundingClientRect()
+        fromDOMRect(rect, clientRect)
+        vec2.add(rect.position, rect.position, vec2.fromValues(scrollX, scrollY))
+      }
     }
 
     for (const child of element.children) {
@@ -78,9 +80,11 @@ export class RectObserver {
     for (const element of walk(document.body)) {
       element.style.transform = transforms.get(element)
 
-      if (this.listeners.has(element) && this.rects.has(element)) {
-        for (const listener of this.listeners.get(element)) {
-          listener.call(undefined, this.rects.get(element))
+      const listeners = this.listeners.get(element)
+      const rect = this.rects.get(element)
+      if (listeners && rect) {
+        for (const listener of listeners) {
+          listener.call(undefined, rect)
         }
       }
     }
@@ -90,12 +94,11 @@ export class RectObserver {
     if (!this.listeners.has(element)) {
       this.listeners.set(element, new Set())
     }
-    this.listeners.get(element).add(listener)
+
+    this.listeners.get(element)?.add(listener)
   }
 
   removeListener(element: HTMLElement, listener: RectListener) {
-    if (this.listeners.has(element)) {
-      this.listeners.get(element).delete(listener)
-    }
+    this.listeners.get(element)?.delete(listener)
   }
 }
