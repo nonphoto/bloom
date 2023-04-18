@@ -1,19 +1,42 @@
 {
-  "workspaces": [
-    "packages/*",
-    "web"
-  ],
+  "name": "chloranthy-monorepo",
+  "description": "Primitives for animating between layouts",
+  "version": "0.0.1",
+  "license": "MIT",
+  "author": "Jonas Luebbers",
+  "contributors": [],
+  "private": true,
   "scripts": {
-    "build": "pnpm turbo build",
-    "dev": "pnpm turbo dev",
-    "publish-packages": "turbo run build && changeset version && changeset publish"
-  },
-  "packageManager": "pnpm@7.13.4",
-  "engines": {
-    "node": ">=16.16.0"
+    "postinstall": "pnpm build",
+    "dev": "pnpm run --parallel --filter ./packages/* dev",
+    "build": "turbo run build --filter=./packages/*",
+    "test": "turbo run test --filter=./packages/*",
+    "typecheck": "turbo run typecheck --filter=./packages/*",
+    "build-test": "turbo run build test typecheck --filter=./packages/*",
+    "format": "prettier --ignore-path .gitignore -w \"packages/**/*.{js,ts,json,css,tsx,jsx,md}\" \"playgrounds/**/*.{js,ts,json,css,tsx,jsx,md}\"",
+    "changeset": "changeset",
+    "version-packages": "changeset version && pnpm i",
+    "ci:version": "changeset version && pnpm i --no-frozen-lockfile && git add .",
+    "release": "pnpm build && changeset publish",
+    "update-deps": "pnpm up -Lri"
   },
   "devDependencies": {
-    "@changesets/cli": "2.25.2",
-    "turbo": "1.6.3"
+    "@changesets/cli": "^2.26.1",
+    "@types/node": "^18.15.11",
+    "concurrently": "^8.0.1",
+    "jsdom": "^21.1.1",
+    "prettier": "2.8.7",
+    "solid-js": "^1.7.3",
+    "tsup": "^6.7.0",
+    "tsup-preset-solid": "^0.1.8",
+    "turbo": "^1.9.3",
+    "typescript": "^5.0.4",
+    "vite": "^4.2.1",
+    "vite-plugin-solid": "^2.7.0",
+    "vitest": "^0.30.1"
+  },
+  "packageManager": "pnpm@7.22.0",
+  "engines": {
+    "node": ">=17.0.0"
   }
 }
