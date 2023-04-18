@@ -61,6 +61,9 @@ importers:
       '@chloranthy/core':
         specifier: ^0.0.1
         version: link:../../packages/core
+      '@solid-primitives/raf':
+        specifier: 2.1.10
+        version: 2.1.10(solid-js@1.7.3)
       gl-matrix:
         specifier: 3.4.3
         version: 3.4.3
@@ -1090,6 +1093,23 @@ packages:
       fastq: 1.15.0
     dev: true
 
+  /@solid-primitives/raf@2.1.10(solid-js@1.7.3):
+    resolution: {integrity: sha512-kecTYDniDzk7fq6VMC79Il8jq40MW601wF4NO01GqAjMTlTwNNyozZCETTMyl0XWaNgOh1S7D5YkOIKLO3F67Q==}
+    peerDependencies:
+      solid-js: ^1.6.12
+    dependencies:
+      '@solid-primitives/utils': 6.1.0(solid-js@1.7.3)
+      solid-js: 1.7.3
+    dev: false
+
+  /@solid-primitives/utils@6.1.0(solid-js@1.7.3):
+    resolution: {integrity: sha512-uTikKFrq33UO+MnKt2WzZr9WYbQe5YX58ytGkL+29DL6o0pZs1wrICbd4ymzSm8azqzMcQqEQOL3HLWjuv9tLw==}
+    peerDependencies:
+      solid-js: ^1.6.12
+    dependencies:
+      solid-js: 1.7.3
+    dev: false
+
   /@tootallnate/once@2.0.0:
     resolution: {integrity: sha512-XCuKFP5PS55gnMVu3dty8KPatLqUoy/ZYzDzAGCQ8JNFCkLXzmI7vNHCR+XpbZaMWQK/vQubr7PkYq8g470J/A==}
     engines: {node: '>= 10'}
@@ -1637,7 +1657,6 @@ packages:
 
   /csstype@3.1.2:
     resolution: {integrity: sha512-I7K1Uu0MBPzaFKg4nI5Q7Vs2t+3gWWW648spaF+Rg7pI9ds18Ugn+lvg4SHczUdKlHI5LWBXyqfS8+DufyBsgQ==}
-    dev: true
 
   /csv-generate@3.4.3:
     resolution: {integrity: sha512-w/T+rqR0vwvHqWs/1ZyMDWtHHSJaN06klRqJXBEpDJaM/+dZkso0OKh1VcuuYvK3XM53KysVNq8Ko/epCK8wOw==}
@@ -3483,7 +3502,6 @@ packages:
   /seroval@0.5.1:
     resolution: {integrity: sha512-ZfhQVB59hmIauJG5Ydynupy8KHyr5imGNtdDhbZG68Ufh1Ynkv9KOYOAABf71oVbQxJ8VkWnMHAjEHE7fWkH5g==}
     engines: {node: '>=10'}
-    dev: true
 
   /set-blocking@2.0.0:
     resolution: {integrity: sha512-KiKBS8AnWGEyLzofFfmvKwpdPzqiy16LvQfK3yv/fVH7Bj13/wl3JSR1J+rfgRE9q7xUJK4qvgS8raSOeLUehw==}
@@ -3562,7 +3580,6 @@ packages:
     dependencies:
       csstype: 3.1.2
       seroval: 0.5.1
-    dev: true
 
   /solid-refresh@0.4.3(solid-js@1.7.3):
     resolution: {integrity: sha512-7+4/gYsVi0BlM4PzT1PU1TB5nW3Hv8FWuB+Kw/ofWui7KQkWBf+dVZOrReQYHEmLCzytHUa2JysUXgzVALJmSw==}

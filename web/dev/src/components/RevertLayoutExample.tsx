@@ -2,9 +2,7 @@ import classes from './RevertLayoutExample.module.css'
 import createRAF from '@solid-primitives/raf'
 import { batch, createMemo, createSignal, onCleanup, onMount } from 'solid-js'
 import { mat2d, vec2 } from 'gl-matrix'
-import * as rect from 'chloranthy/rect'
-import { RectObserver } from 'chloranthy/dom'
-import { transform } from 'chloranthy/style'
+import { RectObserver, rect, style } from '@chloranthy/core'
 
 export default function RevertLayoutExample() {
   let outerElement: HTMLDivElement | undefined, innerElement: HTMLDivElement | undefined
@@ -93,7 +91,7 @@ export default function RevertLayoutExample() {
       <div
         ref={outerElement}
         class={classes.outer}
-        style={{ transform: transform(outerTransform()) }}
+        style={{ transform: style.transform(outerTransform()) }}
         onScroll={event => {
           setScroll(prev => {
             prev[0] = event.target.scrollLeft
@@ -103,11 +101,14 @@ export default function RevertLayoutExample() {
         }}
       >
         <div class={classes.spacer}>
-          <div class={classes.shadow} style={{ transform: transform(shadowTransform()) }}></div>
+          <div
+            class={classes.shadow}
+            style={{ transform: style.transform(shadowTransform()) }}
+          ></div>
           <div
             ref={innerElement}
             class={classes.inner}
-            style={{ transform: transform(innerTransform()) }}
+            style={{ transform: style.transform(innerTransform()) }}
           ></div>
         </div>
       </div>
