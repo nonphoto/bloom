@@ -1,0 +1,33 @@
+.scale {
+  margin: 5rem;
+  width: 20rem;
+  height: 20rem;
+  background: #aab5;
+  display: grid;
+  transform: scale(1.5, 1);
+}
+
+.rotate {
+  width: 10rem;
+  height: 10rem;
+  background: #aab5;
+  place-self: end;
+  transform: rotate(1rad);
+}
+
+.translate {
+  width: 10rem;
+  height: 10rem;
+  background: cyan;
+  transform: translate(5rem, -5rem);
+}
+
+.matrix {
+  position: fixed;
+  top: 15rem;
+  left: 15rem;
+  width: 10rem;
+  height: 10rem;
+  background: magenta;
+  mix-blend-mode: multiply;
+}

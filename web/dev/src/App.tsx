@@ -1,5 +1,5 @@
-import ScrollingLayoutExample from './components/ScrollingLayoutExample'
+import MatrixPlayground from './routes/MatrixPlayground'
 
 export default function App() {
-  return <ScrollingLayoutExample />
+  return <MatrixPlayground />
 }

@@ -1,6 +1,6 @@
-import classes from './ScrollingLayoutExample.module.css'
+import classes from './ScrollingLayout.module.css'
 
-export default function ScrollingLayoutExample() {
+export default function ScrollingLayout() {
   return (
     <div class={`${classes.container} ${classes.outer}`}>
       <div class={classes.container}>
