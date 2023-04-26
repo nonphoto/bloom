@@ -1,5 +1,5 @@
 import { mat4, vec2 } from 'gl-matrix'
-import { Rect, create as createRect, fromDOMRect } from '../rect'
+import { Rect } from '../rect'
 import { rect } from '..'
 
 /* TODO: Difference between
@@ -84,7 +84,17 @@ function getOffsetParent(element: HTMLElement): HTMLElement | null {
   return parent
 }
 
-function* walk(root: HTMLElement) {
+function getNearestScrollingAncestor(element: HTMLElement): HTMLElement | null {}
+
+function* walkParents(element: HTMLElement): Generator<HTMLElement, void, unknown> {
+  let parent = element.parentElement
+  while (parent) {
+    yield parent
+    parent = parent.parentElement
+  }
+}
+
+function* walkChildren(root: HTMLElement) {
   const treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, {
     acceptNode(node: Node) {
       return node instanceof HTMLElement ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP
@@ -98,134 +108,223 @@ function* walk(root: HTMLElement) {
   }
 }
 
-type ElementControllerTransformListener = () => void
-type ElementControllerLayoutListener = () => void
-
-class ElementController {
-  offsetRect: Rect = rect.create()
-  parentRelativeTranslation: vec2 = vec2.create()
-  scrollTranslation: vec2 = vec2.create()
-  transform: mat4 = mat4.create()
-  transformListeners: Set<ElementControllerTransformListener> = new Set()
-  layoutListeners: Set<ElementControllerLayoutListener> = new Set()
-  dispose?: () => void
-  implicit: boolean = true
-
-  updateTransformListeners() {
-    for (const listener of this.transformListeners) {
-      listener()
-    }
-  }
-
-  updateLayoutListeners() {
-    for (const listener of this.layoutListeners) {
-      listener()
-    }
-  }
+function getScrollEmitter(element: HTMLElement): HTMLElement | Document {
+  return element === document.documentElement ? document : element
 }
 
-export class LayoutObserver {
-  private elementControllers: Map<HTMLElement, ElementController> = new Map()
+type LayoutController = {
+  intrinsicTransform: mat4
+  extrinsicTransform: mat4
+  layoutRect: Rect
+  parentRelativeTranslation: vec2
+  scrollTranslation: vec2
+  extrinsicTransformListeners: Set<(transform: mat4) => void>
+  accumulatedScrollTranslation(out: vec2): vec2
+  dispose(): void
+}
 
-  private measure(element: HTMLElement | null): ElementController | null {
-    let scrollEmitter: Document | HTMLElement
-    if (!element) {
-      return null
-    } else if (element === document.documentElement) {
-      scrollEmitter = document
-    } else if (!element.parentElement) {
-      return null
-    } else {
-      scrollEmitter = element
+type TransformController = {
+  intrinsicTransform: mat4
+  intrinsicTransformListeners: Set<(transform: mat4) => void>
+  extrinsicTransformListeners: Set<(transform: mat4) => void>
+  layoutRectListeners: Set<(rect: Rect) => void>
+  setTransform(transform: mat4): void
+  disable(): void
+  enable(): void
+  dispose(): void
+}
+
+function styleTransform(transform: mat4) {
+  return `matrix3d(${transform.join(',')})`
+}
+
+const styleTransformIdentity = styleTransform(mat4.identity(mat4.create()))
+
+const zero = vec2.zero(vec2.create())
+
+export class LayoutObserver {
+  private transformControllers: Map<HTMLElement, TransformController> = new Map()
+  private layoutControllers: Map<HTMLElement, LayoutController> = new Map()
+
+  private createLayoutController(element: HTMLElement): LayoutController {
+    const layoutController = this.layoutControllers.get(element)
+    if (layoutController) {
+      return layoutController
     }
 
-    const controller = this.elementControllers.get(element)
+    const isDocumentElement = element === document.documentElement
+
+    if (!isDocumentElement && !document.documentElement.contains(element)) {
+      throw new Error()
+    }
 
     const position = getComputedStyle(element).position
-    let parentController: ElementController | null
-    if (position === 'sticky') {
-      parentController = this.measure(getOffsetParent(element))
+
+    let parent: HTMLElement | null
+    if (element === document.documentElement) {
+      parent = null
+    } else if (position === 'sticky') {
+      parent = getNearestScrollingAncestor(element)
     } else if (position === 'absolute' || position === 'fixed') {
-      parentController = this.measure(getOffsetParent(element))
+      parent = getOffsetParent(element)
     } else {
-      parentController = this.measure(element.parentElement)
+      parent = element.parentElement
     }
 
-    if (controller && parentController) {
-      const rect = element.getBoundingClientRect()
+    const parentController = parent ? this.createLayoutController(parent) : null
 
-      vec2.set(controller.offsetRect.size, rect.left, rect.top)
-      vec2.set(controller.offsetRect.position, rect.width, rect.height)
-      vec2.sub(
-        controller?.offsetRect.position,
-        controller?.offsetRect.position,
-        parentController.scrollTranslation,
-      )
+    const transformController = this.transformControllers.get(element)
 
-      vec2.set(controller.scrollTranslation, -element.scrollLeft, -element.scrollTop)
+    const controller: LayoutController = {
+      intrinsicTransform: mat4.create(),
+      extrinsicTransform: mat4.create(),
+      layoutRect: rect.create(),
+      parentRelativeTranslation: vec2.create(),
+      scrollTranslation: vec2.create(),
+      extrinsicTransformListeners: new Set(),
+      accumulatedScrollTranslation(out: vec2) {
+        return vec2.add(
+          out,
+          this.scrollTranslation,
+          parentController?.accumulatedScrollTranslation(out) ?? zero,
+        )
+      },
+      dispose() {
+        getScrollEmitter(element).removeEventListener('scroll', onScroll)
+        parentController?.extrinsicTransformListeners.delete(onExtrinsicTransform)
+        transformController?.intrinsicTransformListeners.delete(onIntrinsicTransform)
+      },
+    }
 
-      let onScroll: () => void
-      if (willScroll(element)) {
-        const scrollingElement = element
-        onScroll = () => {
-          vec2.set(
-            controller.scrollTranslation,
-            -scrollingElement.scrollLeft,
-            -scrollingElement.scrollTop,
-          )
-        }
+    function onExtrinsicTransform(transform: mat4) {
+      mat4.copy(controller.extrinsicTransform, transform)
 
-        scrollEmitter.addEventListener('scroll', onScroll, { passive: true })
-        controller.dispose = () => {
-          scrollEmitter.removeEventListener('scroll', onScroll)
+      // account for parentRelativeTranslation
+
+      if (transformController) {
+        for (const listener of transformController.extrinsicTransformListeners) {
+          listener(controller.extrinsicTransform)
         }
       }
-
-      return controller
-    } else {
-      return null
     }
+
+    function onIntrinsicTransform(transform: mat4) {
+      mat4.copy(controller.intrinsicTransform, transform)
+
+      for (const listener of controller.extrinsicTransformListeners) {
+        listener(/* ??? */)
+      }
+    }
+
+    function onScroll() {
+      vec2.set(controller.scrollTranslation, -element.scrollLeft, -element.scrollTop)
+    }
+
+    parentController?.extrinsicTransformListeners.add(onExtrinsicTransform)
+
+    transformController?.intrinsicTransformListeners.add(onIntrinsicTransform)
+
+    if (willScroll(element)) {
+      getScrollEmitter(element).addEventListener('scroll', onScroll, { passive: true })
+    }
+
+    onScroll()
+
+    rect.fromDOMRect(controller.layoutRect, element.getBoundingClientRect())
+
+    vec2.sub(
+      controller.layoutRect.position,
+      controller.layoutRect.position,
+      isDocumentElement
+        ? controller.scrollTranslation
+        : parentController?.accumulatedScrollTranslation(vec2.create()) ?? zero,
+    )
+
+    this.layoutControllers.set(element, controller)
+
+    return controller
   }
 
-  private postMeasure(element: HTMLElement) {
-    // set transforms
+  private createTransformController(element: HTMLElement): TransformController {
+    const transformController = this.transformControllers.get(element)
+    if (transformController) {
+      return transformController
+    }
+
+    const observer = this
+
+    const controller: TransformController = {
+      intrinsicTransform: mat4.create(),
+      intrinsicTransformListeners: new Set<(transform: mat4) => void>(),
+      extrinsicTransformListeners: new Set<(transform: mat4) => void>(),
+      layoutRectListeners: new Set<(layoutRect: Rect) => void>(),
+      setTransform(transform: mat4) {
+        if (!observer.transformControllers.has(element)) throw new Error()
+
+        this.intrinsicTransform = transform
+
+        for (const listener of this.intrinsicTransformListeners) {
+          listener(transform)
+        }
+      },
+      disable() {
+        element.style.transform = styleTransformIdentity
+      },
+      enable() {
+        element.style.transform = styleTransform(controller.intrinsicTransform)
+      },
+      dispose() {
+        observer.transformControllers.delete(element)
+      },
+    }
+
+    this.transformControllers.set(element, controller)
+
+    return controller
+  }
+
+  connect(element: HTMLElement) {
+    const controller = this.createTransformController(element)
+
+    return {
+      setTransform(transform: mat4) {
+        controller.setTransform(transform)
+      },
+      addExtrinsicTransformListener(listener: (transform: mat4) => void) {
+        controller.extrinsicTransformListeners.add(listener)
+      },
+      removeExtrinsicTransformListener(listener: (transform: mat4) => void) {
+        controller.extrinsicTransformListeners.delete(listener)
+      },
+      addLayoutRectListener(listener: (layoutRect: Rect) => void) {
+        controller.layoutRectListeners.add(listener)
+      },
+      removeLayoutRectListener(listener: (layoutRect: Rect) => void) {
+        controller.layoutRectListeners.delete(listener)
+      },
+      disconnect() {
+        controller.dispose()
+      },
+    }
   }
 
   measureAll() {
-    for (const [element, controller] of this.elementControllers) {
-      controller.dispose?.()
-
-      if (controller.implicit) {
-        this.elementControllers.delete(element)
-      }
+    for (const [, controller] of this.layoutControllers) {
+      controller.dispose()
     }
 
-    for (const [element] of this.elementControllers) {
-      this.measure(element)
+    for (const [, controller] of this.transformControllers) {
+      controller.disable()
     }
 
-    for (const [element] of this.elementControllers) {
-      this.postMeasure(element)
+    for (const [element] of this.transformControllers) {
+      this.createLayoutController(element)
     }
-  }
 
-  observe(element: HTMLElement) {
-    const controller = this.elementControllers.get(element)
-    if (controller) {
-      controller.implicit = false
-    } else {
-      const controller = new ElementController()
-      controller.implicit = false
-      this.elementControllers.set(element, controller)
+    for (const [, controller] of this.transformControllers) {
+      controller.enable()
     }
   }
 
-  unobserve(element: HTMLElement) {
-    const controller = this.elementControllers.get(element)
-    if (controller) {
-      controller.implicit = true
-    }
-  }
-
-  disconnect() {}
+  disconnectAll() {}
 }
