@@ -1,4 +1,4 @@
-import { mat2d, mat4, vec2 } from 'gl-matrix'
+import { mat2d, vec2 } from 'gl-matrix'
 import { Rect } from '../rect'
 import { rect } from '..'
 import {
@@ -126,7 +126,7 @@ function getScrollEmitter(element: HTMLElement): HTMLElement | Document {
 
 type LayoutController = {
   layoutRect: Rect
-  parentRelativeTranslation: vec2
+  intermediateTransform: Accessor<mat2d>
   extrinsicTransform: Accessor<mat2d>
   scrollTranslation: Accessor<vec2>
   accumulatedScrollTranslation: Accessor<vec2>
@@ -140,14 +140,8 @@ type TransformController = {
   dispose(): void
 }
 
-function styleTransform(transform: mat2d): string
-function styleTransform(transform: mat4): string
-function styleTransform(transform: Float32Array | Array<number>) {
-  return transform.length === 6
-    ? `matrix(${transform.join(',')})`
-    : transform.length === 16
-    ? `matrix3d(${transform.join(',')})`
-    : 'translate3d(0,0,0)'
+function styleTransform(transform: mat2d): string {
+  return `matrix(${transform.join(',')})`
 }
 
 const styleTransformIdentity = styleTransform(mat2d.identity(mat2d.create()))
@@ -190,42 +184,57 @@ export class LayoutObserver {
     createRoot(dispose => {
       const layoutRect = rect.fromDOMRect(rect.create(), element.getBoundingClientRect())
 
+      const negativeLayoutRectPosition = vec2.create()
+      vec2.sub(negativeLayoutRectPosition, negativeLayoutRectPosition, layoutRect.position)
+
+      const negativeLayoutTransform = mat2d.fromTranslation(
+        mat2d.create(),
+        negativeLayoutRectPosition,
+      )
+
+      const layoutDelta = vec2.clone(layoutRect.position)
+      if (parentController) {
+        vec2.sub(layoutDelta, layoutDelta, parentController.layoutRect.position)
+      }
+
       const [scrollTranslation, setScrollTranslation] = createSignal(
         vec2.fromValues(-element.scrollLeft, -element.scrollTop),
         { equals: false },
       )
 
-      const accumulatedScrollTranslation = createMemo<vec2>(
+      const accumulatedScrollTranslation = () =>
+        parentController
+          ? vec2.add(
+              vec2.create(),
+              parentController.accumulatedScrollTranslation(),
+              scrollTranslation(),
+            )
+          : scrollTranslation()
+
+      const intermediateTransform = createMemo<mat2d>(
         prev => {
-          return parentController
-            ? vec2.add(prev, parentController.scrollTranslation(), scrollTranslation())
-            : vec2.copy(prev, scrollTranslation())
+          if (isDocumentElement) {
+            mat2d.fromTranslation(prev, scrollTranslation())
+          } else if (parentController) {
+            mat2d.translate(prev, parentController.intermediateTransform(), layoutDelta)
+            mat2d.translate(prev, prev, scrollTranslation())
+          }
+
+          if (transformController) {
+            mat2d.multiply(prev, prev, transformController.intrinsicTransform())
+          }
+
+          return prev
         },
-        vec2.create(),
+        mat2d.create(),
         { equals: false },
       )
 
-      // const extrinsicTransform = createMemo<mat2d>(prev => {}, mat2d.create(), { equals: false })
-
-      // function onExtrinsicTransform(transform: mat2d) {
-      //   mat2d.copy(controller.extrinsicTransform, transform)
-
-      //   // account for parentRelativeTranslation
-
-      //   if (transformController) {
-      //     for (const listener of transformController.extrinsicTransformListeners) {
-      //       listener(controller.extrinsicTransform)
-      //     }
-      //   }
-      // }
-
-      // function onIntrinsicTransform(transform: mat2d) {
-      //   mat2d.copy(controller.intrinsicTransform, transform)
-
-      //   for (const listener of controller.extrinsicTransformListeners) {
-      //     listener(transform)
-      //   }
-      // }
+      const extrinsicTransform = createMemo<mat2d>(
+        prev => mat2d.multiply(prev, negativeLayoutTransform, intermediateTransform()),
+        mat2d.create(),
+        { equals: false },
+      )
 
       if (willScroll(element)) {
         function onScroll() {
@@ -251,10 +260,10 @@ export class LayoutObserver {
 
       controller = {
         layoutRect,
+        intermediateTransform,
+        extrinsicTransform,
         scrollTranslation,
         accumulatedScrollTranslation,
-        parentRelativeTranslation: vec2.create(),
-        extrinsicTransform: () => mat2d.create(),
         dispose,
       }
 
