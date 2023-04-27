@@ -46,9 +46,15 @@ importers:
 
   packages/core:
     dependencies:
+      '@solid-primitives/map':
+        specifier: 0.4.3
+        version: 0.4.3(solid-js@1.7.3)
       gl-matrix:
-        specifier: 3.4.3
+        specifier: ^3.4.3
         version: 3.4.3
+      solid-js:
+        specifier: ^1.7.3
+        version: 1.7.3
 
   packages/solid:
     devDependencies:
@@ -1093,8 +1099,26 @@ packages:
       fastq: 1.15.0
     dev: true
 
+  /@solid-primitives/map@0.4.3(solid-js@1.7.3):
+    resolution: {integrity: sha512-9cpa8MjhLNg+PTVQaIhDUuc192kXoyIAbSCGNTxjzqq7u4OwakhvZlt4C3rIkvLX6yThNlC4IBhOnOSpos5DQA==}
+    peerDependencies:
+      solid-js: ^1.6.12
+    dependencies:
+      '@solid-primitives/trigger': 1.0.5(solid-js@1.7.3)
+      solid-js: 1.7.3
+    dev: false
+
   /@solid-primitives/raf@2.1.10(solid-js@1.7.3):
     resolution: {integrity: sha512-kecTYDniDzk7fq6VMC79Il8jq40MW601wF4NO01GqAjMTlTwNNyozZCETTMyl0XWaNgOh1S7D5YkOIKLO3F67Q==}
+    peerDependencies:
+      solid-js: ^1.6.12
+    dependencies:
+      '@solid-primitives/utils': 6.1.0(solid-js@1.7.3)
+      solid-js: 1.7.3
+    dev: false
+
+  /@solid-primitives/trigger@1.0.5(solid-js@1.7.3):
+    resolution: {integrity: sha512-NAnLYmUFPvJoH05qBf90IEcSTROM+woFdqcGgGmlcYcewewLNLIuJDB69CvPvM+O9yHvRk7UXcpapV25iXcoDQ==}
     peerDependencies:
       solid-js: ^1.6.12
     dependencies:

@@ -53,6 +53,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "gl-matrix": "3.4.3"
+    "@solid-primitives/map": "0.4.3",
+    "gl-matrix": "^3.4.3",
+    "solid-js": "^1.7.3"
   }
 }
