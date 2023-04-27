@@ -12,32 +12,6 @@ import {
 } from 'solid-js'
 import { ReactiveMap } from '@solid-primitives/map'
 
-/* TODO: Difference between
- * - document rect (before scrolling, relative to document)
- * - client rect (after scrolling, relative to window)
- * - transform (after scrolling, relative to window, affected by rotation, scale, etc)
- * Below uses document rect but after scrolling?
- * Maybe transforming an element creates a new context?
- * - this doesnt work with transform-based layouts
- * How about:
- * - one observer per element, includes scroll observer
- * - offset rect (before transform, relative to document)
- * - client rect (after transform, relative to window)
- * - manually add children to parent observers
- * - This avoids having to walk the tree or add mutation observers but makes construction more difficult
- * What about position absolute?
- * - position property affects the element that offset values are relative to
- * - use offsetParent property
- * - Scrolling elements should always be positioned, require all scrolling and positioned elements to be observed
- * How to determine if an element is positioned? it might change with css?
- * - this should be solved the same way as layout, remeasure the element on resize
- */
-
-/*
- * All scrolling elements must be positioned
- * non-relative-positioned elements are not allowed as children of static-positioned elements
- */
-
 const willChangeValues = [
   'position',
   'z-index',
@@ -96,28 +70,6 @@ function getOffsetParent(element: HTMLElement): HTMLElement | null {
 
 function getNearestScrollingAncestor(element: HTMLElement): HTMLElement | null {
   return element.parentElement
-}
-
-export function* walkParents(element: HTMLElement): Generator<HTMLElement, void, unknown> {
-  let parent = element.parentElement
-  while (parent) {
-    yield parent
-    parent = parent.parentElement
-  }
-}
-
-export function* walkChildren(root: HTMLElement) {
-  const treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, {
-    acceptNode(node: Node) {
-      return node instanceof HTMLElement ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP
-    },
-  })
-
-  let currentNode: Node | null = treeWalker.currentNode
-  while (currentNode) {
-    yield currentNode as HTMLElement
-    currentNode = treeWalker.nextNode()
-  }
 }
 
 function getScrollEmitter(element: HTMLElement): HTMLElement | Document {
@@ -318,7 +270,9 @@ export class LayoutObserver {
 
     return [
       {
-        intrinsicTransform: controller.intrinsicTransform,
+        intrinsicTransform() {
+          return controller.intrinsicTransform()
+        },
         extrinsicTransform() {
           return observer.layoutControllers.get(element)?.extrinsicTransform()
         },
