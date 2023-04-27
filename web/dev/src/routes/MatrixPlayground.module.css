@@ -12,22 +12,34 @@
   height: 10rem;
   background: #aab5;
   place-self: end;
-  transform: rotate(1rad);
+  display: grid;
+  transform: rotate(30deg);
 }
 
 .translate {
-  width: 10rem;
-  height: 10rem;
+  width: 5rem;
+  height: 5rem;
   background: cyan;
+  place-self: end;
   transform: translate(5rem, -5rem);
 }
 
 .matrix {
   position: fixed;
-  top: 15rem;
-  left: 15rem;
-  width: 10rem;
-  height: 10rem;
+  top: 20rem;
+  left: 20rem;
+  width: 5rem;
+  height: 5rem;
   background: magenta;
+  mix-blend-mode: multiply;
+}
+
+.shadow {
+  position: fixed;
+  top: 20rem;
+  left: 20rem;
+  width: 5rem;
+  height: 5rem;
+  background: yellow;
   mix-blend-mode: multiply;
 }

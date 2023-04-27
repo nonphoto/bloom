@@ -1,27 +1,53 @@
 import classes from './MatrixPlayground.module.css'
-import { mat4, vec2, vec3 } from 'gl-matrix'
+import { mat4, quat, vec2, vec3 } from 'gl-matrix'
 
 function styleTransform(transform: mat4) {
   return `matrix3d(${transform.join(',')})`
 }
 
 const rem = 16
-const parentSize = 20
-const childSize = 10
 
 export default function MatrixPlayground() {
-  const layoutVector = vec3.fromValues(
-    ((parentSize - childSize) / 2) * rem,
-    ((parentSize - childSize) / 2) * rem,
-    0,
+  const scaling = mat4.fromRotationTranslationScaleOrigin(
+    mat4.create(),
+    quat.create(),
+    vec3.create(),
+    vec3.fromValues(1.5, 1, 1),
+    vec3.fromValues(-7.5 * rem, -7.5 * rem, 0),
+  )
+
+  const rotation = mat4.fromRotationTranslationScaleOrigin(
+    mat4.create(),
+    quat.fromEuler(quat.create(), 0, 0, 30),
+    vec3.create(),
+    vec3.fromValues(1, 1, 1),
+    vec3.fromValues(-2.5 * rem, -2.5 * rem, 0),
+  )
+
+  const translation = mat4.fromRotationTranslationScaleOrigin(
+    mat4.create(),
+    quat.create(),
+    vec3.fromValues(5 * rem, -5 * rem, 0),
+    vec3.fromValues(1, 1, 1),
+    vec3.create(),
   )
 
   const matrix = mat4.create()
-  mat4.translate(matrix, matrix, vec3.scale(layoutVector, layoutVector, -1))
-  mat4.scale(matrix, matrix, vec3.fromValues(1.5, 1, 1))
-  mat4.rotateZ(matrix, matrix, 1)
-  mat4.translate(matrix, matrix, vec3.fromValues(5 * rem, -5 * rem, 0))
-  mat4.translate(matrix, matrix, vec3.scale(layoutVector, layoutVector, -1))
+  mat4.multiply(matrix, matrix, scaling)
+  mat4.multiply(matrix, matrix, rotation)
+  mat4.multiply(matrix, matrix, translation)
+
+  /**
+   * Undo translate layout
+   * Undo rotate layout
+   * Undo scale layout
+   * scale
+   * Redo scale layout
+   * rotate
+   * Redo rotate layout
+   * translate
+   * Redo translate layout
+   */
 
   return (
     <>
@@ -31,6 +57,7 @@ export default function MatrixPlayground() {
         </div>
       </div>
       <div class={classes.matrix} style={{ transform: styleTransform(matrix) }}></div>
+      <div class={classes.shadow}></div>
     </>
   )
 }
