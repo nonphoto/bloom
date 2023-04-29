@@ -1,9 +1,9 @@
 import { debugComputation } from '@solid-devtools/logger'
 import classes from './ScrollingLayout.module.css'
-import { LayoutObserver } from '@chloranthy/core'
+import { LayoutObserver, rect } from '@chloranthy/core'
 import { createRAF } from '@solid-primitives/raf'
 import { mat2d } from 'gl-matrix'
-import { createEffect, createSignal, onCleanup, onMount } from 'solid-js'
+import { createEffect, createMemo, createSignal, onCleanup, onMount } from 'solid-js'
 
 export default function ScrollingLayout() {
   const layoutObserver = new LayoutObserver()
@@ -14,23 +14,39 @@ export default function ScrollingLayout() {
 
   const [element, setElement] = createSignal<HTMLElement>()
   const [parentElement, setParentElement] = createSignal<HTMLElement>()
+  const [matrixElement, setMatrixElement] = createSignal<HTMLElement>()
 
   createEffect(() => {
     const accessedElement = element()
-    if (accessedElement) {
+    const accessedMatrixElement = matrixElement()
+    if (accessedElement && accessedMatrixElement) {
       const [{ extrinsicTransform, layoutRect }, { disconnect }] =
         layoutObserver.connect(accessedElement)
 
-      createEffect(() => {
-        console.log('transform', extrinsicTransform())
-      })
+      const [
+        { layoutRect: matrixLayoutRect },
+        { setIntrinsicTransform, disconnect: disconnectMatrix },
+      ] = layoutObserver.connect(accessedMatrixElement)
+
+      const transform = createMemo<mat2d>(
+        prev => {
+          if (layoutRect() && matrixLayoutRect() && extrinsicTransform()) {
+            rect.divide(prev, layoutRect()!, matrixLayoutRect()!)
+            mat2d.multiply(prev, prev, extrinsicTransform()!)
+          }
+          return prev
+        },
+        mat2d.create(),
+        { equals: false },
+      )
 
       createEffect(() => {
-        console.log('rect', layoutRect())
+        setIntrinsicTransform(transform())
       })
 
       onCleanup(() => {
         disconnect()
+        disconnectMatrix()
       })
     }
   })
@@ -54,17 +70,20 @@ export default function ScrollingLayout() {
     }
   })
 
-  // onMount(() => {
-  //   layoutObserver.measureAll()
-  // })
+  onMount(() => {
+    layoutObserver.measureAll()
+  })
 
   return (
-    <div class={`${classes.container} ${classes.outer}`} ref={setParentElement}>
-      <div class={classes.container}>
-        <div class={classes.sticky}></div>
-        <div class={classes.fixed}></div>
-        <div class={classes.absolute} ref={setElement}></div>
+    <>
+      <div class={`${classes.container} ${classes.outer}`} ref={setParentElement}>
+        <div class={classes.container}>
+          <div class={classes.sticky}></div>
+          <div class={classes.fixed}></div>
+          <div class={classes.absolute} ref={setElement}></div>
+        </div>
       </div>
-    </div>
+      <div class={classes.matrix} ref={setMatrixElement} />
+    </>
   )
 }

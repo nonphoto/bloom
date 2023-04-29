@@ -37,3 +37,11 @@
   height: 5rem;
   background: yellow;
 }
+
+.matrix {
+  position: aboslute;
+  width: 5rem;
+  height: 5rem;
+  background: #0000ff;
+  mix-blend-mode: multiply;
+}
