@@ -60,12 +60,12 @@ export default function MatrixPlayground() {
    * Undo translate layout
    * Undo rotate layout
    * Undo scale layout
-   * scale
    * Redo scale layout
-   * rotate
+   * scale
    * Redo rotate layout
-   * translate
+   * rotate
    * Redo translate layout
+   * translate
    */
 
   return (

@@ -9,6 +9,7 @@ import {
   createRoot,
   createSignal,
   onCleanup,
+  untrack,
 } from 'solid-js'
 import { ReactiveMap } from '@solid-primitives/map'
 
@@ -76,10 +77,16 @@ function getScrollEmitter(element: HTMLElement): HTMLElement | Document {
   return element === document.documentElement ? document : element
 }
 
+function styleTransform(transform: mat2d): string {
+  return `matrix(${transform.join(',')})`
+}
+
+const styleTransformIdentity = styleTransform(mat2d.identity(mat2d.create()))
+
 type LayoutController = {
-  layoutRect: Rect
   intermediateTransform: Accessor<mat2d>
   extrinsicTransform: Accessor<mat2d>
+  layoutRect: Rect
   scrollTranslation: Accessor<vec2>
   accumulatedScrollTranslation: Accessor<vec2>
   dispose(): void
@@ -92,18 +99,12 @@ type TransformController = {
   dispose(): void
 }
 
-function styleTransform(transform: mat2d): string {
-  return `matrix(${transform.join(',')})`
-}
-
-const styleTransformIdentity = styleTransform(mat2d.identity(mat2d.create()))
-
 export class LayoutObserver {
   private transformControllers: ReactiveMap<HTMLElement, TransformController> = new ReactiveMap()
   private layoutControllers: ReactiveMap<HTMLElement, LayoutController> = new ReactiveMap()
 
   private createLayoutController(element: HTMLElement): LayoutController {
-    const layoutController = this.layoutControllers.get(element)
+    const layoutController = untrack(() => this.layoutControllers.get(element))
     if (layoutController) {
       return layoutController
     }
@@ -129,7 +130,7 @@ export class LayoutObserver {
 
     const parentController = parent ? this.createLayoutController(parent) : null
 
-    const transformController = this.transformControllers.get(element)
+    const transformController = untrack(() => this.transformControllers.get(element))
 
     let controller: LayoutController
 
@@ -166,11 +167,12 @@ export class LayoutObserver {
       const intermediateTransform = createMemo<mat2d>(
         prev => {
           if (isDocumentElement) {
-            mat2d.fromTranslation(prev, scrollTranslation())
+            mat2d.fromTranslation(prev, layoutDelta)
           } else if (parentController) {
             mat2d.translate(prev, parentController.intermediateTransform(), layoutDelta)
-            mat2d.translate(prev, prev, scrollTranslation())
           }
+
+          mat2d.translate(prev, prev, scrollTranslation())
 
           if (transformController) {
             mat2d.multiply(prev, prev, transformController.intrinsicTransform())
@@ -200,20 +202,22 @@ export class LayoutObserver {
         })
       }
 
-      if (isDocumentElement) {
-        vec2.sub(layoutRect.position, layoutRect.position, scrollTranslation())
-      } else if (parentController) {
-        vec2.sub(
-          layoutRect.position,
-          layoutRect.position,
-          parentController.accumulatedScrollTranslation(),
-        )
-      }
+      untrack(() => {
+        if (isDocumentElement) {
+          vec2.sub(layoutRect.position, layoutRect.position, scrollTranslation())
+        } else if (parentController) {
+          vec2.sub(
+            layoutRect.position,
+            layoutRect.position,
+            parentController.accumulatedScrollTranslation(),
+          )
+        }
+      })
 
       controller = {
-        layoutRect,
         intermediateTransform,
         extrinsicTransform,
+        layoutRect,
         scrollTranslation,
         accumulatedScrollTranslation,
         dispose,
@@ -226,7 +230,7 @@ export class LayoutObserver {
   }
 
   private createTransformController(element: HTMLElement): TransformController {
-    const transformController = this.transformControllers.get(element)
+    const transformController = untrack(() => this.transformControllers.get(element))
     if (transformController) {
       return transformController
     }
@@ -263,7 +267,17 @@ export class LayoutObserver {
     return controller!
   }
 
-  connect(element: HTMLElement) {
+  connect(element: HTMLElement): [
+    {
+      intrinsicTransform: Accessor<mat2d>
+      extrinsicTransform: Accessor<mat2d | undefined>
+      layoutRect: Accessor<Rect | undefined>
+    },
+    {
+      setIntrinsicTransform: Setter<mat2d>
+      disconnect(): void
+    },
+  ] {
     const controller = this.createTransformController(element)
 
     const observer = this
@@ -307,5 +321,15 @@ export class LayoutObserver {
     }
   }
 
-  disconnectAll() {}
+  disconnectAll() {
+    for (const [element, controller] of this.layoutControllers) {
+      controller.dispose()
+      this.layoutControllers.delete(element)
+    }
+
+    for (const [element, controller] of this.transformControllers) {
+      controller.dispose()
+      this.transformControllers.delete(element)
+    }
+  }
 }

@@ -17,6 +17,8 @@
   },
   "dependencies": {
     "@chloranthy/core": "^0.0.1",
+    "@solid-devtools/logger": "0.6.1",
+    "@solid-devtools/overlay": "0.6.0",
     "@solid-primitives/raf": "2.1.10",
     "gl-matrix": "3.4.3",
     "ramda": "0.29.0"
