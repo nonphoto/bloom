@@ -172,11 +172,11 @@ export class LayoutObserver {
             mat2d.translate(prev, parentController.intermediateTransform(), layoutDelta)
           }
 
-          mat2d.translate(prev, prev, scrollTranslation())
-
           if (transformController) {
             mat2d.multiply(prev, prev, transformController.intrinsicTransform())
           }
+
+          mat2d.translate(prev, prev, scrollTranslation())
 
           return prev
         },
