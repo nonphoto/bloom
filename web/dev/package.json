@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@chloranthy/core": "^0.0.1",
+    "@chloranthy/solid": "workspace:*",
     "@solid-devtools/logger": "0.6.1",
     "@solid-devtools/overlay": "0.6.0",
     "@solid-primitives/raf": "2.1.10",

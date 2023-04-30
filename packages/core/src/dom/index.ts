@@ -99,6 +99,14 @@ type TransformController = {
   dispose(): void
 }
 
+export type Layout = Readonly<{
+  intrinsicTransform: Accessor<mat2d>
+  extrinsicTransform: Accessor<mat2d | undefined>
+  layoutRect: Accessor<Rect | undefined>
+  setIntrinsicTransform: Setter<mat2d>
+  disconnect(): void
+}>
+
 export class LayoutObserver {
   private transformControllers: ReactiveMap<HTMLElement, TransformController> = new ReactiveMap()
   private layoutControllers: ReactiveMap<HTMLElement, LayoutController> = new ReactiveMap()
@@ -267,40 +275,26 @@ export class LayoutObserver {
     return controller!
   }
 
-  connect(element: HTMLElement): [
-    {
-      intrinsicTransform: Accessor<mat2d>
-      extrinsicTransform: Accessor<mat2d | undefined>
-      layoutRect: Accessor<Rect | undefined>
-    },
-    {
-      setIntrinsicTransform: Setter<mat2d>
-      disconnect(): void
-    },
-  ] {
+  connect(element: HTMLElement): Layout {
     const controller = this.createTransformController(element)
 
     const observer = this
 
-    return [
-      {
-        intrinsicTransform() {
-          return controller.intrinsicTransform()
-        },
-        extrinsicTransform() {
-          return observer.layoutControllers.get(element)?.extrinsicTransform()
-        },
-        layoutRect() {
-          return observer.layoutControllers.get(element)?.layoutRect
-        },
+    return {
+      intrinsicTransform() {
+        return controller.intrinsicTransform()
       },
-      {
-        setIntrinsicTransform: controller.setIntrinsicTransform,
-        disconnect() {
-          controller.dispose()
-        },
+      extrinsicTransform() {
+        return observer.layoutControllers.get(element)?.extrinsicTransform()
       },
-    ]
+      layoutRect() {
+        return observer.layoutControllers.get(element)?.layoutRect
+      },
+      setIntrinsicTransform: controller.setIntrinsicTransform,
+      disconnect() {
+        controller.dispose()
+      },
+    }
   }
 
   measureAll() {
