@@ -298,8 +298,9 @@ export class LayoutObserver {
   }
 
   measureAll() {
-    for (const [, controller] of this.layoutControllers) {
+    for (const [element, controller] of this.layoutControllers) {
       controller.dispose()
+      this.layoutControllers.delete(element)
     }
 
     for (const [, controller] of this.transformControllers) {
