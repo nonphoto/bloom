@@ -3,6 +3,7 @@ import * as rect from '../rect'
 import {
   Accessor,
   Setter,
+  createComputed,
   createEffect,
   createMemo,
   createRoot,
@@ -305,13 +306,15 @@ export class LayoutObserver {
       controller.setIsEnabled(false)
     }
 
-    for (const [element] of this.transformControllers) {
-      this.createLayoutController(element)
-    }
+    queueMicrotask(() => {
+      for (const [element] of this.transformControllers) {
+        this.createLayoutController(element)
+      }
 
-    for (const [, controller] of this.transformControllers) {
-      controller.setIsEnabled(true)
-    }
+      for (const [, controller] of this.transformControllers) {
+        controller.setIsEnabled(true)
+      }
+    })
   }
 
   disconnectAll() {
