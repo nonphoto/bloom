@@ -3,7 +3,7 @@ import { rect } from '@chloranthy/core'
 import { layout, createLayout } from '@chloranthy/solid'
 import { createRAF } from '@solid-primitives/raf'
 import { mat2d } from 'gl-matrix'
-import { createEffect, createMemo, createSignal, onCleanup, onMount } from 'solid-js'
+import { createEffect, createMemo, createSignal } from 'solid-js'
 
 layout
 
@@ -22,15 +22,15 @@ export default function ScrollingLayout() {
     start()
   })
 
-  const layout = createLayout(element)
+  const absoluteLayout = createLayout(element)
 
   const matrixLayout = createLayout(matrixElement)
 
   const transform = createMemo<mat2d>(
     prev => {
-      if (layout() && matrixLayout()) {
-        rect.divide(prev, layout()!.layoutRect(), matrixLayout()!.layoutRect())
-        mat2d.multiply(prev, prev, layout()!.extrinsicTransform())
+      if (absoluteLayout() && matrixLayout()) {
+        rect.divide(prev, absoluteLayout()!.layoutRect(), matrixLayout()!.layoutRect())
+        mat2d.multiply(prev, prev, absoluteLayout()!.extrinsicTransform())
       }
       return prev
     },
@@ -46,7 +46,7 @@ export default function ScrollingLayout() {
     <>
       <div
         class={`${classes.container} ${classes.outer}`}
-        use:layout={{ intrinsicTransform: parentTransform }}
+        use:layout={{ intrinsicTransform: parentTransform() }}
       >
         <div class={classes.container}>
           <div class={classes.sticky}></div>

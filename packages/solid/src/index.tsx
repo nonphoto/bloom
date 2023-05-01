@@ -56,7 +56,7 @@ export function createLayout(
 }
 
 export type LayoutDirectiveProps = {
-  intrinsicTransform?: Accessor<mat2d> | mat2d
+  intrinsicTransform?: mat2d
   onLayoutRect?: (rect: rect.Rect | undefined) => void
   onExtrinsicTransform?: (matrix: mat2d | undefined) => void
 }
@@ -78,25 +78,13 @@ export const layout: Directive<LayoutDirectiveProps> = (target, props) => {
     createEffect(() => {
       const { intrinsicTransform, onLayoutRect, onExtrinsicTransform } = props()
 
-      if (typeof intrinsicTransform === 'function') {
-        createEffect(() => {
-          layout.setIntrinsicTransform(intrinsicTransform())
-        })
-      } else if (intrinsicTransform) {
+      if (intrinsicTransform) {
         layout.setIntrinsicTransform(intrinsicTransform)
       }
 
-      if (onLayoutRect) {
-        createEffect(() => {
-          onLayoutRect(layout.layoutRect())
-        })
-      }
+      onLayoutRect?.(layout.layoutRect())
 
-      if (onExtrinsicTransform) {
-        createEffect(() => {
-          onExtrinsicTransform(layout.extrinsicTransform())
-        })
-      }
+      onExtrinsicTransform?.(layout.extrinsicTransform())
     })
   }
 }

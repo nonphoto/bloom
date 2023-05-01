@@ -1,6 +1,5 @@
 import { mat2d, vec2 } from 'gl-matrix'
-import { Rect } from '../rect'
-import { rect } from '..'
+import * as rect from '../rect'
 import {
   Accessor,
   Setter,
@@ -81,12 +80,13 @@ function styleTransform(transform: mat2d): string {
   return `matrix(${transform.join(',')})`
 }
 
-const styleTransformIdentity = styleTransform(mat2d.identity(mat2d.create()))
+const identity = mat2d.identity(mat2d.create())
+const zeroRect = rect.create()
 
 type LayoutController = {
   intermediateTransform: Accessor<mat2d>
   extrinsicTransform: Accessor<mat2d>
-  layoutRect: Rect
+  layoutRect: rect.Rect
   scrollTranslation: Accessor<vec2>
   accumulatedScrollTranslation: Accessor<vec2>
   dispose(): void
@@ -101,8 +101,8 @@ type TransformController = {
 
 export type Layout = Readonly<{
   intrinsicTransform: Accessor<mat2d>
-  extrinsicTransform: Accessor<mat2d | undefined>
-  layoutRect: Accessor<Rect | undefined>
+  extrinsicTransform: Accessor<mat2d>
+  layoutRect: Accessor<rect.Rect>
   setIntrinsicTransform: Setter<mat2d>
   disconnect(): void
 }>
@@ -260,9 +260,7 @@ export class LayoutObserver {
       }
 
       createEffect(() => {
-        element.style.transform = isEnabled()
-          ? styleTransform(intrinsicTransform())
-          : styleTransformIdentity
+        element.style.transform = styleTransform(isEnabled() ? intrinsicTransform() : identity)
       })
 
       onCleanup(() => {
@@ -285,10 +283,10 @@ export class LayoutObserver {
         return controller.intrinsicTransform()
       },
       extrinsicTransform() {
-        return observer.layoutControllers.get(element)?.extrinsicTransform()
+        return observer.layoutControllers.get(element)?.extrinsicTransform() ?? identity
       },
       layoutRect() {
-        return observer.layoutControllers.get(element)?.layoutRect
+        return observer.layoutControllers.get(element)?.layoutRect ?? zeroRect
       },
       setIntrinsicTransform: controller.setIntrinsicTransform,
       disconnect() {

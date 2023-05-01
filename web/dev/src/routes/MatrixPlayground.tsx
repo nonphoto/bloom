@@ -1,5 +1,5 @@
 import classes from './MatrixPlayground.module.css'
-import { mat4, quat, vec2, vec3 } from 'gl-matrix'
+import { mat4, quat, vec3 } from 'gl-matrix'
 
 function styleTransform(transform: mat4) {
   return `matrix3d(${transform.join(',')})`
