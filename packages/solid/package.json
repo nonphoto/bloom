@@ -63,7 +63,8 @@
     "solid-js": "^1.6.0"
   },
   "dependencies": {
-    "@chloranthy/core": "workspace:^0.0.1",
+    "@chloranthy/layout-observer": "workspace:*",
+    "@chloranthy/rect": "workspace:*",
     "@solid-primitives/resize-observer": "2.0.15",
     "@solid-primitives/rootless": "1.3.2",
     "@solid-primitives/utils": "6.1.0"

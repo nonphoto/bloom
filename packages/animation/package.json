@@ -1,7 +1,7 @@
 {
-  "name": "@chloranthy/core",
+  "name": "@chloranthy/animation",
   "version": "0.0.1",
-  "description": "Example hello world package in the chloranthy repository.",
+  "description": "",
   "license": "MIT",
   "author": "Jonas Luebbers",
   "contributors": [],
@@ -52,9 +52,5 @@
     "test:ssr": "pnpm run test:client --mode ssr",
     "typecheck": "tsc --noEmit"
   },
-  "dependencies": {
-    "@solid-primitives/map": "0.4.3",
-    "gl-matrix": "^3.4.3",
-    "solid-js": "^1.7.3"
-  }
+  "dependencies": {}
 }

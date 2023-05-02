@@ -1,5 +1,5 @@
 import classes from './ScrollingLayout.module.css'
-import { rect } from '@chloranthy/core'
+import * as rect from '@chloranthy/rect'
 import { layout, createLayout } from '@chloranthy/solid'
 import { createRAF } from '@solid-primitives/raf'
 import { mat2d } from 'gl-matrix'

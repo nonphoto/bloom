@@ -1,5 +1,5 @@
 import { mat2d, vec2 } from 'gl-matrix'
-import * as rect from '../rect'
+import * as rect from '@chloranthy/rect'
 import {
   Accessor,
   Setter,

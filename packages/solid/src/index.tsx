@@ -1,7 +1,8 @@
-import { createSingletonRoot } from '@solid-primitives/rootless'
-import { Layout, LayoutObserver, rect } from '@chloranthy/core'
-import { createElementSize } from '@solid-primitives/resize-observer'
+import { Layout, LayoutObserver } from '@chloranthy/layout-observer'
+import * as rect from '@chloranthy/rect'
 import { Accessor, createEffect, createMemo, on, onCleanup } from 'solid-js'
+import { createSingletonRoot } from '@solid-primitives/rootless'
+import { createElementSize } from '@solid-primitives/resize-observer'
 import { access, Directive } from '@solid-primitives/utils'
 import { mat2d } from 'gl-matrix'
 
