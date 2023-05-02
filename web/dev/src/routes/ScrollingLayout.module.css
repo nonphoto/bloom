@@ -39,7 +39,7 @@
 }
 
 .matrix {
-  position: aboslute;
+  position: absolute;
   width: 5rem;
   height: 5rem;
   background: #0000ff;

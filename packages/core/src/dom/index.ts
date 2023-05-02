@@ -3,7 +3,6 @@ import * as rect from '../rect'
 import {
   Accessor,
   Setter,
-  createComputed,
   createEffect,
   createMemo,
   createRoot,
@@ -141,6 +140,8 @@ export class LayoutObserver {
 
     const transformController = untrack(() => this.transformControllers.get(element))
 
+    const observer = this
+
     let controller: LayoutController
 
     createRoot(dispose => {
@@ -229,10 +230,13 @@ export class LayoutObserver {
         layoutRect,
         scrollTranslation,
         accumulatedScrollTranslation,
-        dispose,
+        dispose() {
+          observer.layoutControllers.delete(element)
+          dispose()
+        },
       }
 
-      this.layoutControllers.set(element, controller)
+      observer.layoutControllers.set(element, controller)
     })
 
     return controller!
@@ -243,6 +247,8 @@ export class LayoutObserver {
     if (transformController) {
       return transformController
     }
+
+    const observer = this
 
     let controller: TransformController
 
@@ -257,7 +263,10 @@ export class LayoutObserver {
         intrinsicTransform,
         setIntrinsicTransform,
         setIsEnabled,
-        dispose,
+        dispose() {
+          observer.transformControllers.delete(element)
+          dispose()
+        },
       }
 
       createEffect(() => {
@@ -268,7 +277,7 @@ export class LayoutObserver {
         element.style.transform = ''
       })
 
-      this.transformControllers.set(element, controller)
+      observer.transformControllers.set(element, controller)
     })
 
     return controller!
@@ -297,9 +306,8 @@ export class LayoutObserver {
   }
 
   measureAll() {
-    for (const [element, controller] of this.layoutControllers) {
+    for (const [, controller] of this.layoutControllers) {
       controller.dispose()
-      this.layoutControllers.delete(element)
     }
 
     for (const [, controller] of this.transformControllers) {
@@ -318,14 +326,12 @@ export class LayoutObserver {
   }
 
   disconnectAll() {
-    for (const [element, controller] of this.layoutControllers) {
+    for (const [, controller] of this.layoutControllers) {
       controller.dispose()
-      this.layoutControllers.delete(element)
     }
 
-    for (const [element, controller] of this.transformControllers) {
+    for (const [, controller] of this.transformControllers) {
       controller.dispose()
-      this.transformControllers.delete(element)
     }
   }
 }
