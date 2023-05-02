@@ -146,6 +146,23 @@ export class LayoutObserver {
     createRoot(dispose => {
       const layoutRect = rect.fromDOMRect(rect.create(), element.getBoundingClientRect())
 
+      const [scrollTranslation, setScrollTranslation] = createSignal(
+        vec2.fromValues(-element.scrollLeft, -element.scrollTop),
+        { equals: false },
+      )
+
+      untrack(() => {
+        if (isDocumentElement) {
+          vec2.sub(layoutRect.position, layoutRect.position, scrollTranslation())
+        } else if (parentController) {
+          vec2.sub(
+            layoutRect.position,
+            layoutRect.position,
+            parentController.accumulatedScrollTranslation(),
+          )
+        }
+      })
+
       const negativeLayoutRectPosition = vec2.create()
       vec2.sub(negativeLayoutRectPosition, negativeLayoutRectPosition, layoutRect.position)
 
@@ -158,11 +175,6 @@ export class LayoutObserver {
       if (parentController) {
         vec2.sub(layoutDelta, layoutDelta, parentController.layoutRect.position)
       }
-
-      const [scrollTranslation, setScrollTranslation] = createSignal(
-        vec2.fromValues(-element.scrollLeft, -element.scrollTop),
-        { equals: false },
-      )
 
       const accumulatedScrollTranslation = () =>
         parentController
@@ -210,18 +222,6 @@ export class LayoutObserver {
           getScrollEmitter(element).removeEventListener('scroll', onScroll)
         })
       }
-
-      untrack(() => {
-        if (isDocumentElement) {
-          vec2.sub(layoutRect.position, layoutRect.position, scrollTranslation())
-        } else if (parentController) {
-          vec2.sub(
-            layoutRect.position,
-            layoutRect.position,
-            parentController.accumulatedScrollTranslation(),
-          )
-        }
-      })
 
       controller = {
         intermediateTransform,
