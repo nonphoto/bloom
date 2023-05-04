@@ -128,6 +128,17 @@ export class Spring {
       : this._position < this.endPosition
   }
 
+  *frames() {
+    this.time = 0
+    this.update()
+    yield this.position
+    while (!this.isAtRest && this.time < 100_000) {
+      this.time += 1_000 / 60
+      this.update()
+      yield this.position
+    }
+  }
+
   update() {
     this.v0 = -this.startVelocity
     this.x0 = this.endPosition - this.startPosition
