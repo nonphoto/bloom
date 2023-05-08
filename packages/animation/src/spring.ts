@@ -25,7 +25,7 @@ SOFTWARE.
 */
 
 import { fastAtan, fastNegExp, mix, square } from './utils'
-import type { Entity } from './entity'
+import type { Axis } from './axis'
 
 export function halflifeToDamping(halflife: number, epsilon: number = 1e-5) {
   return (4 * Math.LN2) / (halflife + epsilon)
@@ -74,9 +74,9 @@ export function decayDamper(x: number, halflife: number, dt: number, epsilon: nu
 }
 
 export function springStiffnessDamping(
-  out: Entity,
-  start: Entity,
-  end: Entity,
+  out: Axis,
+  start: Axis,
+  end: Axis,
   stiffness: number,
   damping: number,
   dt: number,
@@ -116,9 +116,9 @@ export function springStiffnessDamping(
 }
 
 export function springHalflifeFrequency(
-  out: Entity,
-  start: Entity,
-  end: Entity,
+  out: Axis,
+  start: Axis,
+  end: Axis,
   frequency: number,
   halflife: number,
   dt: number,
@@ -136,9 +136,9 @@ export function springHalflifeFrequency(
 }
 
 export function spring(
-  out: Entity,
-  start: Entity,
-  end: Entity,
+  out: Axis,
+  start: Axis,
+  end: Axis,
   dampingRatio: number,
   halflife: number,
   dt: number,
@@ -156,13 +156,7 @@ export function spring(
   )
 }
 
-export function criticalSpring(
-  out: Entity,
-  start: Entity,
-  end: Entity,
-  halflife: number,
-  dt: number,
-) {
+export function criticalSpring(out: Axis, start: Axis, end: Axis, halflife: number, dt: number) {
   const g = end.x
   const q = end.v
   const d = halflifeToDamping(halflife)
@@ -175,19 +169,19 @@ export function criticalSpring(
   out.v = eydt * (start.v - j1 * y * dt)
 }
 
-export function simpleSpring(out: Entity, entity: Entity, x: number, halflife: number, dt: number) {
+export function simpleSpring(out: Axis, axis: Axis, x: number, halflife: number, dt: number) {
   const y = halflifeToDamping(halflife) / 2
-  const j0 = entity.x - x
-  const j1 = entity.v + j0 * y
+  const j0 = axis.x - x
+  const j1 = axis.v + j0 * y
   const eydt = fastNegExp(y * dt)
   out.x = eydt * (j0 + j1 * dt) + x
-  out.v = eydt * (entity.v - j1 * y * dt)
+  out.v = eydt * (axis.v - j1 * y * dt)
 }
 
-export function decaySpring(out: Entity, entity: Entity, halflife: number, dt: number) {
+export function decaySpring(out: Axis, axis: Axis, halflife: number, dt: number) {
   const y = halflifeToDamping(halflife) / 2
-  const j1 = entity.v + entity.x * y
+  const j1 = axis.v + axis.x * y
   const eydt = fastNegExp(y * dt)
-  out.x = eydt * (entity.x + j1 * dt)
-  out.v = eydt * (entity.v - j1 * y * dt)
+  out.x = eydt * (axis.x + j1 * dt)
+  out.v = eydt * (axis.v - j1 * y * dt)
 }

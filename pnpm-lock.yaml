@@ -44,7 +44,11 @@ importers:
         specifier: ^0.30.1
         version: 0.30.1(jsdom@21.1.2)
 
-  packages/animation: {}
+  packages/animation:
+    dependencies:
+      gl-matrix:
+        specifier: 3.4.3
+        version: 3.4.3
 
   packages/layout-observer:
     dependencies:
@@ -103,6 +107,9 @@ importers:
 
   web/dev:
     dependencies:
+      '@chloranthy/animation':
+        specifier: workspace:*
+        version: link:../../packages/animation
       '@chloranthy/rect':
         specifier: workspace:*
         version: link:../../packages/rect

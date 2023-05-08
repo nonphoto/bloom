@@ -1,2 +1,3 @@
 export * from './spring'
-export * as entity from './entity'
+export * as axis from './axis'
+export * from './quad'
