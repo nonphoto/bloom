@@ -1,34 +1,66 @@
-export type Axis = {
-  x: number
+import { defaultEpsilon } from './utils'
+
+export class Axis {
+  p: number
   v: number
-}
 
-export function create() {
-  return {
-    x: 0,
-    v: 0,
+  constructor(p?: number, v?: number) {
+    this.p = p ?? 0
+    this.v = v ?? 0
   }
-}
 
-export function copy(out: Axis, a: Axis) {
-  out.x = a.x
-  out.v = a.v
-  return out
-}
+  static createProxy<T extends string | number, U extends string | number = T>(
+    p: Record<T, number>,
+    pKey: T,
+    v: Record<U, number>,
+    vKey: U,
+  ): Axis {
+    const result = Object.defineProperties(new Axis(), {
+      p: {
+        get() {
+          return p[pKey]
+        },
+        set(value: number) {
+          p[pKey] = value
+        },
+      },
+      v: {
+        get() {
+          return v[vKey]
+        },
+        set(value: number) {
+          v[vKey] = value
+        },
+      },
+    })
+    return result
+  }
 
-export function clone(a: Axis) {
-  return copy(create(), a)
-}
+  static copy(out: Axis, a: Axis) {
+    out.p = a.p
+    out.p = a.p
+    return out
+  }
 
-export function equals(a: Axis, b: Axis) {
-  return a.x === b.x && a.v === b.v
-}
+  static clone(a: Axis) {
+    return Axis.copy(new Axis(), a)
+  }
 
-export function equivalent(
-  a: Axis,
-  b: Axis,
-  positionThreshold: number = 0.001,
-  velocityThreshold: number = 0.001,
-) {
-  return Math.abs(b.v - a.v) <= velocityThreshold && Math.abs(b.x - a.x) <= positionThreshold
+  static zero(a: Axis) {
+    return Axis.set(a, 0, 0)
+  }
+
+  static set(a: Axis, p: number, v: number) {
+    a.p = p
+    a.v = v
+    return a
+  }
+
+  static exactEquals(a: Axis, b: Axis) {
+    return a.p === b.p && a.v === b.v
+  }
+
+  static equals(a: Axis, b: Axis, epsilon: number = defaultEpsilon) {
+    return Math.abs(b.p - a.p) <= epsilon && Math.abs(b.v - a.v) <= epsilon
+  }
 }

@@ -1,5 +1,4 @@
 import { mat2d, vec2 } from 'gl-matrix'
-import * as rect from '@chloranthy/rect'
 import {
   Accessor,
   Setter,
@@ -81,12 +80,12 @@ function styleTransform(transform: mat2d): string {
 }
 
 const identity = mat2d.identity(mat2d.create())
-const zeroRect = rect.create()
 
 type LayoutController = {
   intermediateTransform: Accessor<mat2d>
   extrinsicTransform: Accessor<mat2d>
-  layoutRect: rect.Rect
+  layoutRect: DOMRect
+  layoutPosition: vec2
   scrollTranslation: Accessor<vec2>
   accumulatedScrollTranslation: Accessor<vec2>
   dispose(): void
@@ -101,8 +100,8 @@ type TransformController = {
 
 export type Layout = Readonly<{
   intrinsicTransform: Accessor<mat2d>
-  extrinsicTransform: Accessor<mat2d>
-  layoutRect: Accessor<rect.Rect>
+  extrinsicTransform: Accessor<mat2d | undefined>
+  layoutRect: Accessor<DOMRect | undefined>
   setIntrinsicTransform: Setter<mat2d>
   disconnect(): void
 }>
@@ -145,36 +144,37 @@ export class LayoutObserver {
     let controller: LayoutController
 
     createRoot(dispose => {
-      const layoutRect = rect.fromDOMRect(rect.create(), element.getBoundingClientRect())
+      const layoutRect = element.getBoundingClientRect()
 
       const [scrollTranslation, setScrollTranslation] = createSignal(
         vec2.fromValues(-element.scrollLeft, -element.scrollTop),
         { equals: false },
       )
 
+      const layoutPosition = vec2.fromValues(
+        layoutRect.x - layoutRect.width / 2,
+        layoutRect.y - layoutRect.height / 2,
+      )
+
       untrack(() => {
         if (isDocumentElement) {
-          vec2.sub(layoutRect.position, layoutRect.position, scrollTranslation())
+          vec2.sub(layoutPosition, layoutPosition, scrollTranslation())
         } else if (parentController) {
-          vec2.sub(
-            layoutRect.position,
-            layoutRect.position,
-            parentController.accumulatedScrollTranslation(),
-          )
+          vec2.sub(layoutPosition, layoutPosition, parentController.accumulatedScrollTranslation())
         }
       })
 
       const negativeLayoutRectPosition = vec2.create()
-      vec2.sub(negativeLayoutRectPosition, negativeLayoutRectPosition, layoutRect.position)
+      vec2.sub(negativeLayoutRectPosition, negativeLayoutRectPosition, layoutPosition)
 
       const negativeLayoutTransform = mat2d.fromTranslation(
         mat2d.create(),
         negativeLayoutRectPosition,
       )
 
-      const layoutDelta = vec2.clone(layoutRect.position)
+      const layoutDelta = vec2.clone(layoutPosition)
       if (parentController) {
-        vec2.sub(layoutDelta, layoutDelta, parentController.layoutRect.position)
+        vec2.sub(layoutDelta, layoutDelta, parentController.layoutPosition)
       }
 
       const accumulatedScrollTranslation = () =>
@@ -228,6 +228,7 @@ export class LayoutObserver {
         intermediateTransform,
         extrinsicTransform,
         layoutRect,
+        layoutPosition,
         scrollTranslation,
         accumulatedScrollTranslation,
         dispose() {
@@ -293,10 +294,10 @@ export class LayoutObserver {
         return controller.intrinsicTransform()
       },
       extrinsicTransform() {
-        return observer.layoutControllers.get(element)?.extrinsicTransform() ?? identity
+        return observer.layoutControllers.get(element)?.extrinsicTransform()
       },
       layoutRect() {
-        return observer.layoutControllers.get(element)?.layoutRect ?? zeroRect
+        return observer.layoutControllers.get(element)?.layoutRect
       },
       setIntrinsicTransform: controller.setIntrinsicTransform,
       disconnect() {

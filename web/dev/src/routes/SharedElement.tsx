@@ -1,40 +1,14 @@
 import classes from './SharedElement.module.css'
-import { createEffect, createSignal, EffectFunction, Signal, createMemo } from 'solid-js'
+import { createEffect, createSignal, createMemo } from 'solid-js'
 import { xprod } from 'ramda'
-import { mat2d, vec2 } from 'gl-matrix'
-import * as rect from '@chloranthy/rect'
 import { createLayout, useLayoutObserver, layout } from '@chloranthy/solid'
 import { Quad, criticalSpring } from '@chloranthy/animation'
 import { createRAF } from '@solid-primitives/raf'
+import { mat2d } from 'gl-matrix'
 
 layout
 
-type Rect = rect.Rect
-
 const areas = xprod([1, 2], [1, 2])
-
-function createComplexSignal<T>(
-  fn: EffectFunction<T, T>,
-  { create }: { create: () => T },
-): Signal<T> {
-  const [value, setValue] = createSignal(create(), { equals: false })
-  createEffect(() => {
-    setValue(fn)
-  })
-  return [value, setValue]
-}
-
-function createMat2d(fn: EffectFunction<mat2d, mat2d>) {
-  return createComplexSignal<mat2d>(fn, mat2d)
-}
-
-function createVec2(fn: EffectFunction<vec2, vec2>) {
-  return createComplexSignal<vec2>(fn, vec2)
-}
-
-function createRect(fn: EffectFunction<Rect, Rect>) {
-  return createComplexSignal<Rect>(fn, rect)
-}
 
 export default function SharedElement() {
   const outerElement = (
@@ -69,8 +43,9 @@ export default function SharedElement() {
   const targetQuad = createMemo<Quad>(
     prev => {
       const rect = outerLayout.layoutRect()
-      vec2.copy(prev.translation, rect.position)
-      vec2.copy(prev.scaling, rect.size)
+      if (rect) {
+        Quad.fromDOMRect(prev, rect)
+      }
       return prev
     },
     new Quad(),
@@ -84,21 +59,21 @@ export default function SharedElement() {
     const deltaTime = time - prevTime
     setOuterQuad(quad => {
       criticalSpring(
-        quad.translationX,
-        quad.translationX,
-        targetQuad().translationX,
+        quad.translation.x,
+        quad.translation.x,
+        targetQuad().translation.x,
         100,
         deltaTime,
       )
       criticalSpring(
-        quad.translationY,
-        quad.translationY,
-        targetQuad().translationY,
+        quad.translation.y,
+        quad.translation.y,
+        targetQuad().translation.y,
         100,
         deltaTime,
       )
-      criticalSpring(quad.scalingX, quad.scalingX, targetQuad().scalingX, 200, deltaTime)
-      criticalSpring(quad.scalingY, quad.scalingY, targetQuad().scalingY, 200, deltaTime)
+      criticalSpring(quad.scaling.x, quad.scaling.x, targetQuad().scaling.x, 200, deltaTime)
+      criticalSpring(quad.scaling.y, quad.scaling.y, targetQuad().scaling.y, 200, deltaTime)
       return quad
     })
 
@@ -107,17 +82,13 @@ export default function SharedElement() {
 
   start()
 
-  const [matrix] = createMat2d(prev => {
-    const a = outerQuad()
-    const b = outerLayout.layoutRect()
-    prev[0] = a.scaling[0] / b.size[0]
-    prev[1] = 0
-    prev[2] = 0
-    prev[3] = a.scaling[1] / b.size[1]
-    prev[4] = a.translation[0] - b.position[0]
-    prev[5] = a.translation[1] - b.position[1]
-    return prev
-  })
+  const matrix = createMemo<mat2d>(
+    prev => Quad.divide(prev, outerQuad(), targetQuad()),
+    mat2d.create(),
+    {
+      equals: false,
+    },
+  )
 
   createEffect(() => {
     outerLayout.setIntrinsicTransform(matrix())

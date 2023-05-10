@@ -24,14 +24,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import { fastAtan, fastNegExp, mix, square } from './utils'
+import { defaultEpsilon, fastAtan, fastNegExp, mix, square } from './utils'
 import type { Axis } from './axis'
 
-export function halflifeToDamping(halflife: number, epsilon: number = 1e-5) {
+export function halflifeToDamping(halflife: number, epsilon: number = defaultEpsilon) {
   return (4 * Math.LN2) / (halflife + epsilon)
 }
 
-export function dampingToHalflife(damping: number, epsilon: number = 1e-5) {
+export function dampingToHalflife(damping: number, epsilon: number = defaultEpsilon) {
   return (4 * Math.LN2) / (damping + epsilon)
 }
 
@@ -64,13 +64,18 @@ export function damper(
   end: number,
   halflife: number,
   dt: number,
-  epsilon: number = 1e-5,
+  epsilon: number = defaultEpsilon,
 ) {
   return mix(start, end, 1 - fastNegExp((Math.LN2 * dt) / (halflife + epsilon)))
 }
 
-export function decayDamper(x: number, halflife: number, dt: number, epsilon: number = 1e-5) {
-  return x * fastNegExp((Math.LN2 * dt) / (halflife + epsilon))
+export function decayDamper(
+  position: number,
+  halflife: number,
+  dt: number,
+  epsilon: number = defaultEpsilon,
+) {
+  return position * fastNegExp((Math.LN2 * dt) / (halflife + epsilon))
 }
 
 export function springStiffnessDamping(
@@ -80,9 +85,9 @@ export function springStiffnessDamping(
   stiffness: number,
   damping: number,
   dt: number,
-  epsilon: number = 1e-5,
+  epsilon: number = defaultEpsilon,
 ) {
-  const g = end.x
+  const g = end.p
   const q = end.v
   const s = stiffness
   const d = damping
@@ -90,27 +95,27 @@ export function springStiffnessDamping(
   const y = d / 2
 
   if (Math.abs(s - (d * d) / 4) < epsilon) {
-    const j0 = start.x - c
+    const j0 = start.p - c
     const j1 = start.v + j0 * y
     const eydt = fastNegExp(y * dt)
-    out.x = j0 * eydt + dt * j1 * eydt + c
+    out.p = j0 * eydt + dt * j1 * eydt + c
     out.v = -y * j0 * eydt - y * dt * j1 * eydt + j1 * eydt
   } else if (s - (d * d) / 4 > 0) {
     const w = Math.sqrt(s - (d * d) / 4)
-    let j = Math.sqrt(square(start.v + y * (start.x - c)) / (w * w + epsilon) + square(start.x - c))
-    const p = fastAtan((start.v + (start.x - c) * y) / (-(start.x - c) * w + epsilon))
-    j = start.x - c > 0.0 ? j : -j
+    let j = Math.sqrt(square(start.v + y * (start.p - c)) / (w * w + epsilon) + square(start.p - c))
+    const p = fastAtan((start.v + (start.p - c) * y) / (-(start.p - c) * w + epsilon))
+    j = start.p - c > 0.0 ? j : -j
     const eydt = fastNegExp(y * dt)
-    out.x = j * eydt * Math.cos(w * dt + p) + c
+    out.p = j * eydt * Math.cos(w * dt + p) + c
     out.v = -y * j * eydt * Math.cos(w * dt + p) - w * j * eydt * Math.sin(w * dt + p)
   } else if (s - (d * d) / 4 < 0) {
     const y0 = (d + Math.sqrt(d * d - 4 * s)) / 2
     const y1 = (d - Math.sqrt(d * d - 4 * s)) / 2
-    const j1 = (c * y0 - start.x * y0 - start.v) / (y1 - y0)
-    const j0 = start.x - j1 - c
+    const j1 = (c * y0 - start.p * y0 - start.v) / (y1 - y0)
+    const j0 = start.p - j1 - c
     const ey0dt = fastNegExp(y0 * dt)
     const ey1dt = fastNegExp(y1 * dt)
-    out.x = j0 * ey0dt + j1 * ey1dt + c
+    out.p = j0 * ey0dt + j1 * ey1dt + c
     out.v = -y0 * j0 * ey0dt - y1 * j1 * ey1dt
   }
 }
@@ -122,7 +127,7 @@ export function springHalflifeFrequency(
   frequency: number,
   halflife: number,
   dt: number,
-  epsilon: number = 1e-5,
+  epsilon: number = defaultEpsilon,
 ) {
   springStiffnessDamping(
     out,
@@ -142,7 +147,7 @@ export function spring(
   dampingRatio: number,
   halflife: number,
   dt: number,
-  epsilon: number = 1e-5,
+  epsilon: number = defaultEpsilon,
 ) {
   const damping = halflifeToDamping(halflife)
   return springStiffnessDamping(
@@ -157,31 +162,31 @@ export function spring(
 }
 
 export function criticalSpring(out: Axis, start: Axis, end: Axis, halflife: number, dt: number) {
-  const g = end.x
+  const g = end.p
   const q = end.v
   const d = halflifeToDamping(halflife)
   const c = g + (d * q) / ((d * d) / 4)
   const y = d / 2
-  const j0 = start.x - c
+  const j0 = start.p - c
   const j1 = start.v + j0 * y
   const eydt = fastNegExp(y * dt)
-  out.x = eydt * (j0 + j1 * dt) + c
+  out.p = eydt * (j0 + j1 * dt) + c
   out.v = eydt * (start.v - j1 * y * dt)
 }
 
 export function simpleSpring(out: Axis, axis: Axis, x: number, halflife: number, dt: number) {
   const y = halflifeToDamping(halflife) / 2
-  const j0 = axis.x - x
+  const j0 = axis.p - x
   const j1 = axis.v + j0 * y
   const eydt = fastNegExp(y * dt)
-  out.x = eydt * (j0 + j1 * dt) + x
+  out.p = eydt * (j0 + j1 * dt) + x
   out.v = eydt * (axis.v - j1 * y * dt)
 }
 
 export function decaySpring(out: Axis, axis: Axis, halflife: number, dt: number) {
   const y = halflifeToDamping(halflife) / 2
-  const j1 = axis.v + axis.x * y
+  const j1 = axis.v + axis.p * y
   const eydt = fastNegExp(y * dt)
-  out.x = eydt * (axis.x + j1 * dt)
+  out.p = eydt * (axis.p + j1 * dt)
   out.v = eydt * (axis.v - j1 * y * dt)
 }
