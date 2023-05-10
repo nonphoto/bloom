@@ -16,6 +16,7 @@
     "vite-plugin-solid": "^2.5.0"
   },
   "dependencies": {
+    "@chloranthy/animation": "workspace:*",
     "@chloranthy/rect": "workspace:*",
     "@chloranthy/solid": "workspace:*",
     "@solid-devtools/logger": "0.6.1",
