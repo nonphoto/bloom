@@ -1,338 +1,327 @@
 import { mat2d, vec2 } from 'gl-matrix'
+import { Accessor, createMemo, createSignal, onCleanup } from 'solid-js'
+import { ReactiveWeakMap } from '@solid-primitives/map'
 import {
-  Accessor,
-  Setter,
-  createEffect,
-  createMemo,
-  createRoot,
-  createSignal,
-  onCleanup,
-  untrack,
-} from 'solid-js'
-import { ReactiveMap } from '@solid-primitives/map'
-
-const willChangeValues = [
-  'position',
-  'z-index',
-  'opacity',
-  'transform',
-  'webkit-transform',
-  'mix-blend-mode',
-  'filter',
-  'webkit-filter',
-  'isolation',
-]
-
-function isFlexItem(element: Element) {
-  const parent = element.parentElement
-  if (parent) {
-    const display = getComputedStyle(parent).display
-    return display === 'flex' || display === 'inline-flex'
-  } else {
-    return false
-  }
-}
-
-function createsStackingContext(element: Element) {
-  const style = getComputedStyle(element)
-
-  if (style.position === 'fixed') return true
-  if ((style.zIndex !== 'auto' && style.position !== 'static') || isFlexItem(element)) return true
-  if (+style.opacity < 1) return true
-  if ('transform' in style && style.transform !== 'none') return true
-  if ('mixBlendMode' in style && style.mixBlendMode !== 'normal') return true
-  if ('filter' in style && style.filter !== 'none') return true
-  if ('isolation' in style && style.isolation === 'isolate') return true
-  if (willChangeValues.includes(style.willChange)) return true
-  return false
-}
-
-function willScroll(element: Element) {
-  if (element === document.documentElement) {
-    return true
-  } else {
-    const style = getComputedStyle(element)
-    const values = [style.overflow, style.overflowX, style.overflowY]
-    return values.some(value => value === 'auto' || value === 'scroll')
-  }
-}
-
-function getOffsetParent(element: HTMLElement): HTMLElement | null {
-  let parent = element.parentElement
-
-  while (parent && parent != element.offsetParent && !createsStackingContext(parent)) {
-    parent = parent.parentElement
-  }
-
-  return parent
-}
-
-function getNearestScrollingAncestor(element: HTMLElement): HTMLElement | null {
-  return element.parentElement
-}
-
-function getScrollEmitter(element: HTMLElement): HTMLElement | Document {
-  return element === document.documentElement ? document : element
-}
-
-function styleTransform(transform: mat2d): string {
-  return `matrix(${transform.join(',')})`
-}
+  center,
+  getNearestScrollingAncestor,
+  getOffsetParent,
+  getScrollEmitter,
+  mat2dFromNegativeTranslation,
+  styleTransform,
+  walkChildren,
+  willScroll,
+} from './utils'
+import { createSingletonRoot } from '@solid-primitives/rootless'
 
 const identity = mat2d.identity(mat2d.create())
 
-type LayoutController = {
-  intermediateTransform: Accessor<mat2d>
-  extrinsicTransform: Accessor<mat2d>
-  layoutRect: DOMRect
-  layoutPosition: vec2
-  scrollTranslation: Accessor<vec2>
-  accumulatedScrollTranslation: Accessor<vec2>
-  dispose(): void
+class Listeners<T extends object, U> {
+  #map = new WeakMap<T, Set<(value: U) => void>>()
+
+  add(key: T, listener: (value: U) => void) {
+    const listeners = this.#map.get(key)
+    if (listeners) {
+      listeners.add(listener)
+    } else {
+      this.#map.set(key, new Set([listener]))
+    }
+  }
+
+  remove(key: T, listener: (value: U) => void) {
+    const listeners = this.#map.get(key)
+    if (listeners) {
+      if (listeners.size <= 1) {
+        this.#map.delete(key)
+      } else {
+        listeners.delete(listener)
+      }
+    }
+  }
+
+  has(key: T) {
+    const listeners = this.#map.get(key)
+    return listeners && listeners.size > 0
+  }
+
+  notify(key: T, value: U) {
+    for (const listener of this.#map.get(key) ?? []) {
+      listener.call(undefined, value)
+    }
+  }
 }
 
-type TransformController = {
-  intrinsicTransform: Accessor<mat2d>
-  setIntrinsicTransform: Setter<mat2d>
-  setIsEnabled: Setter<boolean>
-  dispose(): void
+class Batcher {
+  #callbacks: Array<() => void> = []
+  #onPreRun?: () => void
+  #onPostRun?: () => void
+
+  constructor(options?: { onPreRun?: () => void; onPostRun?: () => void }) {
+    this.#onPreRun = options?.onPreRun
+    this.#onPostRun = options?.onPostRun
+  }
+
+  #run() {
+    this.#onPreRun?.()
+    for (const callback of this.#callbacks) {
+      callback.call(undefined)
+    }
+    this.#callbacks = []
+    this.#onPostRun?.()
+  }
+
+  enqueue(callback: () => void) {
+    if (this.#callbacks.length === 0) {
+      queueMicrotask(() => this.#run())
+    }
+
+    this.#callbacks.push(callback)
+  }
 }
 
-export type Layout = Readonly<{
-  intrinsicTransform: Accessor<mat2d>
-  extrinsicTransform: Accessor<mat2d | undefined>
-  layoutRect: Accessor<DOMRect | undefined>
-  setIntrinsicTransform: Setter<mat2d>
-  disconnect(): void
-}>
+class SingletonMap<T extends object, U> {
+  #map = new Map<T, () => U>()
+  #factory: (key: T) => U
+
+  constructor(factory: (key: T) => U) {
+    this.#factory = factory
+  }
+
+  use(key: T) {
+    const value = this.#map.get(key)
+    if (value) {
+      return value()
+    } else {
+      const use = createSingletonRoot(() => {
+        onCleanup(() => {
+          this.#map.delete(key)
+        })
+        return this.#factory(key)
+      })
+      this.#map.set(key, use)
+      return use()
+    }
+  }
+}
+
+type MatrixComponents = {
+  matrix: Accessor<mat2d | undefined>
+  intermediateMatrix: Accessor<mat2d | undefined>
+  layoutPosition: Accessor<vec2 | undefined>
+}
 
 export class LayoutObserver {
-  private transformControllers: ReactiveMap<HTMLElement, TransformController> = new ReactiveMap()
-  private layoutControllers: ReactiveMap<HTMLElement, LayoutController> = new ReactiveMap()
+  #transforms = new ReactiveWeakMap<HTMLElement, mat2d>()
 
-  private createLayoutController(element: HTMLElement): LayoutController {
-    const layoutController = untrack(() => this.layoutControllers.get(element))
-    if (layoutController) {
-      return layoutController
+  #resizeListeners = new Listeners<HTMLElement, void>()
+  #resizeObserver = new ResizeObserver(entries => {
+    for (const entry of entries) {
+      if (entry.target instanceof HTMLElement) {
+        this.#resizeListeners.notify(entry.target)
+      }
     }
+  })
 
-    const isDocumentElement = element === document.documentElement
-
-    if (!isDocumentElement && !document.documentElement.contains(element)) {
-      throw new Error()
+  #mutationListeners = new Listeners<HTMLElement, void>()
+  #mutationObserver = new MutationObserver(entries => {
+    const elements = new Set<HTMLElement>()
+    const add = (node: Node) => {
+      if (node instanceof HTMLElement) {
+        elements.add(node)
+      }
     }
-
-    const position = getComputedStyle(element).position
-
-    let parent: HTMLElement | null
-    if (element === document.documentElement) {
-      parent = null
-    } else if (position === 'sticky') {
-      parent = getNearestScrollingAncestor(element)
-    } else if (position === 'absolute' || position === 'fixed') {
-      parent = getOffsetParent(element)
-    } else {
-      parent = element.parentElement
+    for (const entry of entries) {
+      for (const addedNode of entry.addedNodes) {
+        add(addedNode)
+      }
+      for (const removedNode of entry.removedNodes) {
+        add(removedNode)
+      }
     }
+    for (const element of elements) {
+      this.#mutationListeners.notify(element)
+    }
+  })
 
-    const parentController = parent ? this.createLayoutController(parent) : null
-
-    const transformController = untrack(() => this.transformControllers.get(element))
-
-    const observer = this
-
-    let controller: LayoutController
-
-    createRoot(dispose => {
-      const layoutRect = element.getBoundingClientRect()
-
-      const [scrollTranslation, setScrollTranslation] = createSignal(
-        vec2.fromValues(-element.scrollLeft, -element.scrollTop),
-        { equals: false },
-      )
-
-      const layoutPosition = vec2.fromValues(
-        layoutRect.x - layoutRect.width / 2,
-        layoutRect.y - layoutRect.height / 2,
-      )
-
-      untrack(() => {
-        if (isDocumentElement) {
-          vec2.sub(layoutPosition, layoutPosition, scrollTranslation())
-        } else if (parentController) {
-          vec2.sub(layoutPosition, layoutPosition, parentController.accumulatedScrollTranslation())
+  #layoutBatcher = new Batcher({
+    onPreRun: () => {
+      walkChildren(document.documentElement, element => {
+        if (this.#transforms.has(element)) {
+          element.style.transform = styleTransform(identity)
         }
       })
-
-      const negativeLayoutRectPosition = vec2.create()
-      vec2.sub(negativeLayoutRectPosition, negativeLayoutRectPosition, layoutPosition)
-
-      const negativeLayoutTransform = mat2d.fromTranslation(
-        mat2d.create(),
-        negativeLayoutRectPosition,
-      )
-
-      const layoutDelta = vec2.clone(layoutPosition)
-      if (parentController) {
-        vec2.sub(layoutDelta, layoutDelta, parentController.layoutPosition)
-      }
-
-      const accumulatedScrollTranslation = () =>
-        parentController
-          ? vec2.add(
-              vec2.create(),
-              parentController.accumulatedScrollTranslation(),
-              scrollTranslation(),
-            )
-          : scrollTranslation()
-
-      const intermediateTransform = createMemo<mat2d>(
-        prev => {
-          if (isDocumentElement) {
-            mat2d.fromTranslation(prev, layoutDelta)
-          } else if (parentController) {
-            mat2d.translate(prev, parentController.intermediateTransform(), layoutDelta)
-          }
-
-          if (transformController) {
-            mat2d.multiply(prev, prev, transformController.intrinsicTransform())
-          }
-
-          mat2d.translate(prev, prev, scrollTranslation())
-
-          return prev
-        },
-        mat2d.create(),
-        { equals: false },
-      )
-
-      const extrinsicTransform = createMemo<mat2d>(
-        prev => mat2d.multiply(prev, negativeLayoutTransform, intermediateTransform()),
-        mat2d.create(),
-        { equals: false },
-      )
-
-      if (willScroll(element)) {
-        function onScroll() {
-          setScrollTranslation(prev => vec2.set(prev, -element.scrollLeft, -element.scrollTop))
+    },
+    onPostRun: () => {
+      walkChildren(document.documentElement, element => {
+        const transform = this.#transforms.get(element)
+        if (transform) {
+          element.style.transform = styleTransform(transform)
         }
+      })
+    },
+  })
 
-        getScrollEmitter(element).addEventListener('scroll', onScroll, { passive: true })
+  #simpleBatcher = new Batcher()
 
-        onCleanup(() => {
-          getScrollEmitter(element).removeEventListener('scroll', onScroll)
-        })
-      }
+  #rects = new SingletonMap<HTMLElement, Accessor<DOMRect | undefined>>(element => {
+    const [rect, setRect] = createSignal<DOMRect>()
 
-      controller = {
-        intermediateTransform,
-        extrinsicTransform,
-        layoutRect,
-        layoutPosition,
-        scrollTranslation,
-        accumulatedScrollTranslation,
-        dispose() {
-          observer.layoutControllers.delete(element)
-          dispose()
-        },
-      }
+    const measure = () => {
+      this.#layoutBatcher.enqueue(() => {
+        setRect(element.getBoundingClientRect())
+      })
+    }
 
-      observer.layoutControllers.set(element, controller)
+    this.#resizeListeners.add(element, measure)
+    this.#resizeObserver.observe(element)
+
+    onCleanup(() => {
+      this.#resizeListeners.remove(element, measure)
+      this.#resizeObserver.unobserve(element)
     })
 
-    return controller!
-  }
+    measure()
 
-  private createTransformController(element: HTMLElement): TransformController {
-    const transformController = untrack(() => this.transformControllers.get(element))
-    if (transformController) {
-      return transformController
-    }
+    return rect
+  })
 
-    const observer = this
+  #matrices = new SingletonMap<HTMLElement, MatrixComponents>(element => {
+    const [scrollTranslation, setScrollTranslation] = createSignal(
+      vec2.fromValues(-element.scrollLeft, -element.scrollTop),
+      { equals: false },
+    )
 
-    let controller: TransformController
-
-    createRoot(dispose => {
-      const [intrinsicTransform, setIntrinsicTransform] = createSignal(mat2d.create(), {
-        equals: false,
-      })
-
-      const [isEnabled, setIsEnabled] = createSignal(true)
-
-      controller = {
-        intrinsicTransform,
-        setIntrinsicTransform,
-        setIsEnabled,
-        dispose() {
-          observer.transformControllers.delete(element)
-          dispose()
-        },
+    if (willScroll(element)) {
+      function onScroll() {
+        setScrollTranslation(prev => vec2.set(prev, -element.scrollLeft, -element.scrollTop))
       }
 
-      createEffect(() => {
-        element.style.transform = styleTransform(isEnabled() ? intrinsicTransform() : identity)
-      })
-
+      const scrollEmitter = getScrollEmitter(element)
+      scrollEmitter.addEventListener('scroll', onScroll, { passive: true })
       onCleanup(() => {
-        element.style.transform = ''
+        scrollEmitter.removeEventListener('scroll', onScroll)
       })
+    }
 
-      observer.transformControllers.set(element, controller)
+    const [parent, setParent] = createSignal<HTMLElement | null>(null)
+
+    const findParent = () => {
+      this.#simpleBatcher.enqueue(() => {
+        const position = getComputedStyle(element).position
+        if (element === document.documentElement) {
+          setParent(null)
+        } else if (position === 'sticky') {
+          setParent(getNearestScrollingAncestor(element))
+        } else if (position === 'absolute' || position === 'fixed') {
+          setParent(getOffsetParent(element))
+        } else {
+          setParent(element.parentElement)
+        }
+      })
+    }
+
+    this.#mutationListeners.add(element, findParent)
+
+    onCleanup(() => {
+      this.#mutationListeners.remove(element, findParent)
     })
 
-    return controller!
-  }
+    const memo = createMemo(() => {
+      const parentValue = parent()
 
-  connect(element: HTMLElement): Layout {
-    const controller = this.createTransformController(element)
+      if (parentValue) {
+        const parentMatrix = this.#matrices.use(parentValue)
 
-    const observer = this
+        const rect = this.#rects.use(element)
+
+        const layoutPosition = createMemo<vec2 | undefined>(
+          prev => {
+            const rectValue = rect()
+            if (rectValue) {
+              return center(prev ?? vec2.create(), rectValue)
+            }
+          },
+          undefined,
+          { equals: false },
+        )
+
+        const layoutDelta = createMemo<vec2 | undefined>(
+          prev => {
+            const layoutPositionValue = layoutPosition()
+            const parentLayoutPositionValue = parentMatrix.layoutPosition()
+            if (layoutPositionValue && parentLayoutPositionValue) {
+              return vec2.sub(prev ?? vec2.create(), layoutPositionValue, parentLayoutPositionValue)
+            }
+          },
+          undefined,
+          { equals: false },
+        )
+
+        const intermediateMatrix = createMemo<mat2d | undefined>(
+          prev => {
+            const layoutDeltaValue = layoutDelta()
+            const parentIntermediateMatrixValue = parentMatrix.intermediateMatrix()
+
+            if (layoutDeltaValue && parentIntermediateMatrixValue) {
+              const next = prev ?? mat2d.create()
+              mat2d.translate(next, parentIntermediateMatrixValue, layoutDeltaValue)
+              const transform = this.#transforms.get(element)
+              if (transform) {
+                mat2d.multiply(next, next, transform)
+              }
+              return mat2d.translate(next, next, scrollTranslation())
+            }
+          },
+          undefined,
+          { equals: false },
+        )
+
+        const matrix = createMemo<mat2d | undefined>(
+          prev => {
+            const layoutPositionValue = layoutPosition()
+            const intermediateMatrixValue = intermediateMatrix()
+            if (layoutPositionValue && intermediateMatrixValue) {
+              const next = prev ?? mat2d.create()
+              mat2dFromNegativeTranslation(next, layoutPositionValue)
+              return mat2d.multiply(next, next, intermediateMatrixValue)
+            }
+          },
+          undefined,
+          { equals: false },
+        )
+
+        return { matrix, intermediateMatrix, layoutPosition }
+      }
+    })
 
     return {
-      intrinsicTransform() {
-        return controller.intrinsicTransform()
-      },
-      extrinsicTransform() {
-        return observer.layoutControllers.get(element)?.extrinsicTransform()
-      },
-      layoutRect() {
-        return observer.layoutControllers.get(element)?.layoutRect
-      },
-      setIntrinsicTransform: controller.setIntrinsicTransform,
-      disconnect() {
-        controller.dispose()
-      },
+      matrix: () => memo()?.matrix(),
+      intermediateMatrix: () => memo()?.intermediateMatrix(),
+      layoutPosition: () => memo()?.layoutPosition(),
+    }
+  })
+
+  constructor() {
+    this.#mutationObserver.observe(document.documentElement, { childList: true, subtree: true })
+  }
+
+  dispose() {
+    this.#mutationObserver.disconnect()
+    this.#resizeObserver.disconnect()
+  }
+
+  setTransform(element: HTMLElement, transform?: mat2d) {
+    if (transform) {
+      this.#transforms.set(element, transform)
+    } else {
+      this.#transforms.delete(element)
     }
   }
 
-  measureAll() {
-    for (const [, controller] of this.layoutControllers) {
-      controller.dispose()
-    }
-
-    for (const [, controller] of this.transformControllers) {
-      controller.setIsEnabled(false)
-    }
-
-    queueMicrotask(() => {
-      for (const [element] of this.transformControllers) {
-        this.createLayoutController(element)
-      }
-
-      for (const [, controller] of this.transformControllers) {
-        controller.setIsEnabled(true)
-      }
-    })
+  useRect(element: HTMLElement): Accessor<DOMRect | undefined> {
+    return this.#rects.use(element)
   }
 
-  disconnectAll() {
-    for (const [, controller] of this.layoutControllers) {
-      controller.dispose()
-    }
-
-    for (const [, controller] of this.transformControllers) {
-      controller.dispose()
-    }
+  useMatrix(element: HTMLElement): Accessor<mat2d | undefined> {
+    return this.#matrices.use(element).matrix
   }
 }

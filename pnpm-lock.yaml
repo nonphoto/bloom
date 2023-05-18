@@ -58,6 +58,12 @@ importers:
       '@solid-primitives/map':
         specifier: ^0.4.3
         version: 0.4.3(solid-js@1.7.4)
+      '@solid-primitives/rootless':
+        specifier: 1.3.2
+        version: 1.3.2(solid-js@1.7.4)
+      '@solid-primitives/utils':
+        specifier: 6.1.0
+        version: 6.1.0(solid-js@1.7.4)
       gl-matrix:
         specifier: ^3.4.3
         version: 3.4.3
