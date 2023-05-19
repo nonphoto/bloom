@@ -44,7 +44,7 @@ export function getScaling(out: vec2, a: mat2d) {
 }
 
 export function center(out: vec2, rect: DOMRect) {
-  return vec2.set(out, rect.x - rect.width / 2, rect.y - rect.height / 2)
+  return vec2.set(out, rect.x + rect.width / 2, rect.y + rect.height / 2)
 }
 
 export function mat2dFromNegativeTranslation(out: mat2d, a: vec2) {
@@ -121,7 +121,7 @@ export function walkParents(element: HTMLElement, callback: (element: HTMLElemen
   }
 }
 
-export function* walkChildren(root: HTMLElement, callback: (element: HTMLElement) => void) {
+export function walkChildren(root: HTMLElement, callback: (element: HTMLElement) => void) {
   const treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, {
     acceptNode(node: Node) {
       return node instanceof HTMLElement ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP

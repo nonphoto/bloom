@@ -1,5 +1,15 @@
 import { mat2d, vec2 } from 'gl-matrix'
-import { Accessor, createMemo, createSignal, onCleanup, untrack } from 'solid-js'
+import {
+  Accessor,
+  AccessorArray,
+  MemoOptions,
+  batch,
+  createEffect,
+  createMemo,
+  createSignal,
+  onCleanup,
+  untrack,
+} from 'solid-js'
 import { ReactiveWeakMap } from '@solid-primitives/map'
 import {
   center,
@@ -63,16 +73,18 @@ class Batcher {
 
   #run() {
     this.#onPreRun?.()
-    for (const callback of this.#callbacks) {
-      callback.call(undefined)
-    }
+    batch(() => {
+      for (const callback of this.#callbacks) {
+        callback.call(undefined)
+      }
+    })
     this.#callbacks = []
     this.#onPostRun?.()
   }
 
   enqueue(callback: () => void) {
     if (this.#callbacks.length === 0) {
-      queueMicrotask(() => this.#run())
+      requestAnimationFrame(() => this.#run())
     }
 
     this.#callbacks.push(callback)
@@ -107,7 +119,7 @@ class SingletonMap<T extends object, U> {
 type MatrixComponents = {
   matrix: Accessor<mat2d | undefined>
   intermediateMatrix: Accessor<mat2d | undefined>
-  layoutPosition: Accessor<vec2 | undefined>
+  rectPosition: Accessor<vec2 | undefined>
 }
 
 export class LayoutObserver {
@@ -145,20 +157,20 @@ export class LayoutObserver {
 
   #layoutBatcher = new Batcher({
     onPreRun: () => {
-      untrack(() => {
-        walkChildren(document.documentElement, element => {
-          if (this.#transforms.has(element)) {
-            element.style.transform = styleTransform(identity)
-          }
-        })
+      walkChildren(document.documentElement, element => {
+        if (untrack(() => this.#transforms.has(element))) {
+          element.style.transform = styleTransform(identity)
+          console.log('untransform', element.className, element.style.transform)
+        }
       })
     },
     onPostRun: () => {
       untrack(() => {
         walkChildren(document.documentElement, element => {
-          const transform = this.#transforms.get(element)
+          const transform = untrack(() => this.#transforms.get(element))
           if (transform) {
             element.style.transform = styleTransform(transform)
+            console.log('retransform', element.className, element.style.transform)
           }
         })
       })
@@ -172,7 +184,9 @@ export class LayoutObserver {
 
     const measure = () => {
       this.#layoutBatcher.enqueue(() => {
-        setRect(element.getBoundingClientRect())
+        const rect = element.getBoundingClientRect()
+        console.log(element.className, element.style.transform, rect)
+        setRect(rect)
       })
     }
 
@@ -232,124 +246,91 @@ export class LayoutObserver {
 
     findParent()
 
-    const memo = createMemo(() => {
+    const isDocumentElement = element === document.documentElement
+
+    const parentMatrix = createMemo(() => {
       const parentValue = parent()
-
-      if (element === document.documentElement) {
-        const rect = this.#rects.use(element)
-
-        const layoutPosition = createMemo<vec2 | undefined>(
-          prev => {
-            const rectValue = rect()
-            if (rectValue) {
-              return center(prev ?? vec2.create(), rectValue)
-            }
-          },
-          undefined,
-          { equals: false },
-        )
-
-        const intermediateMatrix = createMemo<mat2d | undefined>(
-          prev => {
-            const next = prev ?? mat2d.create()
-            const layoutPositionValue = layoutPosition()
-            if (layoutPositionValue) {
-              mat2d.fromTranslation(next, layoutPositionValue)
-            }
-            const transform = this.#transforms.get(element)
-            if (transform) {
-              return mat2d.multiply(next, next, transform)
-            }
-            return mat2d.translate(next, next, scrollTranslation())
-          },
-          undefined,
-          { equals: false },
-        )
-
-        const matrix = createMemo<mat2d | undefined>(
-          prev => {
-            const layoutPositionValue = layoutPosition()
-            const intermediateMatrixValue = intermediateMatrix()
-            if (layoutPositionValue && intermediateMatrixValue) {
-              const next = prev ?? mat2d.create()
-              mat2dFromNegativeTranslation(next, layoutPositionValue)
-              return mat2d.multiply(next, next, intermediateMatrixValue)
-            }
-          },
-          undefined,
-          { equals: false },
-        )
-
-        return { matrix, intermediateMatrix, layoutPosition }
-      } else if (parentValue) {
-        const parentMatrix = this.#matrices.use(parentValue)
-
-        const rect = this.#rects.use(element)
-
-        const layoutPosition = createMemo<vec2 | undefined>(
-          prev => {
-            const rectValue = rect()
-            if (rectValue) {
-              return center(prev ?? vec2.create(), rectValue)
-            }
-          },
-          undefined,
-          { equals: false },
-        )
-
-        const layoutDelta = createMemo<vec2 | undefined>(
-          prev => {
-            const layoutPositionValue = layoutPosition()
-            const parentLayoutPositionValue = parentMatrix.layoutPosition()
-            if (layoutPositionValue && parentLayoutPositionValue) {
-              return vec2.sub(prev ?? vec2.create(), layoutPositionValue, parentLayoutPositionValue)
-            }
-          },
-          undefined,
-          { equals: false },
-        )
-
-        const intermediateMatrix = createMemo<mat2d | undefined>(
-          prev => {
-            const layoutDeltaValue = layoutDelta()
-            const parentIntermediateMatrixValue = parentMatrix.intermediateMatrix()
-
-            if (layoutDeltaValue && parentIntermediateMatrixValue) {
-              const next = prev ?? mat2d.create()
-              mat2d.translate(next, parentIntermediateMatrixValue, layoutDeltaValue)
-              const transform = this.#transforms.get(element)
-              if (transform) {
-                mat2d.multiply(next, next, transform)
-              }
-              return mat2d.translate(next, next, scrollTranslation())
-            }
-          },
-          undefined,
-          { equals: false },
-        )
-
-        const matrix = createMemo<mat2d | undefined>(
-          prev => {
-            const layoutPositionValue = layoutPosition()
-            const intermediateMatrixValue = intermediateMatrix()
-            if (layoutPositionValue && intermediateMatrixValue) {
-              const next = prev ?? mat2d.create()
-              mat2dFromNegativeTranslation(next, layoutPositionValue)
-              return mat2d.multiply(next, next, intermediateMatrixValue)
-            }
-          },
-          undefined,
-          { equals: false },
-        )
-
-        return { matrix, intermediateMatrix, layoutPosition }
+      if (parentValue) {
+        return this.#matrices.use(parentValue)
       }
     })
 
+    const rect = createMemo(() => {
+      const parentMatrixValue = parentMatrix()
+      if (parentMatrixValue || isDocumentElement) {
+        return this.#rects.use(element)
+      }
+    })
+
+    const rectPosition = createMemo<vec2 | undefined>(
+      prev => {
+        const rectValue = rect()?.()
+        if (rectValue) {
+          return center(prev ?? vec2.create(), rectValue)
+        }
+      },
+      undefined,
+      { equals: false },
+    )
+
+    const layoutDelta = createMemo<vec2 | undefined>(
+      prev => {
+        const parentRectPositionValue = parentMatrix()?.rectPosition()
+        const rectPositionValue = rectPosition()
+        if (rectPositionValue) {
+          return parentRectPositionValue
+            ? vec2.sub(prev ?? vec2.create(), rectPositionValue, parentRectPositionValue)
+            : rectPositionValue
+        }
+      },
+      undefined,
+      { equals: false },
+    )
+
+    const intermediateMatrix = createMemo<mat2d | undefined>(
+      prev => {
+        const parentIntermediateMatrixValue = parentMatrix()?.intermediateMatrix()
+        const layoutDeltaValue = layoutDelta()
+        const next = prev ?? mat2d.create()
+        if (layoutDeltaValue) {
+          if (isDocumentElement) {
+            mat2d.fromTranslation(next, layoutDeltaValue)
+          } else if (parentIntermediateMatrixValue) {
+            mat2d.translate(next, parentIntermediateMatrixValue, layoutDeltaValue)
+          } else {
+            mat2d.identity(next)
+          }
+
+          const transform = this.#transforms.get(element)
+          if (transform) {
+            mat2d.multiply(next, next, transform)
+          }
+
+          return mat2d.translate(next, next, scrollTranslation())
+        }
+      },
+      undefined,
+      { equals: false },
+    )
+
+    const matrix = createMemo<mat2d | undefined>(
+      prev => {
+        const rectPositionValue = rectPosition()
+        const intermediateMatrixValue = intermediateMatrix()
+        const next = prev ?? mat2d.create()
+        if (rectPositionValue && intermediateMatrixValue) {
+          mat2dFromNegativeTranslation(next, rectPositionValue)
+          return mat2d.multiply(next, next, intermediateMatrixValue)
+        }
+      },
+      undefined,
+      { equals: false },
+    )
+
     return {
-      matrix: () => memo()?.matrix(),
-      intermediateMatrix: () => memo()?.intermediateMatrix(),
-      layoutPosition: () => memo()?.layoutPosition(),
+      matrix,
+      intermediateMatrix,
+      rectPosition,
     }
   })
 

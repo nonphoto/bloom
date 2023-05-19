@@ -22,6 +22,27 @@ TODO: Difference between
 All scrolling elements must be positioned
 non-relative-positioned elements are not allowed as children of static-positioned elements
 
+### Computing extrinsic matrix
+
+Pseudocode:
+
+```ts
+const rect = getBoundingClientRect()
+const rectPosition = center(rect)
+const layoutDelta = parentController ? rectPosition - parentController.rectPosition : rectPosition
+const intermediateMatrix =
+  (isDocumentElement
+    ? mat2d(layoutDelta)
+    : parentController
+    ? parentController.intermediateMatrix * layoutDelta
+    : identity) *
+  transform *
+  scrollTranslation
+const matrix = mat2d(zero - rectPosition) * intermediateMatrix
+```
+
+### Matrix math
+
 ```ts
 // Imaginary reactive math API (this would need to account for undefined somehow)
 const outerTransform = rect.divide(animatedOuterRect, outerRect)
