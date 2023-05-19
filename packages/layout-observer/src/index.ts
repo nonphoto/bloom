@@ -74,17 +74,20 @@ class Batcher {
   #run() {
     this.#onPreRun?.()
     batch(() => {
-      for (const callback of this.#callbacks) {
-        callback.call(undefined)
+      console.log('run')
+      while (this.#callbacks.length > 0) {
+        const callback = this.#callbacks.shift()
+        if (callback) {
+          callback.call(undefined)
+        }
       }
     })
-    this.#callbacks = []
     this.#onPostRun?.()
   }
 
   enqueue(callback: () => void) {
     if (this.#callbacks.length === 0) {
-      requestAnimationFrame(() => this.#run())
+      queueMicrotask(() => this.#run())
     }
 
     this.#callbacks.push(callback)
@@ -157,35 +160,34 @@ export class LayoutObserver {
 
   #layoutBatcher = new Batcher({
     onPreRun: () => {
+      console.log('prerun')
       walkChildren(document.documentElement, element => {
         if (untrack(() => this.#transforms.has(element))) {
           element.style.transform = styleTransform(identity)
-          console.log('untransform', element.className, element.style.transform)
         }
       })
     },
     onPostRun: () => {
+      console.log('postrun')
       untrack(() => {
         walkChildren(document.documentElement, element => {
           const transform = untrack(() => this.#transforms.get(element))
           if (transform) {
             element.style.transform = styleTransform(transform)
-            console.log('retransform', element.className, element.style.transform)
           }
         })
       })
     },
   })
 
-  #simpleBatcher = new Batcher()
-
   #rects = new SingletonMap<HTMLElement, Accessor<DOMRect | undefined>>(element => {
+    console.log('rect', element)
+
     const [rect, setRect] = createSignal<DOMRect>()
 
     const measure = () => {
       this.#layoutBatcher.enqueue(() => {
         const rect = element.getBoundingClientRect()
-        console.log(element.className, element.style.transform, rect)
         setRect(rect)
       })
     }
@@ -204,6 +206,7 @@ export class LayoutObserver {
   })
 
   #matrices = new SingletonMap<HTMLElement, MatrixComponents>(element => {
+    console.log('matrix', element)
     const [scrollTranslation, setScrollTranslation] = createSignal(
       vec2.fromValues(-element.scrollLeft, -element.scrollTop),
       { equals: false },
@@ -221,50 +224,38 @@ export class LayoutObserver {
       })
     }
 
-    const [parent, setParent] = createSignal<HTMLElement | null>(null)
-
     const findParent = () => {
-      this.#simpleBatcher.enqueue(() => {
-        const position = getComputedStyle(element).position
-        if (element === document.documentElement) {
-          setParent(null)
-        } else if (position === 'sticky') {
-          setParent(getNearestScrollingAncestor(element))
-        } else if (position === 'absolute' || position === 'fixed') {
-          setParent(getOffsetParent(element))
-        } else {
-          setParent(element.parentElement)
-        }
-      })
+      const position = getComputedStyle(element).position
+      if (element === document.documentElement) {
+        return null
+      } else if (position === 'sticky') {
+        return getNearestScrollingAncestor(element)
+      } else if (position === 'absolute' || position === 'fixed') {
+        return getOffsetParent(element)
+      } else {
+        return element.parentElement
+      }
     }
 
-    this.#mutationListeners.add(element, findParent)
+    // this.#mutationListeners.add(element, findParent)
 
-    onCleanup(() => {
-      this.#mutationListeners.remove(element, findParent)
-    })
-
-    findParent()
+    // onCleanup(() => {
+    //   this.#mutationListeners.remove(element, findParent)
+    // })
 
     const isDocumentElement = element === document.documentElement
 
-    const parentMatrix = createMemo(() => {
-      const parentValue = parent()
-      if (parentValue) {
-        return this.#matrices.use(parentValue)
-      }
-    })
+    const parent = findParent()
+    const parentMatrix: MatrixComponents | undefined = parent
+      ? this.#matrices.use(parent)
+      : undefined
 
-    const rect = createMemo(() => {
-      const parentMatrixValue = parentMatrix()
-      if (parentMatrixValue || isDocumentElement) {
-        return this.#rects.use(element)
-      }
-    })
+    const rect: Accessor<DOMRect | undefined> =
+      parentMatrix || isDocumentElement ? this.#rects.use(element) : () => undefined
 
     const rectPosition = createMemo<vec2 | undefined>(
       prev => {
-        const rectValue = rect()?.()
+        const rectValue = rect?.()
         if (rectValue) {
           return center(prev ?? vec2.create(), rectValue)
         }
@@ -275,7 +266,7 @@ export class LayoutObserver {
 
     const layoutDelta = createMemo<vec2 | undefined>(
       prev => {
-        const parentRectPositionValue = parentMatrix()?.rectPosition()
+        const parentRectPositionValue = parentMatrix?.rectPosition()
         const rectPositionValue = rectPosition()
         if (rectPositionValue) {
           return parentRectPositionValue
@@ -289,7 +280,7 @@ export class LayoutObserver {
 
     const intermediateMatrix = createMemo<mat2d | undefined>(
       prev => {
-        const parentIntermediateMatrixValue = parentMatrix()?.intermediateMatrix()
+        const parentIntermediateMatrixValue = parentMatrix?.intermediateMatrix()
         const layoutDeltaValue = layoutDelta()
         const next = prev ?? mat2d.create()
         if (layoutDeltaValue) {
