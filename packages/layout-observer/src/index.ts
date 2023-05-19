@@ -1,5 +1,5 @@
 import { mat2d, vec2 } from 'gl-matrix'
-import { Accessor, createMemo, createSignal, onCleanup } from 'solid-js'
+import { Accessor, createMemo, createSignal, onCleanup, untrack } from 'solid-js'
 import { ReactiveWeakMap } from '@solid-primitives/map'
 import {
   center,
@@ -12,6 +12,7 @@ import {
   willScroll,
 } from './utils'
 import { createSingletonRoot } from '@solid-primitives/rootless'
+import { MaybeAccessor, access } from '@solid-primitives/utils'
 
 const identity = mat2d.identity(mat2d.create())
 
@@ -144,18 +145,22 @@ export class LayoutObserver {
 
   #layoutBatcher = new Batcher({
     onPreRun: () => {
-      walkChildren(document.documentElement, element => {
-        if (this.#transforms.has(element)) {
-          element.style.transform = styleTransform(identity)
-        }
+      untrack(() => {
+        walkChildren(document.documentElement, element => {
+          if (this.#transforms.has(element)) {
+            element.style.transform = styleTransform(identity)
+          }
+        })
       })
     },
     onPostRun: () => {
-      walkChildren(document.documentElement, element => {
-        const transform = this.#transforms.get(element)
-        if (transform) {
-          element.style.transform = styleTransform(transform)
-        }
+      untrack(() => {
+        walkChildren(document.documentElement, element => {
+          const transform = this.#transforms.get(element)
+          if (transform) {
+            element.style.transform = styleTransform(transform)
+          }
+        })
       })
     },
   })
@@ -225,10 +230,58 @@ export class LayoutObserver {
       this.#mutationListeners.remove(element, findParent)
     })
 
+    findParent()
+
     const memo = createMemo(() => {
       const parentValue = parent()
 
-      if (parentValue) {
+      if (element === document.documentElement) {
+        const rect = this.#rects.use(element)
+
+        const layoutPosition = createMemo<vec2 | undefined>(
+          prev => {
+            const rectValue = rect()
+            if (rectValue) {
+              return center(prev ?? vec2.create(), rectValue)
+            }
+          },
+          undefined,
+          { equals: false },
+        )
+
+        const intermediateMatrix = createMemo<mat2d | undefined>(
+          prev => {
+            const next = prev ?? mat2d.create()
+            const layoutPositionValue = layoutPosition()
+            if (layoutPositionValue) {
+              mat2d.fromTranslation(next, layoutPositionValue)
+            }
+            const transform = this.#transforms.get(element)
+            if (transform) {
+              return mat2d.multiply(next, next, transform)
+            }
+            return mat2d.translate(next, next, scrollTranslation())
+          },
+          undefined,
+          { equals: false },
+        )
+
+        const matrix = createMemo<mat2d | undefined>(
+          prev => {
+            const layoutPositionValue = layoutPosition()
+            const intermediateMatrixValue = intermediateMatrix()
+            if (layoutPositionValue && intermediateMatrixValue) {
+              const next = prev ?? mat2d.create()
+              mat2dFromNegativeTranslation(next, layoutPositionValue)
+              return mat2d.multiply(next, next, intermediateMatrixValue)
+            }
+          },
+          undefined,
+          { equals: false },
+        )
+
+        return { matrix, intermediateMatrix, layoutPosition }
+      } else if (parentValue) {
         const parentMatrix = this.#matrices.use(parentValue)
 
         const rect = this.#rects.use(element)
@@ -311,17 +364,31 @@ export class LayoutObserver {
 
   setTransform(element: HTMLElement, transform?: mat2d) {
     if (transform) {
-      this.#transforms.set(element, transform)
+      this.#transforms.set(element, mat2d.clone(transform))
+      element.style.transform = styleTransform(transform)
     } else {
       this.#transforms.delete(element)
+      element.style.transform = ''
     }
   }
 
-  useRect(element: HTMLElement): Accessor<DOMRect | undefined> {
-    return this.#rects.use(element)
+  useRect(element: MaybeAccessor<HTMLElement | undefined>): Accessor<DOMRect | undefined> {
+    const memo = createMemo(() => {
+      const elementValue = access(element)
+      if (elementValue) {
+        return this.#rects.use(elementValue)
+      }
+    })
+    return () => memo()?.()
   }
 
-  useMatrix(element: HTMLElement): Accessor<mat2d | undefined> {
-    return this.#matrices.use(element).matrix
+  useMatrix(element: MaybeAccessor<HTMLElement | undefined>): Accessor<mat2d | undefined> {
+    const memo = createMemo(() => {
+      const elementValue = access(element)
+      if (elementValue) {
+        return this.#matrices.use(elementValue).matrix
+      }
+    })
+    return () => memo()?.()
   }
 }

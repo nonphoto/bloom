@@ -15,10 +15,6 @@ const BorderBox: ParentComponent<{
   const borderRadius = () => props.borderRadius + 'px'
   const borderWidth = () => props.borderWidth + 'px'
 
-  createEffect(() => {
-    console.log(props.transform)
-  })
-
   return (
     <div
       ref={props.ref}

@@ -48,10 +48,10 @@ export function center(out: vec2, rect: DOMRect) {
 }
 
 export function mat2dFromNegativeTranslation(out: mat2d, a: vec2) {
-  out[0] = 0
+  out[0] = 1
   out[1] = 0
   out[2] = 0
-  out[3] = 0
+  out[3] = 1
   out[4] = -a[0]
   out[5] = -a[1]
   return out
