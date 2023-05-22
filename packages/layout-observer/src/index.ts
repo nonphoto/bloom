@@ -128,6 +128,7 @@ export class LayoutObserver {
 
   #resizeListeners = new Listeners<HTMLElement, void>()
   #resizeObserver = new ResizeObserver(entries => {
+    console.log('resize')
     for (const entry of entries) {
       if (entry.target instanceof HTMLElement) {
         this.#resizeListeners.notify(entry.target)
@@ -152,6 +153,7 @@ export class LayoutObserver {
       }
     }
     for (const element of elements) {
+      console.log('mutate', element)
       this.#mutationListeners.notify(element)
     }
   })
@@ -189,8 +191,6 @@ export class LayoutObserver {
     }
 
     createEffect(() => {
-      measure()
-
       this.#resizeListeners.add(element, measure)
       this.#resizeObserver.observe(element)
 
