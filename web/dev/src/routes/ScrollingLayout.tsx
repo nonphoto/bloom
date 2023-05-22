@@ -35,15 +35,15 @@ export default function ScrollingLayout() {
   const layout = useLayoutObserver()
   const innerRect = layout.useRect(innerElement)
   const innerMatrix = layout.useMatrix(innerElement)
-  const fixedRect = layout.useRect(fixedElement)
+  const shadowRect = layout.useRect(fixedElement)
 
-  const fixedTransform = createMemo<mat2d>(
+  const shadowTransform = createMemo<mat2d>(
     prev => {
       const innerRectValue = innerRect()
       const innerMatrixValue = innerMatrix()
-      const fixedRectValue = fixedRect()
-      if (innerRectValue && innerMatrixValue && fixedRectValue) {
-        divide(prev, innerRectValue, fixedRectValue)
+      const shadowRectValue = shadowRect()
+      if (innerRectValue && innerMatrixValue && shadowRectValue) {
+        divide(prev, innerRectValue, shadowRectValue)
         mat2d.multiply(prev, prev, innerMatrixValue)
       }
       return prev
@@ -64,7 +64,7 @@ export default function ScrollingLayout() {
           <div class={classes.absolute} ref={setInnerElement}></div>
         </div>
       </div>
-      <div class={classes.matrix} ref={setFixedElement} use:transform={fixedTransform()} />
+      <div class={classes.shadow} ref={setFixedElement} use:transform={shadowTransform()} />
     </>
   )
 }
