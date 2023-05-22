@@ -1,8 +1,6 @@
 import { mat2d, vec2 } from 'gl-matrix'
 import {
   Accessor,
-  AccessorArray,
-  MemoOptions,
   batch,
   createEffect,
   createMemo,
@@ -102,7 +100,7 @@ class SingletonMap<T extends object, U> {
     this.#factory = factory
   }
 
-  use(key: T) {
+  use(key: T): U {
     const value = this.#map.get(key)
     if (value) {
       return value()
@@ -169,13 +167,11 @@ export class LayoutObserver {
     },
     onPostRun: () => {
       console.log('postrun')
-      untrack(() => {
-        walkChildren(document.documentElement, element => {
-          const transform = untrack(() => this.#transforms.get(element))
-          if (transform) {
-            element.style.transform = styleTransform(transform)
-          }
-        })
+      walkChildren(document.documentElement, element => {
+        const transform = untrack(() => this.#transforms.get(element))
+        if (transform) {
+          element.style.transform = styleTransform(transform)
+        }
       })
     },
   })
@@ -183,7 +179,7 @@ export class LayoutObserver {
   #rects = new SingletonMap<HTMLElement, Accessor<DOMRect | undefined>>(element => {
     console.log('rect', element)
 
-    const [rect, setRect] = createSignal<DOMRect>()
+    const [rect, setRect] = createSignal<DOMRect | undefined>(undefined, { equals: false })
 
     const measure = () => {
       this.#layoutBatcher.enqueue(() => {
@@ -192,66 +188,73 @@ export class LayoutObserver {
       })
     }
 
-    this.#resizeListeners.add(element, measure)
-    this.#resizeObserver.observe(element)
+    createEffect(() => {
+      measure()
 
-    onCleanup(() => {
-      this.#resizeListeners.remove(element, measure)
-      this.#resizeObserver.unobserve(element)
+      this.#resizeListeners.add(element, measure)
+      this.#resizeObserver.observe(element)
+
+      onCleanup(() => {
+        this.#resizeListeners.remove(element, measure)
+        this.#resizeObserver.unobserve(element)
+      })
     })
-
-    measure()
 
     return rect
   })
 
   #matrices = new SingletonMap<HTMLElement, MatrixComponents>(element => {
     console.log('matrix', element)
-    const [scrollTranslation, setScrollTranslation] = createSignal(
-      vec2.fromValues(-element.scrollLeft, -element.scrollTop),
-      { equals: false },
-    )
 
-    if (willScroll(element)) {
-      function onScroll() {
-        setScrollTranslation(prev => vec2.set(prev, -element.scrollLeft, -element.scrollTop))
-      }
+    const [parent, setParent] = createSignal<HTMLElement | null>(null)
+    const [scrollTranslation, setScrollTranslation] = createSignal(vec2.create(), { equals: false })
 
-      const scrollEmitter = getScrollEmitter(element)
-      scrollEmitter.addEventListener('scroll', onScroll, { passive: true })
-      onCleanup(() => {
-        scrollEmitter.removeEventListener('scroll', onScroll)
-      })
+    const isDocumentElement = element === document.documentElement
+
+    const onScroll = () => {
+      setScrollTranslation(prev => vec2.set(prev, -element.scrollLeft, -element.scrollTop))
     }
 
     const findParent = () => {
       const position = getComputedStyle(element).position
       if (element === document.documentElement) {
-        return null
+        setParent(null)
       } else if (position === 'sticky') {
-        return getNearestScrollingAncestor(element)
+        setParent(getNearestScrollingAncestor(element))
       } else if (position === 'absolute' || position === 'fixed') {
-        return getOffsetParent(element)
+        setParent(getOffsetParent(element))
       } else {
-        return element.parentElement
+        setParent(element.parentElement)
       }
     }
 
-    // this.#mutationListeners.add(element, findParent)
+    createEffect(() => {
+      findParent()
+      onScroll()
 
-    // onCleanup(() => {
-    //   this.#mutationListeners.remove(element, findParent)
-    // })
+      if (willScroll(element)) {
+        const scrollEmitter = getScrollEmitter(element)
+        scrollEmitter.addEventListener('scroll', onScroll, { passive: true })
+        onCleanup(() => {
+          scrollEmitter.removeEventListener('scroll', onScroll)
+        })
+      }
 
-    const isDocumentElement = element === document.documentElement
+      this.#mutationListeners.add(element, findParent)
 
-    const parent = findParent()
-    const parentMatrix: MatrixComponents | undefined = parent
-      ? this.#matrices.use(parent)
-      : undefined
+      onCleanup(() => {
+        this.#mutationListeners.remove(element, findParent)
+      })
+    })
 
-    const rect: Accessor<DOMRect | undefined> =
-      parentMatrix || isDocumentElement ? this.#rects.use(element) : () => undefined
+    const parentMatrix = createMemo(() => {
+      const parentValue = parent()
+      if (parentValue) {
+        return this.#matrices.use(parentValue)
+      }
+    })
+
+    const rect = this.#rects.use(element)
 
     const rectPosition = createMemo<vec2 | undefined>(
       prev => {
@@ -266,13 +269,15 @@ export class LayoutObserver {
 
     const layoutDelta = createMemo<vec2 | undefined>(
       prev => {
-        const parentRectPositionValue = parentMatrix?.rectPosition()
+        const parentRectPositionValue = parentMatrix()?.rectPosition()
         const rectPositionValue = rectPosition()
-        if (rectPositionValue) {
-          return parentRectPositionValue
+        return rectPositionValue
+          ? parentRectPositionValue
             ? vec2.sub(prev ?? vec2.create(), rectPositionValue, parentRectPositionValue)
-            : rectPositionValue
-        }
+            : isDocumentElement
+            ? rectPositionValue
+            : undefined
+          : undefined
       },
       undefined,
       { equals: false },
@@ -280,9 +285,11 @@ export class LayoutObserver {
 
     const intermediateMatrix = createMemo<mat2d | undefined>(
       prev => {
-        const parentIntermediateMatrixValue = parentMatrix?.intermediateMatrix()
+        const parentIntermediateMatrixValue = parentMatrix()?.intermediateMatrix()
         const layoutDeltaValue = layoutDelta()
         const next = prev ?? mat2d.create()
+        const transform = this.#transforms.get(element)
+
         if (layoutDeltaValue) {
           if (isDocumentElement) {
             mat2d.fromTranslation(next, layoutDeltaValue)
@@ -292,7 +299,6 @@ export class LayoutObserver {
             mat2d.identity(next)
           }
 
-          const transform = this.#transforms.get(element)
           if (transform) {
             mat2d.multiply(next, next, transform)
           }
@@ -318,11 +324,7 @@ export class LayoutObserver {
       { equals: false },
     )
 
-    return {
-      matrix,
-      intermediateMatrix,
-      rectPosition,
-    }
+    return { rectPosition, intermediateMatrix, matrix }
   })
 
   constructor() {
@@ -358,9 +360,9 @@ export class LayoutObserver {
     const memo = createMemo(() => {
       const elementValue = access(element)
       if (elementValue) {
-        return this.#matrices.use(elementValue).matrix
+        return this.#matrices.use(elementValue)
       }
     })
-    return () => memo()?.()
+    return () => memo()?.matrix?.()
   }
 }

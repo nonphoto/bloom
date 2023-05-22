@@ -20,6 +20,7 @@ export default function ScrollingLayout() {
   const [parentTransform, setParentTransform] = createSignal<mat2d>(mat2d.create(), {
     equals: false,
   })
+
   const [innerElement, setInnerElement] = createSignal<HTMLElement>()
   const [fixedElement, setFixedElement] = createSignal<HTMLElement>()
 
