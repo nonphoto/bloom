@@ -211,13 +211,11 @@ export class LayoutObserver {
       { equals: false },
     )
 
-    const intermediateMatrix = createMemo<mat2d | undefined>(
+    const layoutMatrix = createMemo<mat2d | undefined>(
       prev => {
         const parentIntermediateMatrixValue = parentMatrixRoot()?.intermediateMatrix()
         const layoutDeltaValue = layoutDelta()
         const next = prev ?? mat2d.create()
-        const transform = this.#transforms.get(element)
-
         if (layoutDeltaValue) {
           if (isDocumentElement) {
             mat2d.fromTranslation(next, layoutDeltaValue)
@@ -226,11 +224,23 @@ export class LayoutObserver {
           } else {
             mat2d.identity(next)
           }
+          return next
+        }
+      },
+      undefined,
+      { equals: false },
+    )
 
+    const intermediateMatrix = createMemo<mat2d | undefined>(
+      prev => {
+        const layoutMatrixValue = layoutMatrix()
+        if (layoutMatrixValue) {
+          const next = prev ?? mat2d.create()
+          mat2d.copy(next, layoutMatrixValue)
+          const transform = this.#transforms.get(element)
           if (transform) {
             mat2d.multiply(next, next, transform)
           }
-
           return mat2d.translate(next, next, scrollRoot.scrollTranslation())
         }
       },
@@ -241,11 +251,11 @@ export class LayoutObserver {
     const matrix = createMemo<mat2d | undefined>(
       prev => {
         const rectPositionValue = rectPosition()
-        const intermediateMatrixValue = intermediateMatrix()
+        const layoutMatrixValue = layoutMatrix()
         const next = prev ?? mat2d.create()
-        if (rectPositionValue && intermediateMatrixValue) {
+        if (rectPositionValue && layoutMatrixValue) {
           mat2dFromNegativeTranslation(next, rectPositionValue)
-          return mat2d.multiply(next, next, intermediateMatrixValue)
+          return mat2d.multiply(next, next, layoutMatrixValue)
         }
       },
       undefined,

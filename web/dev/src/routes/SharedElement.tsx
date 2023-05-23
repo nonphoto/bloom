@@ -1,48 +1,44 @@
 import classes from './SharedElement.module.css'
-import { createEffect, createSignal, createMemo } from 'solid-js'
+import { createSignal, createMemo, createEffect } from 'solid-js'
 import { xprod } from 'ramda'
-import { useLayoutObserver } from '@chloranthy/solid'
+import { useLayoutObserver, transform } from '@chloranthy/solid'
 import { Quad, criticalSpring } from '@chloranthy/animation'
 import { createRAF } from '@solid-primitives/raf'
 import { mat2d } from 'gl-matrix'
 
+transform
+
 const areas = xprod([1, 2], [1, 2])
 
 export default function SharedElement() {
-  const outerElement = (
-    <div
-      class={classes.outer}
-      // style={{
-      //   transform: style.transform(outerTransform()),
-      //   'border-radius': outerRect()
-      //     ? style.borderRadius(50, outerRect()!.size, outerTransform())
-      //     : undefined,
-      // }}
-    >
-      {/* <div
-    ref={innerElement}
-    class={classes.inner}
-    // style={{
-    //   transform: style.transform(innerTransform()),
-    //   'border-radius': innerRect()
-    //     ? style.borderRadius(50, innerRect()!.size, combinedTransform())
-    //     : undefined,
-    // }}
-  ></div> */}
-    </div>
-  ) as HTMLElement
-
   const [areaIndex, setAreaIndex] = createSignal(0)
+
+  const [outerElement, setOuterElement] = createSignal<HTMLElement | undefined>()
+  const [innerElement, setInnerElement] = createSignal<HTMLElement | undefined>()
 
   const layoutObserver = useLayoutObserver()
 
   const outerRect = layoutObserver.useRect(outerElement)
+  const innerRect = layoutObserver.useRect(innerElement)
+  const innerMatrix = layoutObserver.useMatrix(innerElement)
 
   const targetQuad = createMemo<Quad>(
     prev => {
       const outerRectValue = outerRect()
       if (outerRectValue) {
         Quad.fromDOMRect(prev, outerRectValue)
+      }
+      return prev
+    },
+    new Quad(),
+    { equals: false },
+  )
+
+  const innerTargetQuad = createMemo<Quad>(
+    prev => {
+      const innerRectValue = innerRect()
+      if (innerRectValue) {
+        Quad.fromDOMRect(prev, innerRectValue)
       }
       return prev
     },
@@ -60,18 +56,18 @@ export default function SharedElement() {
         quad.translation.x,
         quad.translation.x,
         targetQuad().translation.x,
-        100,
+        500,
         deltaTime,
       )
       criticalSpring(
         quad.translation.y,
         quad.translation.y,
         targetQuad().translation.y,
-        100,
+        500,
         deltaTime,
       )
-      criticalSpring(quad.scaling.x, quad.scaling.x, targetQuad().scaling.x, 200, deltaTime)
-      criticalSpring(quad.scaling.y, quad.scaling.y, targetQuad().scaling.y, 200, deltaTime)
+      criticalSpring(quad.scaling.x, quad.scaling.x, targetQuad().scaling.x, 500, deltaTime)
+      criticalSpring(quad.scaling.y, quad.scaling.y, targetQuad().scaling.y, 500, deltaTime)
       return quad
     })
 
@@ -79,6 +75,18 @@ export default function SharedElement() {
   })
 
   start()
+
+  const innerQuad = createMemo<Quad>(
+    prev => Quad.cover(prev, innerTargetQuad(), outerQuad()),
+    new Quad(),
+    { equals: false },
+  )
+
+  const inverseInnerMatrix = createMemo<mat2d>(
+    prev => mat2d.invert(prev, innerMatrix() ?? mat2d.identity(mat2d.create())),
+    mat2d.create(),
+    { equals: false },
+  )
 
   const outerTransform = createMemo<mat2d>(
     prev => Quad.divide(prev, outerQuad(), targetQuad()),
@@ -88,9 +96,14 @@ export default function SharedElement() {
     },
   )
 
-  createEffect(() => {
-    layoutObserver.setTransform(outerElement, outerTransform())
-  })
+  const innerTransform = createMemo<mat2d>(
+    prev => {
+      Quad.divide(prev, innerQuad(), innerTargetQuad())
+      return mat2d.multiply(prev, inverseInnerMatrix(), prev)
+    },
+    mat2d.create(),
+    { equals: false },
+  )
 
   // const [outerRect, setOuterRect] = createSignal<Rect | undefined>(undefined, {
   //   equals: false,
@@ -229,7 +242,9 @@ export default function SharedElement() {
           'grid-column-start': areas[areaIndex()]?.[1],
         }}
       >
-        {outerElement}
+        <div ref={setOuterElement} class={classes.outer} use:transform={outerTransform()}>
+          <div ref={setInnerElement} class={classes.inner} use:transform={innerTransform()}></div>
+        </div>
       </div>
     </div>
   )
