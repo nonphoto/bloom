@@ -1,12 +1,10 @@
 import classes from './SharedElement.module.css'
 import { createEffect, createSignal, createMemo } from 'solid-js'
 import { xprod } from 'ramda'
-import { createLayout, useLayoutObserver, layout } from '@chloranthy/solid'
+import { useLayoutObserver } from '@chloranthy/solid'
 import { Quad, criticalSpring } from '@chloranthy/animation'
 import { createRAF } from '@solid-primitives/raf'
 import { mat2d } from 'gl-matrix'
-
-layout
 
 const areas = xprod([1, 2], [1, 2])
 
@@ -32,19 +30,19 @@ export default function SharedElement() {
     // }}
   ></div> */}
     </div>
-  )
+  ) as HTMLElement
 
   const [areaIndex, setAreaIndex] = createSignal(0)
 
   const layoutObserver = useLayoutObserver()
 
-  const outerLayout = createLayout(outerElement as HTMLDivElement)
+  const outerRect = layoutObserver.useRect(outerElement)
 
   const targetQuad = createMemo<Quad>(
     prev => {
-      const rect = outerLayout.layoutRect()
-      if (rect) {
-        Quad.fromDOMRect(prev, rect)
+      const outerRectValue = outerRect()
+      if (outerRectValue) {
+        Quad.fromDOMRect(prev, outerRectValue)
       }
       return prev
     },
@@ -82,7 +80,7 @@ export default function SharedElement() {
 
   start()
 
-  const matrix = createMemo<mat2d>(
+  const outerTransform = createMemo<mat2d>(
     prev => Quad.divide(prev, outerQuad(), targetQuad()),
     mat2d.create(),
     {
@@ -91,7 +89,7 @@ export default function SharedElement() {
   )
 
   createEffect(() => {
-    outerLayout.setIntrinsicTransform(matrix())
+    layoutObserver.setTransform(outerElement, outerTransform())
   })
 
   // const [outerRect, setOuterRect] = createSignal<Rect | undefined>(undefined, {
@@ -222,7 +220,6 @@ export default function SharedElement() {
       class={classes.grid}
       onClick={() => {
         setAreaIndex(index => (index + 1) % areas.length)
-        layoutObserver.measureAll()
       }}
     >
       <div

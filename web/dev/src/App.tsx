@@ -6,8 +6,8 @@ import SharedElement from './routes/SharedElement'
 
 const options = [
   { label: 'Scrolling layout', component: ScrollingLayout },
-  // { label: 'Shared element', component: SharedElement },
-  // { label: 'Matrix playground', component: MatrixPlayground },
+  { label: 'Shared element', component: SharedElement },
+  { label: 'Matrix playground', component: MatrixPlayground },
 ].map(option => ({ ...option, value: createUniqueId() }))
 
 export default function App() {

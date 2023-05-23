@@ -1,13 +1,5 @@
 import { mat2d, vec2 } from 'gl-matrix'
-import {
-  Accessor,
-  batch,
-  createEffect,
-  createMemo,
-  createSignal,
-  onCleanup,
-  untrack,
-} from 'solid-js'
+import { Accessor, createEffect, createMemo, createSignal, onCleanup, untrack } from 'solid-js'
 import { ReactiveWeakMap } from '@solid-primitives/map'
 import {
   center,
@@ -17,108 +9,14 @@ import {
   mat2dFromNegativeTranslation,
   styleTransform,
   walkChildren,
-  willScroll,
+  willScroll as getWillScroll,
 } from './utils'
-import { createSingletonRoot } from '@solid-primitives/rootless'
 import { MaybeAccessor, access } from '@solid-primitives/utils'
+import { SingletonMap } from './singletonMap'
+import { Batcher } from './batcher'
+import { Listeners } from './listeners'
 
 const identity = mat2d.identity(mat2d.create())
-
-class Listeners<T extends object, U> {
-  #map = new WeakMap<T, Set<(value: U) => void>>()
-
-  add(key: T, listener: (value: U) => void) {
-    const listeners = this.#map.get(key)
-    if (listeners) {
-      listeners.add(listener)
-    } else {
-      this.#map.set(key, new Set([listener]))
-    }
-  }
-
-  remove(key: T, listener: (value: U) => void) {
-    const listeners = this.#map.get(key)
-    if (listeners) {
-      if (listeners.size <= 1) {
-        this.#map.delete(key)
-      } else {
-        listeners.delete(listener)
-      }
-    }
-  }
-
-  has(key: T) {
-    const listeners = this.#map.get(key)
-    return listeners && listeners.size > 0
-  }
-
-  notify(key: T, value: U) {
-    for (const listener of this.#map.get(key) ?? []) {
-      listener.call(undefined, value)
-    }
-  }
-}
-
-class Batcher {
-  #callbacks: Array<() => void> = []
-  #onPreRun?: () => void
-  #onPostRun?: () => void
-
-  constructor(options?: { onPreRun?: () => void; onPostRun?: () => void }) {
-    this.#onPreRun = options?.onPreRun
-    this.#onPostRun = options?.onPostRun
-  }
-
-  #run() {
-    this.#onPreRun?.()
-    batch(() => {
-      while (this.#callbacks.length > 0) {
-        const callback = this.#callbacks.shift()
-        if (callback) {
-          callback.call(undefined)
-        }
-      }
-    })
-    this.#onPostRun?.()
-  }
-
-  enqueue(callback: () => void) {
-    if (this.#callbacks.length === 0) {
-      queueMicrotask(() => this.#run())
-    }
-
-    this.#callbacks.push(callback)
-  }
-}
-
-class SingletonMap<T extends object, U> {
-  #map = new Map<T, () => U>()
-  #factory: (key: T) => U
-
-  constructor(factory: (key: T) => U) {
-    this.#factory = factory
-  }
-
-  get(key: T): U | undefined {
-    return this.#map.get(key)?.()
-  }
-
-  use(key: T): U {
-    const value = this.#map.get(key)
-    if (value) {
-      return value()
-    } else {
-      const use = createSingletonRoot(() => {
-        onCleanup(() => {
-          this.#map.delete(key)
-        })
-        return this.#factory(key)
-      })
-      this.#map.set(key, use)
-      return use()
-    }
-  }
-}
 
 type RectRoot = {
   rect: Accessor<DOMRect | undefined>
@@ -217,23 +115,24 @@ export class LayoutObserver {
 
   #scrollRoots = new SingletonMap<HTMLElement, ScrollRoot>(element => {
     const [scrollTranslation, setScrollTranslation] = createSignal(vec2.create(), { equals: false })
+    const [willScroll, setWillScroll] = createSignal(false)
 
     const onScroll = () => {
       setScrollTranslation(prev => vec2.set(prev, -element.scrollLeft, -element.scrollTop))
     }
 
     const invalidate = () => {
-      if (willScroll(element)) {
+      setWillScroll(getWillScroll(element))
+    }
+
+    createEffect(() => {
+      if (willScroll()) {
         const scrollEmitter = getScrollEmitter(element)
         scrollEmitter.addEventListener('scroll', onScroll, { passive: true })
         onCleanup(() => {
           scrollEmitter.removeEventListener('scroll', onScroll)
         })
       }
-    }
-
-    createEffect(() => {
-      invalidate()
     })
 
     return {
