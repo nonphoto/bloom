@@ -55,6 +55,7 @@
   "dependencies": {
     "@chloranthy/rect": "workspace:*",
     "@solid-primitives/map": "^0.4.3",
+    "@solid-primitives/raf": "2.1.10",
     "@solid-primitives/rootless": "1.3.2",
     "@solid-primitives/utils": "6.1.0",
     "gl-matrix": "^3.4.3",
