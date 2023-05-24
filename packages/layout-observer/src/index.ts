@@ -122,6 +122,7 @@ export class LayoutObserver {
     }
 
     const invalidate = () => {
+      console.log(getWillScroll(element))
       setWillScroll(getWillScroll(element))
     }
 
@@ -133,6 +134,10 @@ export class LayoutObserver {
           scrollEmitter.removeEventListener('scroll', onScroll)
         })
       }
+    })
+
+    createEffect(() => {
+      invalidate()
     })
 
     return {
@@ -222,7 +227,7 @@ export class LayoutObserver {
           } else if (parentIntermediateMatrixValue) {
             mat2d.translate(next, parentIntermediateMatrixValue, layoutDeltaValue)
           } else {
-            mat2d.identity(next)
+            return undefined
           }
           return next
         }
