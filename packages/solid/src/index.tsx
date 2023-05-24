@@ -4,6 +4,8 @@ import { createSingletonRoot } from '@solid-primitives/rootless'
 import { Directive } from '@solid-primitives/utils'
 import { mat2d } from 'gl-matrix'
 
+export { createComputedStyle } from '@chloranthy/layout-observer'
+
 export const useLayoutObserver = createSingletonRoot(() => {
   const layoutObserver = new LayoutObserver()
 

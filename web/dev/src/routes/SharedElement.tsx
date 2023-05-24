@@ -4,11 +4,17 @@ import { xprod } from 'ramda'
 import { useLayoutObserver, transform } from '@chloranthy/solid'
 import { Quad, criticalSpring } from '@chloranthy/animation'
 import { createRAF } from '@solid-primitives/raf'
-import { mat2d } from 'gl-matrix'
+import { mat2d, vec2 } from 'gl-matrix'
 
 transform
 
 const areas = xprod([1, 2], [1, 2])
+
+function styleBorderRadius(radius: number, size: vec2, transform: mat2d) {
+  const x = (radius / (size[0] * transform[0])) * 100
+  const y = (radius / (size[1] * transform[3])) * 100
+  return `${x}% / ${y}%`
+}
 
 export default function SharedElement() {
   const [areaIndex, setAreaIndex] = createSignal(0)
@@ -22,7 +28,9 @@ export default function SharedElement() {
   const innerRect = layoutObserver.useRect(innerElement)
   const innerMatrix = layoutObserver.useMatrix(innerElement)
 
-  const targetQuad = createMemo<Quad>(
+  const borderRadius = () => 50
+
+  const outerTargetQuad = createMemo<Quad>(
     prev => {
       const outerRectValue = outerRect()
       if (outerRectValue) {
@@ -55,19 +63,19 @@ export default function SharedElement() {
       criticalSpring(
         quad.translation.x,
         quad.translation.x,
-        targetQuad().translation.x,
-        500,
+        outerTargetQuad().translation.x,
+        200,
         deltaTime,
       )
       criticalSpring(
         quad.translation.y,
         quad.translation.y,
-        targetQuad().translation.y,
-        500,
+        outerTargetQuad().translation.y,
+        200,
         deltaTime,
       )
-      criticalSpring(quad.scaling.x, quad.scaling.x, targetQuad().scaling.x, 500, deltaTime)
-      criticalSpring(quad.scaling.y, quad.scaling.y, targetQuad().scaling.y, 500, deltaTime)
+      criticalSpring(quad.scaling.x, quad.scaling.x, outerTargetQuad().scaling.x, 300, deltaTime)
+      criticalSpring(quad.scaling.y, quad.scaling.y, outerTargetQuad().scaling.y, 300, deltaTime)
       return quad
     })
 
@@ -89,17 +97,22 @@ export default function SharedElement() {
   )
 
   const outerTransform = createMemo<mat2d>(
-    prev => Quad.divide(prev, outerQuad(), targetQuad()),
+    prev => Quad.divide(prev, outerQuad(), outerTargetQuad()),
     mat2d.create(),
     {
       equals: false,
     },
   )
 
+  const innerDeltaMatrix = createMemo<mat2d>(
+    prev => Quad.divide(prev, innerQuad(), innerTargetQuad()),
+    mat2d.create(),
+    { equals: false },
+  )
+
   const innerTransform = createMemo<mat2d>(
     prev => {
-      Quad.divide(prev, innerQuad(), innerTargetQuad())
-      return mat2d.multiply(prev, inverseInnerMatrix(), prev)
+      return mat2d.multiply(prev, inverseInnerMatrix(), innerDeltaMatrix())
     },
     mat2d.create(),
     { equals: false },
@@ -119,8 +132,30 @@ export default function SharedElement() {
           'grid-column-start': areas[areaIndex()]?.[1],
         }}
       >
-        <div ref={setOuterElement} class={classes.outer} use:transform={outerTransform()}>
-          <div ref={setInnerElement} class={classes.inner} use:transform={innerTransform()}></div>
+        <div
+          ref={setOuterElement}
+          class={classes.outer}
+          use:transform={outerTransform()}
+          style={{
+            'border-radius': styleBorderRadius(
+              borderRadius(),
+              outerTargetQuad().scaling.p,
+              outerTransform(),
+            ),
+          }}
+        >
+          <div
+            ref={setInnerElement}
+            class={classes.inner}
+            use:transform={innerTransform()}
+            style={{
+              'border-radius': styleBorderRadius(
+                borderRadius(),
+                innerTargetQuad().scaling.p,
+                innerDeltaMatrix(),
+              ),
+            }}
+          ></div>
         </div>
       </div>
     </div>

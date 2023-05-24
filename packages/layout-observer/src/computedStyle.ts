@@ -30,7 +30,9 @@ export function createComputedStyle<T extends keyof CSSStyleDeclaration>(
         setValue(() => computedStyle[name])
       })
 
-      start()
+      createEffect(() => {
+        start()
+      })
     }
   })
 

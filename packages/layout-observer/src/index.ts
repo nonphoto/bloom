@@ -16,6 +16,8 @@ import { SingletonMap } from './singletonMap'
 import { Batcher } from './batcher'
 import { Listeners } from './listeners'
 
+export * from './computedStyle'
+
 const identity = mat2d.identity(mat2d.create())
 
 type RectRoot = {
@@ -122,7 +124,6 @@ export class LayoutObserver {
     }
 
     const invalidate = () => {
-      console.log(getWillScroll(element))
       setWillScroll(getWillScroll(element))
     }
 
