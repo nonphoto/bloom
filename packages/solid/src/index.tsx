@@ -33,20 +33,3 @@ export const transform: Directive<mat2d> = (target, value) => {
     })
   }
 }
-
-type Constructor<T> = new (...args: any[]) => T
-
-export function createReactiveBuilder<T extends Constructor<{}>>(Base: T) {
-  return class extends Base {
-    constructor(...args: any[]) {
-      super(...args)
-      return new Proxy(this, {
-        get(target, prop) {
-          if (prop in target) {
-            // TODO
-          }
-        },
-      })
-    }
-  }
-}
