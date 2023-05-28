@@ -5,7 +5,7 @@ import { Directive } from '@solid-primitives/utils'
 import { mat2d } from 'gl-matrix'
 
 export { createComputedStyle } from '@chloranthy/layout-observer'
-export { createReactiveBuilder } from './createReactiveBuilder'
+export { ReactiveQuad } from './reactiveQuad'
 
 export const useLayoutObserver = createSingletonRoot(() => {
   const layoutObserver = new LayoutObserver()
@@ -20,12 +20,12 @@ export const useLayoutObserver = createSingletonRoot(() => {
 declare module 'solid-js' {
   namespace JSX {
     interface Directives {
-      transform: mat2d
+      transform: mat2d | undefined
     }
   }
 }
 
-export const transform: Directive<mat2d> = (target, value) => {
+export const transform: Directive<mat2d | undefined> = (target, value) => {
   if (target instanceof HTMLElement) {
     const layout = useLayoutObserver()
 

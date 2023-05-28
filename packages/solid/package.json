@@ -63,6 +63,7 @@
     "solid-js": "^1.6.0"
   },
   "dependencies": {
+    "@chloranthy/animation": "workspace:*",
     "@chloranthy/layout-observer": "workspace:*",
     "@chloranthy/rect": "workspace:*",
     "@solid-primitives/resize-observer": "2.0.15",

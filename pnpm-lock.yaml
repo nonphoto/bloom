@@ -82,6 +82,9 @@ importers:
 
   packages/solid:
     dependencies:
+      '@chloranthy/animation':
+        specifier: workspace:*
+        version: link:../animation
       '@chloranthy/layout-observer':
         specifier: workspace:*
         version: link:../layout-observer

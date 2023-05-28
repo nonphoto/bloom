@@ -13,6 +13,10 @@ export class Quad {
     this.rotation = new Axis()
   }
 
+  static create() {
+    return new Quad()
+  }
+
   static fromDOMRect(out: Quad, source: DOMRect): Quad {
     out.translation.p[0] = source.x + source.width / 2
     out.translation.p[1] = source.y + source.height / 2
@@ -70,5 +74,6 @@ export class Quad {
     Axis2.zero(out.translation)
     Axis2.set(out.scaling, 1, 1, 0, 0)
     Axis.zero(out.rotation)
+    return out
   }
 }
