@@ -6,15 +6,6 @@ type ConstructorParameters<T extends new (...args: any[]) => {}> = T extends new
   ? P
   : never
 
-class A {
-  value = 0
-
-  add(other: A) {
-    this.value += other.value
-    return this
-  }
-}
-
 type MapAccessors<T extends any[]> = {
   [K in keyof T]: MaybeAccessor<T[K]>
 }

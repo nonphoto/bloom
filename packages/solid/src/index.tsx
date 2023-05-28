@@ -5,6 +5,7 @@ import { Directive } from '@solid-primitives/utils'
 import { mat2d } from 'gl-matrix'
 
 export { createComputedStyle } from '@chloranthy/layout-observer'
+export { createReactiveBuilder } from './createReactiveBuilder'
 
 export const useLayoutObserver = createSingletonRoot(() => {
   const layoutObserver = new LayoutObserver()

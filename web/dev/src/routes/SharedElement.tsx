@@ -1,7 +1,7 @@
 import classes from './SharedElement.module.css'
 import { createSignal, createMemo } from 'solid-js'
 import { xprod } from 'ramda'
-import { useLayoutObserver, transform } from '@chloranthy/solid'
+import { useLayoutObserver, transform, createReactiveBuilder } from '@chloranthy/solid'
 import { Quad, criticalSpring } from '@chloranthy/animation'
 import { createRAF } from '@solid-primitives/raf'
 import { mat2d, vec2 } from 'gl-matrix'
@@ -15,6 +15,8 @@ function styleBorderRadius(radius: number, size: vec2, transform: mat2d) {
   const y = (radius / (size[1] * transform[3])) * 100
   return `${x}% / ${y}%`
 }
+
+const ReactiveQuad = createReactiveBuilder(Quad)
 
 export default function SharedElement() {
   const [areaIndex, setAreaIndex] = createSignal(0)
@@ -30,17 +32,7 @@ export default function SharedElement() {
 
   const borderRadius = () => 50
 
-  const outerTargetQuad = createMemo<Quad>(
-    prev => {
-      const outerRectValue = outerRect()
-      if (outerRectValue) {
-        Quad.fromDOMRect(prev, outerRectValue)
-      }
-      return prev
-    },
-    new Quad(),
-    { equals: false },
-  )
+  const outerTargetQuad = new ReactiveQuad().fromDOMRect(outerRect())
 
   const innerTargetQuad = createMemo<Quad>(
     prev => {
