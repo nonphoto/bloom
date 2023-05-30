@@ -1,5 +1,5 @@
 import classes from './SharedElement.module.css'
-import { createSignal, createMemo } from 'solid-js'
+import { createSignal, createEffect, batch, Accessor } from 'solid-js'
 import { xprod } from 'ramda'
 import { useLayoutObserver, transform, borderRadius, createMaybeMemo } from '@chloranthy/solid'
 import { Quad, criticalSpring } from '@chloranthy/animation'
@@ -10,6 +10,26 @@ transform
 borderRadius
 
 const areas = xprod([1, 2], [1, 2])
+
+function createTime(): [Accessor<number>, Accessor<number>] {
+  const [time, setTime] = createSignal(0, { equals: false })
+  const [deltaTime, setDeltaTime] = createSignal(0, { equals: false })
+  let prevTime = 0
+
+  const [, start] = createRAF(time => {
+    batch(() => {
+      setTime(time)
+      setDeltaTime(time - prevTime)
+      prevTime = time
+    })
+  })
+
+  createEffect(() => {
+    start()
+  })
+
+  return [time, deltaTime]
+}
 
 export default function SharedElement() {
   const [areaIndex, setAreaIndex] = createSignal(0)
@@ -26,59 +46,39 @@ export default function SharedElement() {
   const outerTargetQuad = createMaybeMemo(Quad.fromDOMRect, Quad.create(), outerRect)
   const innerTargetQuad = createMaybeMemo(Quad.fromDOMRect, Quad.create(), innerRect)
 
-  const [outerQuad, setOuterQuad] = createSignal(new Quad(), { equals: false })
+  const [, deltaTime] = createTime()
 
-  let prevTime = performance.now()
-  const [, start] = createRAF(time => {
-    const deltaTime = time - prevTime
-    const targetQuad = outerTargetQuad()
-    if (targetQuad) {
-      setOuterQuad(quad => {
-        criticalSpring(
-          quad.translation.x,
-          quad.translation.x,
-          targetQuad.translation.x,
-          200,
-          deltaTime,
-        )
-        criticalSpring(
-          quad.translation.y,
-          quad.translation.y,
-          targetQuad.translation.y,
-          200,
-          deltaTime,
-        )
-        criticalSpring(quad.scaling.x, quad.scaling.x, targetQuad.scaling.x, 300, deltaTime)
-        criticalSpring(quad.scaling.y, quad.scaling.y, targetQuad.scaling.y, 300, deltaTime)
-        return quad
-      })
-    }
-
-    prevTime = time
-  })
-
-  start()
+  const outerQuadValue = Quad.create()
+  const outerQuad = createMaybeMemo(
+    (out: Quad, source: Quad, target: Quad) => {
+      criticalSpring(
+        out.translation.x,
+        source.translation.x,
+        target.translation.x,
+        200,
+        deltaTime(),
+      )
+      criticalSpring(
+        out.translation.y,
+        source.translation.y,
+        target.translation.y,
+        200,
+        deltaTime(),
+      )
+      criticalSpring(out.scaling.x, source.scaling.x, target.scaling.x, 300, deltaTime())
+      criticalSpring(out.scaling.y, source.scaling.y, target.scaling.y, 300, deltaTime())
+      return source
+    },
+    outerQuadValue,
+    outerQuadValue,
+    outerTargetQuad,
+  )
 
   const innerQuad = createMaybeMemo(Quad.cover, Quad.create(), innerTargetQuad, outerQuad)
 
-  const inverseInnerMatrix = createMemo<mat2d>(
-    prev => mat2d.invert(prev, innerMatrix() ?? mat2d.identity(mat2d.create())),
-    mat2d.create(),
-    { equals: false },
-  )
+  const inverseInnerMatrix = createMaybeMemo(mat2d.invert, mat2d.create(), innerMatrix)
 
-  const outerTransform = createMemo<mat2d | undefined>(
-    prev => {
-      const outerTargetQuadValue = outerTargetQuad()
-      if (outerTargetQuadValue) {
-        return Quad.divide(prev ?? mat2d.create(), outerQuad(), outerTargetQuadValue)
-      }
-    },
-    undefined,
-    {
-      equals: false,
-    },
-  )
+  const outerTransform = createMaybeMemo(Quad.divide, mat2d.create(), outerQuad, outerTargetQuad)
 
   const innerDeltaMatrix = createMaybeMemo(Quad.divide, mat2d.create(), innerQuad, innerTargetQuad)
 

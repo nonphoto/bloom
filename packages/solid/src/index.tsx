@@ -8,6 +8,15 @@ import { createMaybeMemo, maybe } from './utils'
 export { createComputedStyle } from '@chloranthy/layout-observer'
 export * from './utils'
 
+declare module 'solid-js' {
+  namespace JSX {
+    interface Directives {
+      transform: mat2d | undefined
+      borderRadius: number | undefined
+    }
+  }
+}
+
 export const useLayoutObserver = createSingletonRoot(() => {
   const layoutObserver = new LayoutObserver()
 
@@ -17,15 +26,6 @@ export const useLayoutObserver = createSingletonRoot(() => {
 
   return layoutObserver
 })
-
-declare module 'solid-js' {
-  namespace JSX {
-    interface Directives {
-      transform: mat2d | undefined
-      borderRadius: number | undefined
-    }
-  }
-}
 
 export const transform: Directive<mat2d | undefined> = (target, value) => {
   if (target instanceof HTMLElement) {
