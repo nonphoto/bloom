@@ -1,7 +1,7 @@
 import classes from './SharedElement.module.css'
-import { createSignal, createMemo, createEffect } from 'solid-js'
+import { createSignal, createMemo } from 'solid-js'
 import { xprod } from 'ramda'
-import { useLayoutObserver, transform, ReactiveQuad } from '@chloranthy/solid'
+import { useLayoutObserver, transform, createMaybeMemo } from '@chloranthy/solid'
 import { Quad, criticalSpring } from '@chloranthy/animation'
 import { createRAF } from '@solid-primitives/raf'
 import { mat2d, vec2 } from 'gl-matrix'
@@ -30,26 +30,15 @@ export default function SharedElement() {
 
   const borderRadius = () => 50
 
-  const outerTargetQuad = ReactiveQuad.fromDOMRect(outerRect)
-
-  const innerTargetQuad = createMemo<Quad>(
-    prev => {
-      const innerRectValue = innerRect()
-      if (innerRectValue) {
-        Quad.fromDOMRect(prev, innerRectValue)
-      }
-      return prev
-    },
-    new Quad(),
-    { equals: false },
-  )
+  const outerTargetQuad = createMaybeMemo(Quad.fromDOMRect, Quad.create(), outerRect)
+  const innerTargetQuad = createMaybeMemo(Quad.fromDOMRect, Quad.create(), innerRect)
 
   const [outerQuad, setOuterQuad] = createSignal(new Quad(), { equals: false })
 
   let prevTime = performance.now()
   const [, start] = createRAF(time => {
     const deltaTime = time - prevTime
-    const targetQuad = outerTargetQuad.value()
+    const targetQuad = outerTargetQuad()
     if (targetQuad) {
       setOuterQuad(quad => {
         criticalSpring(
@@ -77,11 +66,7 @@ export default function SharedElement() {
 
   start()
 
-  const innerQuad = createMemo<Quad>(
-    prev => Quad.cover(prev, innerTargetQuad(), outerQuad()),
-    new Quad(),
-    { equals: false },
-  )
+  const innerQuad = createMaybeMemo(Quad.cover, Quad.create(), innerTargetQuad, outerQuad)
 
   const inverseInnerMatrix = createMemo<mat2d>(
     prev => mat2d.invert(prev, innerMatrix() ?? mat2d.identity(mat2d.create())),
@@ -91,7 +76,7 @@ export default function SharedElement() {
 
   const outerTransform = createMemo<mat2d | undefined>(
     prev => {
-      const outerTargetQuadValue = outerTargetQuad.value()
+      const outerTargetQuadValue = outerTargetQuad()
       if (outerTargetQuadValue) {
         return Quad.divide(prev ?? mat2d.create(), outerQuad(), outerTargetQuadValue)
       }
@@ -102,18 +87,13 @@ export default function SharedElement() {
     },
   )
 
-  const innerDeltaMatrix = createMemo<mat2d>(
-    prev => Quad.divide(prev, innerQuad(), innerTargetQuad()),
-    mat2d.create(),
-    { equals: false },
-  )
+  const innerDeltaMatrix = createMaybeMemo(Quad.divide, mat2d.create(), innerQuad, innerTargetQuad)
 
-  const innerTransform = createMemo<mat2d>(
-    prev => {
-      return mat2d.multiply(prev, inverseInnerMatrix(), innerDeltaMatrix())
-    },
+  const innerTransform = createMaybeMemo(
+    mat2d.multiply,
     mat2d.create(),
-    { equals: false },
+    inverseInnerMatrix,
+    innerDeltaMatrix,
   )
 
   return (
@@ -137,7 +117,7 @@ export default function SharedElement() {
           style={{
             'border-radius': styleBorderRadius(
               borderRadius(),
-              outerTargetQuad.value()?.scaling.p ?? vec2.fromValues(1, 1),
+              outerTargetQuad()?.scaling.p ?? vec2.fromValues(1, 1),
               outerTransform() ?? mat2d.identity(mat2d.create()),
             ),
           }}
@@ -149,8 +129,8 @@ export default function SharedElement() {
             style={{
               'border-radius': styleBorderRadius(
                 borderRadius(),
-                outerTargetQuad.value()?.scaling.p ?? vec2.fromValues(1, 1),
-                innerDeltaMatrix(),
+                innerTargetQuad()?.scaling.p ?? vec2.fromValues(1, 1),
+                innerDeltaMatrix() ?? mat2d.identity(mat2d.create()),
               ),
             }}
           ></div>
