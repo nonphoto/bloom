@@ -31,4 +31,10 @@ export class Axis2 {
     vec2.set(a.v, vx, vy)
     return a
   }
+
+  static criticalSpring(out: Axis2, start: Axis2, end: Axis2, halflife: number, dt: number) {
+    Axis.criticalSpring(out.x, start.x, end.x, halflife, dt)
+    Axis.criticalSpring(out.y, start.y, end.y, halflife, dt)
+    return out
+  }
 }

@@ -50,28 +50,13 @@ export default function SharedElement() {
 
   const outerQuadValue = Quad.create()
   const outerQuad = createMaybeMemo(
-    (out: Quad, source: Quad, target: Quad) => {
-      criticalSpring(
-        out.translation.x,
-        source.translation.x,
-        target.translation.x,
-        200,
-        deltaTime(),
-      )
-      criticalSpring(
-        out.translation.y,
-        source.translation.y,
-        target.translation.y,
-        200,
-        deltaTime(),
-      )
-      criticalSpring(out.scaling.x, source.scaling.x, target.scaling.x, 300, deltaTime())
-      criticalSpring(out.scaling.y, source.scaling.y, target.scaling.y, 300, deltaTime())
-      return source
-    },
+    Quad.criticalSpring,
     outerQuadValue,
     outerQuadValue,
     outerTargetQuad,
+    deltaTime,
+    200,
+    300,
   )
 
   const innerQuad = createMaybeMemo(Quad.cover, Quad.create(), innerTargetQuad, outerQuad)

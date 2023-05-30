@@ -76,4 +76,25 @@ export class Quad {
     Axis.zero(out.rotation)
     return out
   }
+
+  static criticalSpring(
+    out: Quad,
+    start: Quad,
+    end: Quad,
+    dt: number,
+    translationHalflife: number,
+    scalingHalflife: number = translationHalflife,
+    rotationHalflife: number = scalingHalflife,
+  ) {
+    Axis2.criticalSpring(
+      out.translation,
+      start.translation,
+      end.translation,
+      translationHalflife,
+      dt,
+    )
+    Axis2.criticalSpring(out.scaling, start.scaling, end.scaling, scalingHalflife, dt)
+    Axis.criticalSpring(out.rotation, start.rotation, end.rotation, rotationHalflife, dt)
+    return out
+  }
 }

@@ -1,3 +1,4 @@
+import { criticalSpring } from './spring'
 import { defaultEpsilon } from './utils'
 
 export class Axis {
@@ -63,4 +64,6 @@ export class Axis {
   static equals(a: Axis, b: Axis, epsilon: number = defaultEpsilon) {
     return Math.abs(b.p - a.p) <= epsilon && Math.abs(b.v - a.v) <= epsilon
   }
+
+  static criticalSpring = criticalSpring
 }
