@@ -1,20 +1,15 @@
 import classes from './SharedElement.module.css'
 import { createSignal, createMemo } from 'solid-js'
 import { xprod } from 'ramda'
-import { useLayoutObserver, transform, createMaybeMemo } from '@chloranthy/solid'
+import { useLayoutObserver, transform, borderRadius, createMaybeMemo } from '@chloranthy/solid'
 import { Quad, criticalSpring } from '@chloranthy/animation'
 import { createRAF } from '@solid-primitives/raf'
-import { mat2d, vec2 } from 'gl-matrix'
+import { mat2d } from 'gl-matrix'
 
 transform
+borderRadius
 
 const areas = xprod([1, 2], [1, 2])
-
-function styleBorderRadius(radius: number, size: vec2, transform: mat2d) {
-  const x = (radius / (size[0] * transform[0])) * 100
-  const y = (radius / (size[1] * transform[3])) * 100
-  return `${x}% / ${y}%`
-}
 
 export default function SharedElement() {
   const [areaIndex, setAreaIndex] = createSignal(0)
@@ -27,8 +22,6 @@ export default function SharedElement() {
   const outerRect = layoutObserver.useRect(outerElement)
   const innerRect = layoutObserver.useRect(innerElement)
   const innerMatrix = layoutObserver.useMatrix(innerElement)
-
-  const borderRadius = () => 50
 
   const outerTargetQuad = createMaybeMemo(Quad.fromDOMRect, Quad.create(), outerRect)
   const innerTargetQuad = createMaybeMemo(Quad.fromDOMRect, Quad.create(), innerRect)
@@ -114,25 +107,13 @@ export default function SharedElement() {
           ref={setOuterElement}
           class={classes.outer}
           use:transform={outerTransform()}
-          style={{
-            'border-radius': styleBorderRadius(
-              borderRadius(),
-              outerTargetQuad()?.scaling.p ?? vec2.fromValues(1, 1),
-              outerTransform() ?? mat2d.identity(mat2d.create()),
-            ),
-          }}
+          use:borderRadius={50}
         >
           <div
             ref={setInnerElement}
             class={classes.inner}
             use:transform={innerTransform()}
-            style={{
-              'border-radius': styleBorderRadius(
-                borderRadius(),
-                innerTargetQuad()?.scaling.p ?? vec2.fromValues(1, 1),
-                innerDeltaMatrix() ?? mat2d.identity(mat2d.create()),
-              ),
-            }}
+            use:borderRadius={50}
           ></div>
         </div>
       </div>

@@ -9,18 +9,18 @@ export type MapMaybe<T> = T extends any[]
     }
   : never
 
+export function maybe<F extends (...args: any[]) => any>(fn: F, ...args: MapMaybe<Parameters<F>>) {
+  const values = args.map(access)
+  if (!values.some(value => value == null)) {
+    return fn(...values)
+  }
+}
+
 export function createMaybeMemo<F extends (...args: any[]) => any>(
   fn: F,
   ...args: MapMaybe<Parameters<F>>
 ): Accessor<ReturnType<F> | undefined> {
-  return createMemo<ReturnType<F> | undefined>(
-    () => {
-      const values = args.map(access)
-      if (!values.some(value => value == null)) {
-        return fn(...values)
-      }
-    },
-    undefined,
-    { equals: false },
-  )
+  return createMemo<ReturnType<F> | undefined>(() => maybe(fn, ...args), undefined, {
+    equals: false,
+  })
 }

@@ -100,6 +100,9 @@ importers:
       '@solid-primitives/utils':
         specifier: 6.1.0
         version: 6.1.0(solid-js@1.7.4)
+      gl-matrix:
+        specifier: 3.4.3
+        version: 3.4.3
     devDependencies:
       solid-js:
         specifier: ^1.7.3

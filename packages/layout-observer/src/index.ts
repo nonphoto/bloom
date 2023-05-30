@@ -290,6 +290,15 @@ export class LayoutObserver {
     }
   }
 
+  useTransform(element: MaybeAccessor<HTMLElement | undefined>) {
+    return createMemo(() => {
+      const elementValue = access(element)
+      if (elementValue) {
+        return this.#transforms.get(elementValue)
+      }
+    })
+  }
+
   useRect(element: MaybeAccessor<HTMLElement | undefined>): Accessor<DOMRect | undefined> {
     const memo = createMemo(() => {
       const elementValue = access(element)
