@@ -1,12 +1,11 @@
 import classes from './SharedElement.module.css'
 import { createSignal, createEffect, batch, Accessor } from 'solid-js'
 import { xprod } from 'ramda'
-import { useLayoutObserver, transform, borderRadius, createMaybeMemo } from '@chloranthy/solid'
-import { Quad, criticalSpring } from '@chloranthy/animation'
+import { useLayoutObserver, quad, borderRadius, createMaybeMemo } from '@chloranthy/solid'
+import { Quad } from '@chloranthy/animation'
 import { createRAF } from '@solid-primitives/raf'
-import { mat2d } from 'gl-matrix'
 
-transform
+quad
 borderRadius
 
 const areas = xprod([1, 2], [1, 2])
@@ -41,7 +40,6 @@ export default function SharedElement() {
 
   const outerRect = layoutObserver.useRect(outerElement)
   const innerRect = layoutObserver.useRect(innerElement)
-  const innerMatrix = layoutObserver.useMatrix(innerElement)
 
   const outerTargetQuad = createMaybeMemo(Quad.fromDOMRect, Quad.create(), outerRect)
   const innerTargetQuad = createMaybeMemo(Quad.fromDOMRect, Quad.create(), innerRect)
@@ -61,19 +59,6 @@ export default function SharedElement() {
 
   const innerQuad = createMaybeMemo(Quad.cover, Quad.create(), innerTargetQuad, outerQuad)
 
-  const inverseInnerMatrix = createMaybeMemo(mat2d.invert, mat2d.create(), innerMatrix)
-
-  const outerTransform = createMaybeMemo(Quad.divide, mat2d.create(), outerQuad, outerTargetQuad)
-
-  const innerDeltaMatrix = createMaybeMemo(Quad.divide, mat2d.create(), innerQuad, innerTargetQuad)
-
-  const innerTransform = createMaybeMemo(
-    mat2d.multiply,
-    mat2d.create(),
-    inverseInnerMatrix,
-    innerDeltaMatrix,
-  )
-
   return (
     <div
       class={classes.grid}
@@ -91,13 +76,13 @@ export default function SharedElement() {
         <div
           ref={setOuterElement}
           class={classes.outer}
-          use:transform={outerTransform()}
+          use:quad={outerQuad()}
           use:borderRadius={50}
         >
           <div
             ref={setInnerElement}
             class={classes.inner}
-            use:transform={innerTransform()}
+            use:quad={innerQuad()}
             use:borderRadius={50}
           ></div>
         </div>

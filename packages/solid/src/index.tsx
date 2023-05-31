@@ -4,6 +4,7 @@ import { createSingletonRoot } from '@solid-primitives/rootless'
 import { Directive } from '@solid-primitives/utils'
 import { mat2d } from 'gl-matrix'
 import { createMaybeMemo, maybe } from './utils'
+import { Quad } from '@chloranthy/animation'
 
 export { createComputedStyle } from '@chloranthy/layout-observer'
 export * from './utils'
@@ -11,6 +12,7 @@ export * from './utils'
 declare module 'solid-js' {
   namespace JSX {
     interface Directives {
+      quad: Quad | undefined
       transform: mat2d | undefined
       borderRadius: number | undefined
     }
@@ -55,5 +57,28 @@ export const borderRadius: Directive<number | undefined> = (target, value) => {
     createEffect(() => {
       target.style.borderRadius = maybe(styleBorderRadius, value, rect, totalTransform) ?? ''
     })
+  }
+}
+
+export const quad: Directive<Quad | undefined> = (target, value) => {
+  if (target instanceof HTMLElement) {
+    const layout = useLayoutObserver()
+    const rect = layout.useRect(target)
+    const matrix = layout.useMatrix(target)
+
+    const quad = createMaybeMemo(Quad.fromDOMRect, Quad.create(), rect)
+
+    const inverseMatrix = createMaybeMemo(mat2d.invert, mat2d.create(), matrix)
+
+    const deltaMatrix = createMaybeMemo(Quad.divide, mat2d.create(), value, quad)
+
+    const targetTransform = createMaybeMemo(
+      mat2d.multiply,
+      mat2d.create(),
+      inverseMatrix,
+      deltaMatrix,
+    )
+
+    transform(target, targetTransform)
   }
 }
