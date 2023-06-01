@@ -9,7 +9,10 @@ export type MapMaybe<T> = T extends any[]
     }
   : never
 
-export function maybe<F extends (...args: any[]) => any>(fn: F, ...args: MapMaybe<Parameters<F>>) {
+export function maybe<F extends (...args: any[]) => any>(
+  fn: F,
+  ...args: MapMaybe<Parameters<F>>
+): ReturnType<F> | undefined {
   const values = args.map(access)
   if (!values.some(value => value == null)) {
     return fn(...values)

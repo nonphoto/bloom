@@ -37,4 +37,8 @@ export class Axis2 {
     Axis.criticalSpring(out.y, start.y, end.y, halflife, dt)
     return out
   }
+
+  static isAtRest(a: Axis2) {
+    return Axis.isAtRest(a.x) && Axis.isAtRest(a.y)
+  }
 }

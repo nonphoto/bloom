@@ -1,34 +1,20 @@
 import classes from './SharedElement.module.css'
-import { createSignal, createEffect, batch, Accessor } from 'solid-js'
+import { createSignal, createEffect, batch, Accessor, on } from 'solid-js'
 import { xprod } from 'ramda'
-import { useLayoutObserver, quad, borderRadius, createMaybeMemo } from '@chloranthy/solid'
+import {
+  useLayoutObserver,
+  quad,
+  borderRadius,
+  createMaybeMemo,
+  maybe,
+  createTimeCallback,
+} from '@chloranthy/solid'
 import { Quad } from '@chloranthy/animation'
-import { createRAF } from '@solid-primitives/raf'
 
 quad
 borderRadius
 
 const areas = xprod([1, 2], [1, 2])
-
-function createTime(): [Accessor<number>, Accessor<number>] {
-  const [time, setTime] = createSignal(0, { equals: false })
-  const [deltaTime, setDeltaTime] = createSignal(0, { equals: false })
-  let prevTime = 0
-
-  const [, start] = createRAF(time => {
-    batch(() => {
-      setTime(time)
-      setDeltaTime(time - prevTime)
-      prevTime = time
-    })
-  })
-
-  createEffect(() => {
-    start()
-  })
-
-  return [time, deltaTime]
-}
 
 export default function SharedElement() {
   const [areaIndex, setAreaIndex] = createSignal(0)
@@ -44,18 +30,20 @@ export default function SharedElement() {
   const outerTargetQuad = createMaybeMemo(Quad.fromDOMRect, Quad.create(), outerRect)
   const innerTargetQuad = createMaybeMemo(Quad.fromDOMRect, Quad.create(), innerRect)
 
-  const [, deltaTime] = createTime()
+  const [outerQuad, setOuterQuad] = createSignal(Quad.create(), { equals: false })
 
-  const outerQuadValue = Quad.create()
-  const outerQuad = createMaybeMemo(
-    Quad.criticalSpring,
-    outerQuadValue,
-    outerQuadValue,
-    outerTargetQuad,
-    deltaTime,
-    200,
-    300,
-  )
+  createEffect(() => {
+    createTimeCallback((_, deltaTime, stop) => {
+      setOuterQuad(
+        quad =>
+          maybe(Quad.criticalSpring, quad, quad, outerTargetQuad, deltaTime, 150, 300) ?? quad,
+      )
+
+      if (Quad.isAtRest(outerQuad())) {
+        stop()
+      }
+    })
+  })
 
   const innerQuad = createMaybeMemo(Quad.cover, Quad.create(), innerTargetQuad, outerQuad)
 

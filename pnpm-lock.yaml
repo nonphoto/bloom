@@ -1,4 +1,8 @@
-lockfileVersion: '6.0'
+lockfileVersion: '6.1'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
 
 importers:
 
@@ -91,6 +95,9 @@ importers:
       '@chloranthy/rect':
         specifier: workspace:*
         version: link:../rect
+      '@solid-primitives/raf':
+        specifier: 2.1.10
+        version: 2.1.10(solid-js@1.7.4)
       '@solid-primitives/resize-observer':
         specifier: 2.0.15
         version: 2.0.15(solid-js@1.7.4)

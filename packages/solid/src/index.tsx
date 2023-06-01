@@ -1,10 +1,11 @@
 import { LayoutObserver } from '@chloranthy/layout-observer'
-import { createEffect, onCleanup } from 'solid-js'
+import { Accessor, batch, createEffect, createSignal, onCleanup } from 'solid-js'
 import { createSingletonRoot } from '@solid-primitives/rootless'
 import { Directive } from '@solid-primitives/utils'
 import { mat2d } from 'gl-matrix'
 import { createMaybeMemo, maybe } from './utils'
 import { Quad } from '@chloranthy/animation'
+import { createRAF } from '@solid-primitives/raf'
 
 export { createComputedStyle } from '@chloranthy/layout-observer'
 export * from './utils'
@@ -81,4 +82,41 @@ export const quad: Directive<Quad | undefined> = (target, value) => {
 
     transform(target, targetTransform)
   }
+}
+
+export function createTime(): [Accessor<number>, Accessor<number>] {
+  const [time, setTime] = createSignal(0, { equals: false })
+  const [deltaTime, setDeltaTime] = createSignal(0, { equals: false })
+  let prevTime = 0
+
+  const [, start] = createRAF(time => {
+    batch(() => {
+      setTime(time)
+      setDeltaTime(time - prevTime)
+      prevTime = time
+    })
+  })
+
+  createEffect(() => {
+    start()
+  })
+
+  return [time, deltaTime]
+}
+
+export function createTimeCallback(
+  fn: (time: number, deltaTime: number, stop: VoidFunction) => void,
+) {
+  let time = 0
+  let deltaTime = 0
+
+  const [, start, stop] = createRAF(nextTime => {
+    deltaTime = nextTime - time
+    time = nextTime
+    fn(time, deltaTime, stop)
+  })
+
+  createEffect(() => {
+    start()
+  })
 }

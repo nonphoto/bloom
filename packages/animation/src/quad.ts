@@ -97,4 +97,8 @@ export class Quad {
     Axis.criticalSpring(out.rotation, start.rotation, end.rotation, rotationHalflife, dt)
     return out
   }
+
+  static isAtRest(a: Quad) {
+    return Axis2.isAtRest(a.translation) && Axis2.isAtRest(a.scaling) && Axis.isAtRest(a.rotation)
+  }
 }
