@@ -32,6 +32,14 @@ export class Axis2 {
     return a
   }
 
+  static equals(a: Axis2, b: Axis2): boolean {
+    return Axis.equals(a.x, b.x) && Axis.equals(a.y, b.y)
+  }
+
+  static exactEquals(a: Axis2, b: Axis2): boolean {
+    return Axis.exactEquals(a.x, b.x) && Axis.exactEquals(a.y, b.y)
+  }
+
   static criticalSpring(out: Axis2, start: Axis2, end: Axis2, halflife: number, dt: number) {
     Axis.criticalSpring(out.x, start.x, end.x, halflife, dt)
     Axis.criticalSpring(out.y, start.y, end.y, halflife, dt)

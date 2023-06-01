@@ -77,6 +77,22 @@ export class Quad {
     return out
   }
 
+  static equals(a: Quad, b: Quad): boolean {
+    return (
+      Axis2.equals(a.translation, b.translation) &&
+      Axis2.equals(a.scaling, b.scaling) &&
+      Axis.equals(a.rotation, b.rotation)
+    )
+  }
+
+  static exactEquals(a: Quad, b: Quad): boolean {
+    return (
+      Axis2.exactEquals(a.translation, b.translation) &&
+      Axis2.exactEquals(a.scaling, b.scaling) &&
+      Axis.exactEquals(a.rotation, b.rotation)
+    )
+  }
+
   static criticalSpring(
     out: Quad,
     start: Quad,
