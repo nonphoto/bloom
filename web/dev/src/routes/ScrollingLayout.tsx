@@ -1,20 +1,11 @@
 import classes from './ScrollingLayout.module.css'
 import { transform, useLayoutObserver } from '@chloranthy/solid'
+import { Rect } from '@chloranthy/animation'
 import { createRAF } from '@solid-primitives/raf'
 import { mat2d } from 'gl-matrix'
 import { createEffect, createMemo, createSignal } from 'solid-js'
 
 transform
-
-function divide(out: mat2d, a: DOMRect, b: DOMRect) {
-  out[0] = a.width / b.width
-  out[1] = 0
-  out[2] = 0
-  out[3] = a.height / b.height
-  out[4] = a.x + a.width / 2 - (b.x + b.width / 2)
-  out[5] = a.y + a.height / 2 - (b.y + b.height / 2)
-  return out
-}
 
 export default function ScrollingLayout() {
   const [parentTransform, setParentTransform] = createSignal<mat2d>(mat2d.create(), {
@@ -43,7 +34,7 @@ export default function ScrollingLayout() {
       const innerMatrixValue = innerMatrix()
       const shadowRectValue = shadowRect()
       if (innerRectValue && innerMatrixValue && shadowRectValue) {
-        divide(prev, innerRectValue, shadowRectValue)
+        Rect.divide(prev, innerRectValue, shadowRectValue)
         mat2d.multiply(prev, prev, innerMatrixValue)
       }
       return prev
