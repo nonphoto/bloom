@@ -1,5 +1,5 @@
 import classes from './SharedElement.module.css'
-import { createSignal, createEffect, batch, Accessor, on } from 'solid-js'
+import { createSignal, createEffect } from 'solid-js'
 import { xprod } from 'ramda'
 import {
   useLayoutObserver,

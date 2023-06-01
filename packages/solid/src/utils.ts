@@ -1,5 +1,6 @@
 import { MaybeAccessor, access } from '@solid-primitives/utils'
 import { Accessor, createMemo } from 'solid-js'
+import { mat2d } from 'gl-matrix'
 
 export type Maybe<T> = MaybeAccessor<T | undefined>
 
@@ -26,4 +27,10 @@ export function createMaybeMemo<F extends (...args: any[]) => any>(
   return createMemo<ReturnType<F> | undefined>(() => maybe(fn, ...args), undefined, {
     equals: false,
   })
+}
+
+export function styleBorderRadius(radius: number, rect: DOMRect, transform: mat2d) {
+  const x = (radius / (rect.width * transform[0])) * 100
+  const y = (radius / (rect.height * transform[3])) * 100
+  return `${x}% / ${y}%`
 }
