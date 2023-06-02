@@ -1,10 +1,9 @@
 import classes from './BorderBox.module.css'
-import type { Rect } from 'chloranthy/rect'
 import type { mat2d } from 'gl-matrix'
-import { createEffect, ParentComponent } from 'solid-js'
+import { ParentComponent } from 'solid-js'
 
 const BorderBox: ParentComponent<{
-  rect?: Rect
+  rect?: DOMRect
   transform?: mat2d
   borderWidth: number
   borderRadius: number

@@ -1,4 +1,4 @@
-import { For, createSignal, createUniqueId } from 'solid-js'
+import { createSignal, createUniqueId } from 'solid-js'
 import { Dynamic } from 'solid-js/web'
 import MatrixPlayground from './routes/MatrixPlayground'
 import ScrollingLayout from './routes/ScrollingLayout'

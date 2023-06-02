@@ -22,6 +22,7 @@ export default function Tabs() {
               onClick={() => {
                 setSelectedId(id)
               }}
+              aria-checked={id === selectedId()}
             >
               {title}
             </button>
