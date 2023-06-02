@@ -7,7 +7,6 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "noEmit": true,
     "isolatedModules": true,
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
@@ -15,11 +14,7 @@
     "noPropertyAccessFromIndexSignature": true,
     "noUncheckedIndexedAccess": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "jsx": "preserve",
-    "jsxImportSource": "solid-js",
-    "types": [],
-    "baseUrl": "."
+    "noUnusedParameters": true
   },
   "exclude": ["node_modules", "dist"]
 }
