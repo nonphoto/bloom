@@ -22,7 +22,7 @@ export class Rect implements RectLike {
 
   static divide(out: mat2d, a: Rect, b: Rect) {
     out[0] = a.width / b.width
-    out[1] = 0z
+    out[1] = 0
     out[2] = 0
     out[3] = a.height / b.height
     out[4] = a.x + a.width / 2 - (b.x + b.width / 2)
