@@ -16,14 +16,17 @@
     "postcss": "^8.4.21",
     "solid-start-node": "^0.2.19",
     "typescript": "^4.9.4",
+    "typescript-plugin-css-modules": "5.0.1",
     "vite": "^4.1.4"
   },
   "dependencies": {
     "@chloranthy/animation": "workspace:*",
+    "@chloranthy/layout-observer": "workspace:*",
     "@chloranthy/solid": "workspace:*",
     "@solid-devtools/logger": "0.6.1",
     "@solid-devtools/overlay": "0.6.0",
     "@solid-primitives/raf": "2.1.10",
+    "@solid-primitives/rootless": "1.3.2",
     "@solidjs/meta": "^0.28.2",
     "@solidjs/router": "^0.8.2",
     "gl-matrix": "3.4.3",
@@ -31,7 +34,6 @@
     "solid-js": "^1.7.2",
     "solid-start": "^0.2.26",
     "solid-start-static": "0.2.26",
-    "typescript-plugin-css-modules": "5.0.1",
     "undici": "^5.15.1"
   },
   "engines": {

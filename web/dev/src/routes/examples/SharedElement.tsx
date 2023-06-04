@@ -2,17 +2,26 @@ import classes from './SharedElement.module.css'
 import { createSignal, createEffect } from 'solid-js'
 import { xprod } from 'ramda'
 import {
-  useLayoutObserver,
   quad,
   borderRadius,
   createMaybeMemo,
   maybe,
   createTimeCallback,
+  useLayoutObserver,
 } from '@chloranthy/solid'
 import { Quad } from '@chloranthy/animation'
 
 quad
 borderRadius
+
+declare module 'solid-js' {
+  namespace JSX {
+    interface Directives {
+      quad: Quad | undefined
+      borderRadius: number | undefined
+    }
+  }
+}
 
 const areas = xprod([1, 2], [1, 2])
 
@@ -23,12 +32,16 @@ export default function SharedElement() {
   const [innerElement, setInnerElement] = createSignal<HTMLElement | undefined>()
 
   const layoutObserver = useLayoutObserver()
-
-  const outerRect = layoutObserver.useRect(outerElement)
-  const innerRect = layoutObserver.useRect(innerElement)
-
-  const outerTargetQuad = createMaybeMemo(Quad.fromDOMRect, Quad.create(), outerRect)
-  const innerTargetQuad = createMaybeMemo(Quad.fromDOMRect, Quad.create(), innerRect)
+  const outerTargetQuad = createMaybeMemo(
+    Quad.fromDOMRect,
+    Quad.create(),
+    layoutObserver.useRect(outerElement),
+  )
+  const innerTargetQuad = createMaybeMemo(
+    Quad.fromDOMRect,
+    Quad.create(),
+    layoutObserver.useRect(innerElement),
+  )
 
   const [outerQuad, setOuterQuad] = createSignal(Quad.create(), { equals: false })
 

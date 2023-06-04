@@ -10,6 +10,8 @@ import {
   styleTransform,
   walkChildren,
   willScroll as getWillScroll,
+  withDocument,
+  isDocumentElement,
 } from './utils'
 import { MaybeAccessor, access } from '@solid-primitives/utils'
 import { SingletonMap } from './singletonMap'
@@ -41,11 +43,28 @@ type MatrixRoot = {
   rectPosition: Accessor<vec2 | undefined>
 }
 
+const IsoResizeObserver =
+  typeof window !== 'undefined' && 'ResizeObserver' in window
+    ? window.ResizeObserver
+    : class {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      }
+
+const IsoMutationObserver =
+  typeof window !== 'undefined' && 'MutationObserver' in window
+    ? window.MutationObserver
+    : class {
+        observe() {}
+        disconnect() {}
+      }
+
 export class LayoutObserver {
   #transforms = new ReactiveWeakMap<HTMLElement, mat2d>()
 
   #resizeListeners = new Listeners<HTMLElement, void>()
-  #resizeObserver = new ResizeObserver(entries => {
+  #resizeObserver = new IsoResizeObserver(entries => {
     for (const entry of entries) {
       if (entry.target instanceof HTMLElement) {
         this.#resizeListeners.notify(entry.target)
@@ -54,7 +73,7 @@ export class LayoutObserver {
   })
 
   #mutationListeners = new Listeners<HTMLElement, void>()
-  #mutationObserver = new MutationObserver(entries => {
+  #mutationObserver = new IsoMutationObserver(entries => {
     const elements = new Set<HTMLElement>()
     const add = (node: Node) => {
       if (node instanceof HTMLElement) {
@@ -76,18 +95,22 @@ export class LayoutObserver {
 
   #layoutBatcher = new Batcher({
     onPreRun: () => {
-      walkChildren(document.documentElement, element => {
-        if (untrack(() => this.#transforms.has(element))) {
-          element.style.transform = styleTransform(identity)
-        }
+      withDocument(document => {
+        walkChildren(document.documentElement, element => {
+          if (untrack(() => this.#transforms.has(element))) {
+            element.style.transform = styleTransform(identity)
+          }
+        })
       })
     },
     onPostRun: () => {
-      walkChildren(document.documentElement, element => {
-        const transform = untrack(() => this.#transforms.get(element))
-        if (transform) {
-          element.style.transform = styleTransform(transform)
-        }
+      withDocument(document => {
+        walkChildren(document.documentElement, element => {
+          const transform = untrack(() => this.#transforms.get(element))
+          if (transform) {
+            element.style.transform = styleTransform(transform)
+          }
+        })
       })
     },
   })
@@ -152,7 +175,7 @@ export class LayoutObserver {
 
     const invalidate = () => {
       const position = getComputedStyle(element).position
-      if (element === document.documentElement) {
+      if (isDocumentElement(element)) {
         setParent(null)
       } else if (position === 'sticky') {
         setParent(getNearestScrollingAncestor(element))
@@ -177,8 +200,6 @@ export class LayoutObserver {
   })
 
   #matrixRoots = new SingletonMap<HTMLElement, MatrixRoot>(element => {
-    const isDocumentElement = element === document.documentElement
-
     const parentRoot = this.#parentRoots.use(element)
     const rectRoot = this.#rectRoots.use(element)
     const scrollRoot = this.#scrollRoots.use(element)
@@ -208,7 +229,7 @@ export class LayoutObserver {
         return rectPositionValue
           ? parentRectPositionValue
             ? vec2.sub(prev ?? vec2.create(), rectPositionValue, parentRectPositionValue)
-            : isDocumentElement
+            : isDocumentElement(element)
             ? rectPositionValue
             : undefined
           : undefined
@@ -223,7 +244,7 @@ export class LayoutObserver {
         const layoutDeltaValue = layoutDelta()
         const next = prev ?? mat2d.create()
         if (layoutDeltaValue) {
-          if (isDocumentElement) {
+          if (isDocumentElement(element)) {
             mat2d.fromTranslation(next, layoutDeltaValue)
           } else if (parentIntermediateMatrixValue) {
             mat2d.translate(next, parentIntermediateMatrixValue, layoutDeltaValue)
@@ -272,7 +293,9 @@ export class LayoutObserver {
   })
 
   constructor() {
-    this.#mutationObserver.observe(document.documentElement, { childList: true, subtree: true })
+    withDocument(document => {
+      this.#mutationObserver.observe(document.documentElement, { childList: true, subtree: true })
+    })
   }
 
   dispose() {

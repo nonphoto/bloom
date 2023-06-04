@@ -1,5 +1,5 @@
 import { createSingletonRoot } from '@solid-primitives/rootless'
-import { LayoutObserver } from 'packages/layout-observer/dist'
+import { LayoutObserver } from '@chloranthy/layout-observer'
 import { onCleanup } from 'solid-js'
 
 export const useLayoutObserver = createSingletonRoot(() => {

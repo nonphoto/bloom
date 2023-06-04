@@ -134,3 +134,11 @@ export function walkChildren(root: HTMLElement, callback: (element: HTMLElement)
     currentNode = treeWalker.nextNode()
   }
 }
+
+export function withDocument<T>(fn: (document: Document) => T) {
+  return typeof document !== 'undefined' ? fn(document) : undefined
+}
+
+export function isDocumentElement(element: HTMLElement) {
+  return withDocument(document => element === document.documentElement) ?? false
+}

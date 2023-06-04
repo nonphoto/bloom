@@ -5,16 +5,6 @@ import { useLayoutObserver } from './layoutObserver'
 import { createEffect } from 'solid-js'
 import { createMaybeMemo, maybe, styleBorderRadius } from './utils'
 
-declare module 'solid-js' {
-  namespace JSX {
-    interface Directives {
-      quad: Quad | undefined
-      transform: mat2d | undefined
-      borderRadius: number | undefined
-    }
-  }
-}
-
 export const transform: Directive<mat2d | undefined> = (target, value) => {
   if (target instanceof HTMLElement) {
     const layout = useLayoutObserver()

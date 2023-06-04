@@ -3,14 +3,12 @@
   "compilerOptions": {
     "jsxImportSource": "solid-js",
     "jsx": "preserve",
-    "strict": true,
-    "types": ["solid-start/env"],
+    "types": ["solid-start/env", "vite/client", "node"],
     "baseUrl": "./",
     "paths": {
       "~/*": ["./src/*"]
     },
-    "plugins": [
-      { "name": "typescript-plugin-css-modules", "options": { "noUncheckedIndexAccess": true } }
-    ]
-  }
+    "plugins": [{ "name": "typescript-plugin-css-modules" }]
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
 }
