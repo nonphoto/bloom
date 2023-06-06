@@ -31,4 +31,8 @@ export class Listeners<T extends object, U> {
       listener.call(undefined, value)
     }
   }
+
+  clear() {
+    this.#map = new WeakMap()
+  }
 }

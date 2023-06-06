@@ -1,24 +1,29 @@
+import { ReactiveMap } from '@solid-primitives/map'
 import { createSingletonRoot } from '@solid-primitives/rootless'
-import { createRoot, onCleanup } from 'solid-js'
+import { Owner, createRoot, getOwner, onCleanup, untrack } from 'solid-js'
 
 export class SingletonMap<T extends object, U> {
-  #map = new Map<T, () => U>()
+  #map = new ReactiveMap<T, () => U>()
   #factory: (key: T) => U
+  #owner: Owner | null
 
   constructor(factory: (key: T) => U) {
     this.#factory = factory
+    this.#owner = getOwner()
   }
 
   get(key: T): U | undefined {
     const use = this.#map.get(key)
-    return createRoot(dispose => {
-      dispose()
-      return use?.()
-    })
+    if (use) {
+      return createRoot(dispose => {
+        dispose()
+        return use()
+      })
+    }
   }
 
   use(key: T): U {
-    const value = this.#map.get(key)
+    const value = untrack(() => this.#map.get(key))
     if (value) {
       return value()
     } else {
@@ -27,9 +32,17 @@ export class SingletonMap<T extends object, U> {
           this.#map.delete(key)
         })
         return this.#factory(key)
-      })
+      }, this.#owner)
       this.#map.set(key, use)
       return use()
     }
+  }
+
+  clear() {
+    return this.#map.clear()
+  }
+
+  keys() {
+    return this.#map.keys()
   }
 }

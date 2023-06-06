@@ -1,7 +1,7 @@
 import { Directive } from '@solid-primitives/utils'
 import { Quad } from '@chloranthy/animation'
 import { mat2d } from 'gl-matrix'
-import { useLayoutObserver } from './layoutObserver'
+import { useLayoutObserver } from '@chloranthy/layout-observer'
 import { createEffect } from 'solid-js'
 import { createMaybeMemo, maybe, styleBorderRadius } from './utils'
 

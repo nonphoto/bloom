@@ -1,15 +1,9 @@
 import classes from './SharedElement.module.css'
 import { createSignal, createEffect } from 'solid-js'
 import { xprod } from 'ramda'
-import {
-  quad,
-  borderRadius,
-  createMaybeMemo,
-  maybe,
-  createTimeCallback,
-  useLayoutObserver,
-} from '@chloranthy/solid'
+import { quad, borderRadius, createMaybeMemo, maybe, createTimeCallback } from '@chloranthy/solid'
 import { Quad } from '@chloranthy/animation'
+import { useLayoutObserver } from '@chloranthy/layout-observer'
 
 quad
 borderRadius

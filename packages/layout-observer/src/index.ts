@@ -1,6 +1,14 @@
 import { mat2d, vec2 } from 'gl-matrix'
-import { Accessor, createEffect, createMemo, createSignal, onCleanup, untrack } from 'solid-js'
-import { ReactiveWeakMap } from '@solid-primitives/map'
+import {
+  Accessor,
+  createEffect,
+  createMemo,
+  createRoot,
+  createSignal,
+  onCleanup,
+  untrack,
+} from 'solid-js'
+import { ReactiveMap } from '@solid-primitives/map'
 import {
   center,
   getNearestScrollingAncestor,
@@ -10,17 +18,20 @@ import {
   styleTransform,
   walkChildren,
   willScroll as getWillScroll,
-  withDocument,
   isDocumentElement,
+  mutatedElements,
+  maybe,
+  createDisposableEffect,
+  withDocument,
 } from './utils'
-import { MaybeAccessor, access } from '@solid-primitives/utils'
+import { MaybeAccessor } from '@solid-primitives/utils'
 import { SingletonMap } from './singletonMap'
 import { Batcher } from './batcher'
-import { Listeners } from './listeners'
+import { createMutationObserver } from '@solid-primitives/mutation-observer'
+import { createResizeObserver } from '@solid-primitives/resize-observer'
+import { createSingletonRoot } from '@solid-primitives/rootless'
 
 export * from './computedStyle'
-
-const identity = mat2d.identity(mat2d.create())
 
 type RectRoot = {
   rect: Accessor<DOMRect | undefined>
@@ -43,102 +54,84 @@ type MatrixRoot = {
   rectPosition: Accessor<vec2 | undefined>
 }
 
-const IsoResizeObserver =
-  typeof window !== 'undefined' && 'ResizeObserver' in window
-    ? window.ResizeObserver
-    : class {
-        observe() {}
-        unobserve() {}
-        disconnect() {}
-      }
+type LayoutObserverReturn = {
+  setTransform(element: HTMLElement, transform: mat2d | undefined): void
+  useRect(element: MaybeAccessor<HTMLElement | null | undefined>): Accessor<DOMRect | undefined>
+  useMatrix(element: MaybeAccessor<HTMLElement | null | undefined>): Accessor<mat2d | undefined>
+  useTransform(element: MaybeAccessor<HTMLElement | null | undefined>): Accessor<mat2d | undefined>
+  invalidateRect(element: HTMLElement): void
+  invalidateScroll(element: HTMLElement): void
+  invalidateParent(element: HTMLElement): void
+}
 
-const IsoMutationObserver =
-  typeof window !== 'undefined' && 'MutationObserver' in window
-    ? window.MutationObserver
-    : class {
-        observe() {}
-        disconnect() {}
-      }
+const layoutObserverStub: LayoutObserverReturn = {
+  setTransform() {},
+  useRect() {
+    return () => undefined
+  },
+  useMatrix() {
+    return () => undefined
+  },
+  useTransform() {
+    return () => undefined
+  },
+  invalidateRect() {},
+  invalidateScroll() {},
+  invalidateParent() {},
+}
 
-export class LayoutObserver {
-  #transforms = new ReactiveWeakMap<HTMLElement, mat2d>()
+const identity = mat2d.identity(mat2d.create())
 
-  #resizeListeners = new Listeners<HTMLElement, void>()
-  #resizeObserver = new IsoResizeObserver(entries => {
-    for (const entry of entries) {
-      if (entry.target instanceof HTMLElement) {
-        this.#resizeListeners.notify(entry.target)
+export function createLayoutObserver(root: HTMLElement): LayoutObserverReturn {
+  const transformMap = new ReactiveMap<HTMLElement, mat2d>()
+
+  createResizeObserver(
+    () => Array.from(rectRoots.keys()),
+    (_, element) => {
+      if (element instanceof HTMLElement) {
+        rectRoots.get(element)?.invalidate()
       }
+    },
+  )
+
+  createMutationObserver(root, { attributes: true, subtree: true }, records => {
+    for (const element of mutatedElements(records)) {
+      parentRoots.get(element)?.invalidate()
     }
   })
 
-  #mutationListeners = new Listeners<HTMLElement, void>()
-  #mutationObserver = new IsoMutationObserver(entries => {
-    const elements = new Set<HTMLElement>()
-    const add = (node: Node) => {
-      if (node instanceof HTMLElement) {
-        elements.add(node)
-      }
-    }
-    for (const entry of entries) {
-      for (const addedNode of entry.addedNodes) {
-        add(addedNode)
-      }
-      for (const removedNode of entry.removedNodes) {
-        add(removedNode)
-      }
-    }
-    for (const element of elements) {
-      this.#mutationListeners.notify(element)
-    }
-  })
-
-  #layoutBatcher = new Batcher({
+  const layoutBatcher = new Batcher({
     onPreRun: () => {
-      withDocument(document => {
-        walkChildren(document.documentElement, element => {
-          if (untrack(() => this.#transforms.has(element))) {
-            element.style.transform = styleTransform(identity)
-          }
-        })
+      walkChildren(root, element => {
+        if (untrack(() => transformMap.has(element))) {
+          element.style.transform = styleTransform(identity)
+        }
       })
     },
     onPostRun: () => {
-      withDocument(document => {
-        walkChildren(document.documentElement, element => {
-          const transform = untrack(() => this.#transforms.get(element))
-          if (transform) {
-            element.style.transform = styleTransform(transform)
-          }
-        })
+      walkChildren(root, element => {
+        const transform = untrack(() => transformMap.get(element))
+        if (transform) {
+          element.style.transform = styleTransform(transform)
+        }
       })
     },
   })
 
-  #rectRoots = new SingletonMap<HTMLElement, RectRoot>(element => {
+  const rectRoots = new SingletonMap<HTMLElement, RectRoot>(element => {
     const [rect, setRect] = createSignal<DOMRect | undefined>(undefined, { equals: false })
 
     const invalidate = () => {
-      this.#layoutBatcher.enqueue(() => {
+      layoutBatcher.enqueue(() => {
         const rect = element.getBoundingClientRect()
         setRect(rect)
       })
     }
 
-    createEffect(() => {
-      this.#resizeListeners.add(element, invalidate)
-      this.#resizeObserver.observe(element)
-
-      onCleanup(() => {
-        this.#resizeListeners.remove(element, invalidate)
-        this.#resizeObserver.unobserve(element)
-      })
-    })
-
     return { rect, invalidate }
   })
 
-  #scrollRoots = new SingletonMap<HTMLElement, ScrollRoot>(element => {
+  const scrollRoots = new SingletonMap<HTMLElement, ScrollRoot>(element => {
     const [scrollTranslation, setScrollTranslation] = createSignal(vec2.create(), { equals: false })
     const [willScroll, setWillScroll] = createSignal(false)
 
@@ -170,7 +163,7 @@ export class LayoutObserver {
     }
   })
 
-  #parentRoots = new SingletonMap<HTMLElement, ParentRoot>(element => {
+  const parentRoots = new SingletonMap<HTMLElement, ParentRoot>(element => {
     const [parent, setParent] = createSignal<HTMLElement | null>(null)
 
     const invalidate = () => {
@@ -188,26 +181,20 @@ export class LayoutObserver {
 
     createEffect(() => {
       invalidate()
-
-      this.#mutationListeners.add(element, invalidate)
-
-      onCleanup(() => {
-        this.#mutationListeners.remove(element, invalidate)
-      })
     })
 
     return { parent, invalidate }
   })
 
-  #matrixRoots = new SingletonMap<HTMLElement, MatrixRoot>(element => {
-    const parentRoot = this.#parentRoots.use(element)
-    const rectRoot = this.#rectRoots.use(element)
-    const scrollRoot = this.#scrollRoots.use(element)
+  const matrixRoots = new SingletonMap<HTMLElement, MatrixRoot>(element => {
+    const parentRoot = parentRoots.use(element)
+    const rectRoot = rectRoots.use(element)
+    const scrollRoot = scrollRoots.use(element)
 
     const parentMatrixRoot = createMemo(() => {
       const parentValue = parentRoot.parent()
       if (parentValue) {
-        return this.#matrixRoots.use(parentValue)
+        return matrixRoots.use(parentValue)
       }
     })
 
@@ -264,7 +251,7 @@ export class LayoutObserver {
         if (layoutMatrixValue) {
           const next = prev ?? mat2d.create()
           mat2d.copy(next, layoutMatrixValue)
-          const transform = this.#transforms.get(element)
+          const transform = transformMap.get(element)
           if (transform) {
             mat2d.multiply(next, next, transform)
           }
@@ -292,65 +279,94 @@ export class LayoutObserver {
     return { rectPosition, intermediateMatrix, matrix }
   })
 
-  constructor() {
-    withDocument(document => {
-      this.#mutationObserver.observe(document.documentElement, { childList: true, subtree: true })
-    })
-  }
-
-  dispose() {
-    this.#mutationObserver.disconnect()
-    this.#resizeObserver.disconnect()
-  }
-
-  setTransform(element: HTMLElement, transform?: mat2d) {
+  function setTransform(element: HTMLElement, transform: mat2d | undefined) {
     if (transform) {
-      this.#transforms.set(element, mat2d.clone(transform))
       element.style.transform = styleTransform(transform)
+      return transformMap.set(element, transform)
     } else {
-      this.#transforms.delete(element)
       element.style.transform = ''
+      return transformMap.delete(element)
     }
   }
 
-  useTransform(element: MaybeAccessor<HTMLElement | undefined>) {
-    return createMemo(() => {
-      const elementValue = access(element)
-      if (elementValue) {
-        return this.#transforms.get(elementValue)
-      }
+  onCleanup(() => {
+    for (const element of untrack(() => transformMap.keys())) {
+      setTransform(element, undefined)
+    }
+  })
+
+  return {
+    setTransform,
+    useRect(element: MaybeAccessor<HTMLElement | null | undefined>) {
+      const memo = createMemo(() => maybe(element => rectRoots.use(element).rect, element))
+      return () => memo()?.()
+    },
+    useMatrix(element: MaybeAccessor<HTMLElement | null | undefined>) {
+      const memo = createMemo(() => maybe(element => matrixRoots.use(element).matrix, element))
+      return () => memo()?.()
+    },
+    useTransform(element: MaybeAccessor<HTMLElement | null | undefined>) {
+      return () => maybe(element => transformMap.get(element), element)
+    },
+    invalidateRect(element: HTMLElement) {
+      rectRoots.get(element)?.invalidate()
+    },
+    invalidateScroll(element: HTMLElement) {
+      scrollRoots.get(element)?.invalidate()
+    },
+    invalidateParent(element: HTMLElement) {
+      parentRoots.get(element)?.invalidate()
+    },
+  }
+}
+
+export const useLayoutObserver = createSingletonRoot<LayoutObserverReturn>(() => {
+  return (
+    withDocument(document => {
+      return createLayoutObserver(document.documentElement)
+    }) ?? layoutObserverStub
+  )
+})
+
+export class LayoutObserver {
+  #observer: LayoutObserverReturn
+  #dispose: () => void
+
+  constructor(root: HTMLElement) {
+    const { observer, dispose } = createRoot(dispose => {
+      const observer = createLayoutObserver(root)
+      return { observer, dispose }
     })
+
+    this.#observer = observer
+    this.#dispose = dispose
   }
 
-  useRect(element: MaybeAccessor<HTMLElement | undefined>): Accessor<DOMRect | undefined> {
-    const memo = createMemo(() => {
-      const elementValue = access(element)
-      if (elementValue) {
-        return this.#rectRoots.use(elementValue)
-      }
-    })
-    return () => memo()?.rect()
+  dispose(): void {
+    this.#dispose()
   }
 
-  useMatrix(element: MaybeAccessor<HTMLElement | undefined>): Accessor<mat2d | undefined> {
-    const memo = createMemo(() => {
-      const elementValue = access(element)
-      if (elementValue) {
-        return this.#matrixRoots.use(elementValue)
-      }
-    })
-    return () => memo()?.matrix?.()
+  setTransform(element: HTMLElement, transform: mat2d): void {
+    this.#observer.setTransform(element, transform)
+  }
+
+  useRect(element: HTMLElement, callback: (rect: DOMRect | undefined) => void): () => void {
+    return createDisposableEffect(() => this.#observer.useRect(element), callback)
+  }
+
+  useMatrix(element: HTMLElement, callback: (rect: mat2d | undefined) => void): () => void {
+    return createDisposableEffect(() => this.#observer.useMatrix(element), callback)
   }
 
   invalidateRect(element: HTMLElement) {
-    this.#rectRoots.get(element)?.invalidate()
+    this.#observer.invalidateRect(element)
   }
 
   invalidateScroll(element: HTMLElement) {
-    this.#scrollRoots.get(element)?.invalidate()
+    this.#observer.invalidateScroll(element)
   }
 
   invalidateParent(element: HTMLElement) {
-    this.#parentRoots.get(element)?.invalidate()
+    this.#observer.invalidateParent(element)
   }
 }

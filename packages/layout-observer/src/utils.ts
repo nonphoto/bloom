@@ -1,4 +1,10 @@
+import { MaybeAccessor, access } from '@solid-primitives/utils'
 import { mat2d, vec2 } from 'gl-matrix'
+import { createEffect, createRoot } from 'solid-js'
+
+export type MapMaybeAccessor<T> = T extends any[]
+  ? { [K in keyof T]: MaybeAccessor<T[K] | null | undefined> }
+  : never
 
 const willChangeValues = [
   'position',
@@ -141,4 +147,46 @@ export function withDocument<T>(fn: (document: Document) => T) {
 
 export function isDocumentElement(element: HTMLElement) {
   return withDocument(document => element === document.documentElement) ?? false
+}
+
+export function mutatedElements(records: MutationRecord[]): Set<HTMLElement> {
+  const mutatedElements = new Set<HTMLElement>()
+  for (const record of records) {
+    for (const node of record.addedNodes) {
+      if (node instanceof HTMLElement) {
+        mutatedElements.add(node)
+      }
+    }
+    for (const node of record.removedNodes) {
+      if (node instanceof HTMLElement) {
+        mutatedElements.add(node)
+      }
+    }
+  }
+  return mutatedElements
+}
+
+export function maybe<F extends (...args: any[]) => any>(
+  fn: F,
+  ...args: MapMaybeAccessor<Parameters<F>>
+): ReturnType<F> | undefined {
+  const values = args.map(access)
+  if (!values.some(value => value == null)) {
+    return fn(...values)
+  }
+}
+
+export function createDisposableEffect<T>(
+  init: () => MaybeAccessor<T>,
+  callback: (value: T) => void,
+) {
+  return createRoot(dispose => {
+    const accessor = init()
+
+    createEffect(() => {
+      callback(access(accessor))
+    })
+
+    return dispose
+  })
 }

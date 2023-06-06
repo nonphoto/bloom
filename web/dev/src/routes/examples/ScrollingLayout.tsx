@@ -1,11 +1,20 @@
 import classes from './ScrollingLayout.module.css'
-import { transform, useLayoutObserver } from '@chloranthy/solid'
+import { transform } from '@chloranthy/solid'
 import { Rect } from '@chloranthy/animation'
 import { createRAF } from '@solid-primitives/raf'
 import { mat2d } from 'gl-matrix'
 import { createEffect, createMemo, createSignal } from 'solid-js'
+import { useLayoutObserver } from '@chloranthy/layout-observer'
 
 transform
+
+declare module 'solid-js' {
+  namespace JSX {
+    interface Directives {
+      transform: mat2d | undefined
+    }
+  }
+}
 
 export default function ScrollingLayout() {
   const [parentTransform, setParentTransform] = createSignal<mat2d>(mat2d.create(), {
