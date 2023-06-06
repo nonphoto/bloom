@@ -4,6 +4,7 @@ import { xprod } from 'ramda'
 import { quad, borderRadius, createMaybeMemo, maybe, createTimeCallback } from '@chloranthy/solid'
 import { Quad } from '@chloranthy/animation'
 import { useLayoutObserver } from '@chloranthy/layout-observer'
+import { isatty } from 'tty'
 
 quad
 borderRadius

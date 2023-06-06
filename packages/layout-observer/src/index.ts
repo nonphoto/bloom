@@ -8,7 +8,6 @@ import {
   onCleanup,
   untrack,
 } from 'solid-js'
-import { ReactiveMap } from '@solid-primitives/map'
 import {
   center,
   getNearestScrollingAncestor,
@@ -24,9 +23,10 @@ import {
   createDisposableEffect,
   withDocument,
 } from './utils'
-import { MaybeAccessor } from '@solid-primitives/utils'
 import { SingletonMap } from './singletonMap'
 import { Batcher } from './batcher'
+import { ReactiveMap } from '@solid-primitives/map'
+import { MaybeAccessor } from '@solid-primitives/utils'
 import { createMutationObserver } from '@solid-primitives/mutation-observer'
 import { createResizeObserver } from '@solid-primitives/resize-observer'
 import { createSingletonRoot } from '@solid-primitives/rootless'
@@ -282,7 +282,7 @@ export function createLayoutObserver(root: HTMLElement): LayoutObserverReturn {
   function setTransform(element: HTMLElement, transform: mat2d | undefined) {
     if (transform) {
       element.style.transform = styleTransform(transform)
-      return transformMap.set(element, transform)
+      return transformMap.set(element, mat2d.clone(transform))
     } else {
       element.style.transform = ''
       return transformMap.delete(element)
