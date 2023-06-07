@@ -19,6 +19,8 @@ declare module 'solid-js' {
 
 const areas = xprod([1, 2], [1, 2])
 
+export const title = 'SharedElement'
+
 export default function SharedElement() {
   const [areaIndex, setAreaIndex] = createSignal(0)
 
