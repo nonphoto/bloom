@@ -24,13 +24,12 @@ export function createTime(): [Accessor<number>, Accessor<number>] {
 export function createTimeCallback(
   fn: (time: number, deltaTime: number) => void,
 ): ReturnType<typeof createRAF> {
-  let time: number | null = null
-  let deltaTime: number | null = null
-  let startTime: number | null = null
+  let time = performance.now()
+  let deltaTime = 0
+  const startTime = time
 
   const raf = createRAF(nextTime => {
-    startTime ??= nextTime
-    deltaTime = time === null ? 0 : nextTime - time
+    deltaTime = nextTime - time
     time = nextTime
     fn(time - startTime, deltaTime)
   })

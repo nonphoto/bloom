@@ -1,5 +1,5 @@
 import classes from './SharedElement.module.css'
-import { createSignal, createEffect, untrack, on, onCleanup } from 'solid-js'
+import { createSignal, createEffect, on } from 'solid-js'
 import { xprod } from 'ramda'
 import { quad, borderRadius, createMaybeMemo, maybe, createTimeCallback } from '@chloranthy/solid'
 import { Quad } from '@chloranthy/animation'
