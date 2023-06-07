@@ -41,15 +41,12 @@ export default function SharedElement() {
 
   createEffect(
     on(outerTargetQuad, targetQuad => {
-      if (targetQuad) {
-        const [isRunning, , stop] = createTimeCallback((_, deltaTime) => {
+      if (
+        targetQuad &&
+        maybe((...args: [Quad, Quad]) => !Quad.isAtRest(...args), outerQuad, targetQuad)
+      ) {
+        createTimeCallback((_, deltaTime) => {
           setOuterQuad(quad => Quad.criticalSpring(quad, quad, targetQuad, deltaTime, 150, 300))
-        })
-
-        createEffect(() => {
-          if (isRunning() && maybe(Quad.isAtRest, outerQuad, targetQuad)) {
-            stop()
-          }
         })
       }
     }),
