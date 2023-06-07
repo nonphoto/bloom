@@ -13,6 +13,7 @@ import {
   useLocation,
   useNavigate,
 } from 'solid-start'
+import '@nonphoto/css/reset.css'
 import './root.css'
 import Header from './components/Header'
 

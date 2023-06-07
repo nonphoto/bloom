@@ -23,6 +23,7 @@
     "@chloranthy/animation": "workspace:*",
     "@chloranthy/layout-observer": "workspace:*",
     "@chloranthy/solid": "workspace:*",
+    "@nonphoto/css": "1.0.4",
     "@solid-devtools/logger": "0.6.1",
     "@solid-devtools/overlay": "0.6.0",
     "@solid-primitives/raf": "2.1.10",
