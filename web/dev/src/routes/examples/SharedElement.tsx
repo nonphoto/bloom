@@ -39,18 +39,16 @@ export default function SharedElement() {
 
   const [outerQuad, setOuterQuad] = createSignal(Quad.create(), { equals: false })
 
-  createEffect(
-    on(outerTargetQuad, targetQuad => {
-      if (
-        targetQuad &&
-        maybe((...args: [Quad, Quad]) => !Quad.isAtRest(...args), outerQuad, targetQuad)
-      ) {
-        createTimeCallback((_, deltaTime) => {
-          setOuterQuad(quad => Quad.criticalSpring(quad, quad, targetQuad, deltaTime, 150, 300))
-        })
-      }
-    }),
-  )
+  createEffect(() => {
+    if (maybe(Quad.isAtRest, outerQuad, outerTargetQuad) === false) {
+      createTimeCallback((_, deltaTime) => {
+        setOuterQuad(
+          quad =>
+            maybe(Quad.criticalSpring, quad, quad, outerTargetQuad, deltaTime, 150, 300) ?? quad,
+        )
+      })
+    }
+  })
 
   const innerQuad = createMaybeMemo(Quad.cover, Quad.create(), innerTargetQuad, outerQuad)
 
