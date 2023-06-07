@@ -67,7 +67,7 @@ export class Axis {
 
   static criticalSpring = criticalSpring
 
-  static isAtRest(a: Axis, epsilon: number = defaultEpsilon) {
-    return Math.abs(a.p) <= epsilon && Math.abs(a.v) <= epsilon
+  static isAtRest(a: Axis, b: Axis, epsilon: number = defaultEpsilon) {
+    return Math.abs(a.p - b.p) <= epsilon && Math.abs(a.v - b.v) <= epsilon
   }
 }

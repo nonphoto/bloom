@@ -1,10 +1,9 @@
 import classes from './SharedElement.module.css'
-import { createSignal, createEffect } from 'solid-js'
+import { createSignal, createEffect, untrack, on, onCleanup } from 'solid-js'
 import { xprod } from 'ramda'
 import { quad, borderRadius, createMaybeMemo, maybe, createTimeCallback } from '@chloranthy/solid'
 import { Quad } from '@chloranthy/animation'
 import { useLayoutObserver } from '@chloranthy/layout-observer'
-import { isatty } from 'tty'
 
 quad
 borderRadius
@@ -40,18 +39,21 @@ export default function SharedElement() {
 
   const [outerQuad, setOuterQuad] = createSignal(Quad.create(), { equals: false })
 
-  createEffect(() => {
-    createTimeCallback((_, deltaTime, stop) => {
-      setOuterQuad(
-        quad =>
-          maybe(Quad.criticalSpring, quad, quad, outerTargetQuad, deltaTime, 150, 300) ?? quad,
-      )
+  createEffect(
+    on(outerTargetQuad, targetQuad => {
+      if (targetQuad) {
+        const [isRunning, , stop] = createTimeCallback((_, deltaTime) => {
+          setOuterQuad(quad => Quad.criticalSpring(quad, quad, targetQuad, deltaTime, 150, 300))
+        })
 
-      if (Quad.isAtRest(outerQuad())) {
-        stop()
+        createEffect(() => {
+          if (isRunning() && maybe(Quad.isAtRest, outerQuad, targetQuad)) {
+            stop()
+          }
+        })
       }
-    })
-  })
+    }),
+  )
 
   const innerQuad = createMaybeMemo(Quad.cover, Quad.create(), innerTargetQuad, outerQuad)
 

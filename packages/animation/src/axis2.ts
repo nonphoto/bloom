@@ -46,7 +46,7 @@ export class Axis2 {
     return out
   }
 
-  static isAtRest(a: Axis2) {
-    return Axis.isAtRest(a.x) && Axis.isAtRest(a.y)
+  static isAtRest(a: Axis2, b: Axis2) {
+    return Axis.isAtRest(a.x, b.x) && Axis.isAtRest(a.y, b.y)
   }
 }

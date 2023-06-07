@@ -114,7 +114,11 @@ export class Quad {
     return out
   }
 
-  static isAtRest(a: Quad) {
-    return Axis2.isAtRest(a.translation) && Axis2.isAtRest(a.scaling) && Axis.isAtRest(a.rotation)
+  static isAtRest(a: Quad, b: Quad) {
+    return (
+      Axis2.isAtRest(a.translation, b.translation) &&
+      Axis2.isAtRest(a.scaling, b.scaling) &&
+      Axis.isAtRest(a.rotation, b.rotation)
+    )
   }
 }

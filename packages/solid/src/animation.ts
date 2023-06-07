@@ -22,18 +22,20 @@ export function createTime(): [Accessor<number>, Accessor<number>] {
 }
 
 export function createTimeCallback(
-  fn: (time: number, deltaTime: number, stop: VoidFunction) => void,
-) {
-  let time = 0
-  let deltaTime = 0
+  fn: (time: number, deltaTime: number) => void,
+): ReturnType<typeof createRAF> {
+  let time: number | null = null
+  let deltaTime: number | null = null
+  let startTime: number | null = null
 
-  const [, start, stop] = createRAF(nextTime => {
-    deltaTime = nextTime - time
+  const raf = createRAF(nextTime => {
+    startTime ??= nextTime
+    deltaTime = time === null ? 0 : nextTime - time
     time = nextTime
-    fn(time, deltaTime, stop)
+    fn(time - startTime, deltaTime)
   })
 
-  createEffect(() => {
-    start()
-  })
+  raf[1]()
+
+  return raf
 }
