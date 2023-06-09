@@ -4,10 +4,12 @@
   grid-template-rows: 3fr 2fr 1fr;
   gap: 1rem;
   width: 100%;
+  min-height: 100vh;
   flex-grow: 1;
   align-self: center;
   padding-inline: 2rem;
   padding-bottom: 2rem;
+  overflow: hidden;
 }
 
 .shadow {

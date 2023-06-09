@@ -4,13 +4,3 @@
   z-index: 1;
   padding: 1rem 2rem;
 }
-
-html,
-body {
-  height: 100%;
-}
-
-body {
-  display: flex;
-  flex-direction: column;
-}

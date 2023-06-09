@@ -7,7 +7,6 @@ import {
   createMaybeMemo,
   maybe,
   createTimeCallback,
-  MapMaybeAccessor,
   MaybeAccessor,
 } from '@chloranthy/solid'
 import { Axis2, Quad } from '@chloranthy/animation'
@@ -67,43 +66,57 @@ export default function SharedElement() {
   const translation = createTransition(() => outerTargetQuad()?.translation, 150)
   const scaling = createTransition(() => outerTargetQuad()?.scaling, 300)
 
+  const outerMatrix = layoutObserver.useMatrix(outerElement)
+
   const outerQuad = createMaybeMemo(
-    Quad.fromTranslationScaling,
+    (out: Quad, translation: Axis2, scaling: Axis2, matrix: mat2d) => {
+      const test = mat2d.create()
+      mat2d.copy(test, matrix)
+      mat2d.translate(test, test, translation.p)
+      mat2d.scale(test, test, scaling.p)
+      vec2.set(out.translation.p, test[4], test[5])
+      vec2.set(out.scaling.p, test[0], test[3])
+      return out
+    },
     Quad.create(),
     translation,
     scaling,
+    outerMatrix,
   )
 
   const innerQuad = createMaybeMemo(Quad.cover, Quad.create(), innerTargetQuad, outerQuad)
 
   return (
-    <div
-      class={classes.grid}
-      onClick={() => {
-        setAreaIndex(index => (index + 1) % areas.length)
-      }}
-    >
+    <>
       <div
-        class={classes.shadow}
-        style={{
-          'grid-row-start': areas[areaIndex()]?.[0],
-          'grid-column-start': areas[areaIndex()]?.[1],
+        class={classes.grid}
+        onClick={() => {
+          setAreaIndex(index => (index + 1) % areas.length)
         }}
       >
         <div
-          ref={setOuterElement}
-          class={classes.outer}
-          use:quad={outerQuad()}
-          use:borderRadius={50}
+          class={classes.shadow}
+          style={{
+            'grid-row-start': areas[areaIndex()]?.[0],
+            'grid-column-start': areas[areaIndex()]?.[1],
+          }}
         >
           <div
-            ref={setInnerElement}
-            class={classes.inner}
-            use:quad={innerQuad()}
+            ref={setOuterElement}
+            class={classes.outer}
+            use:quad={outerQuad()}
             use:borderRadius={50}
-          ></div>
+          >
+            <div
+              ref={setInnerElement}
+              class={classes.inner}
+              use:quad={innerQuad()}
+              use:borderRadius={50}
+            ></div>
+          </div>
         </div>
       </div>
-    </div>
+      <div style={{ height: '100vh' }}></div>
+    </>
   )
 }

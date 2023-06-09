@@ -9,7 +9,17 @@
   src: url('/fonts/pantograph.woff2');
 }
 
+html,
+body {
+  min-height: 100%;
+}
+
 html {
   font-family: Inter, system-ui, -apple-system, sans-serif;
   font-weight: 500;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
 }
