@@ -1,9 +1,18 @@
 import classes from './SharedElement.module.css'
-import { createSignal, createEffect, on } from 'solid-js'
+import { createSignal, createEffect, on, createMemo } from 'solid-js'
 import { xprod } from 'ramda'
-import { quad, borderRadius, createMaybeMemo, maybe, createTimeCallback } from '@chloranthy/solid'
-import { Quad } from '@chloranthy/animation'
+import {
+  quad,
+  borderRadius,
+  createMaybeMemo,
+  maybe,
+  createTimeCallback,
+  MapMaybeAccessor,
+  MaybeAccessor,
+} from '@chloranthy/solid'
+import { Axis2, Quad } from '@chloranthy/animation'
 import { useLayoutObserver } from '@chloranthy/layout-observer'
+import { mat2d, vec2 } from 'gl-matrix'
 
 quad
 borderRadius
@@ -15,6 +24,24 @@ declare module 'solid-js' {
       borderRadius: number | undefined
     }
   }
+}
+
+function createTransition(target: MaybeAccessor<Axis2 | undefined>, halflife: number) {
+  const [value, setValue] = createSignal(new Axis2(), { equals: false })
+
+  const isRunning = createMemo(() => maybe(Axis2.isAtRest, value, target) === false)
+
+  createEffect(
+    on(isRunning, isRunning => {
+      if (isRunning) {
+        createTimeCallback((_, deltaTime) => {
+          setValue(out => maybe(Axis2.criticalSpring, out, out, target, halflife, deltaTime) ?? out)
+        })
+      }
+    }),
+  )
+
+  return value
 }
 
 const areas = xprod([1, 2, 3], [1, 2, 3])
@@ -37,18 +64,15 @@ export default function SharedElement() {
     layoutObserver.useRect(innerElement),
   )
 
-  const [outerQuad, setOuterQuad] = createSignal(Quad.create(), { equals: false })
+  const translation = createTransition(() => outerTargetQuad()?.translation, 150)
+  const scaling = createTransition(() => outerTargetQuad()?.scaling, 300)
 
-  createEffect(() => {
-    if (maybe(Quad.isAtRest, outerQuad, outerTargetQuad) === false) {
-      createTimeCallback((_, deltaTime) => {
-        setOuterQuad(
-          quad =>
-            maybe(Quad.criticalSpring, quad, quad, outerTargetQuad, deltaTime, 150, 300) ?? quad,
-        )
-      })
-    }
-  })
+  const outerQuad = createMaybeMemo(
+    Quad.fromTranslationScaling,
+    Quad.create(),
+    translation,
+    scaling,
+  )
 
   const innerQuad = createMaybeMemo(Quad.cover, Quad.create(), innerTargetQuad, outerQuad)
 

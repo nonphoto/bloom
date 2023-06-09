@@ -17,6 +17,12 @@ export class Quad {
     return new Quad()
   }
 
+  static fromTranslationScaling(out: Quad, translation: Axis2, scaling: Axis2) {
+    Axis2.copy(out.translation, translation)
+    Axis2.copy(out.scaling, scaling)
+    return out
+  }
+
   static fromDOMRect(out: Quad, source: DOMRect): Quad {
     out.translation.p[0] = source.x + source.width / 2
     out.translation.p[1] = source.y + source.height / 2
