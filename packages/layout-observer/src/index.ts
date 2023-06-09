@@ -22,6 +22,7 @@ import {
   maybe,
   createDisposableEffect,
   withDocument,
+  walkParents,
 } from './utils'
 import { SingletonMap } from './singletonMap'
 import { Batcher } from './batcher'
@@ -124,6 +125,10 @@ export function createLayoutObserver(root: HTMLElement): LayoutObserverReturn {
     const invalidate = () => {
       layoutBatcher.enqueue(() => {
         const rect = element.getBoundingClientRect()
+        walkParents(element, parent => {
+          rect.x += parent.scrollLeft
+          rect.y += parent.scrollTop
+        })
         setRect(rect)
       })
     }
