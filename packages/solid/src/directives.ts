@@ -1,11 +1,11 @@
 import { Directive } from '@solid-primitives/utils'
-import { Quad } from '@chloranthy/animation'
+import { Mat2d } from '@chloranthy/animation'
 import { mat2d } from 'gl-matrix'
 import { useLayoutObserver } from '@chloranthy/layout-observer'
 import { createEffect } from 'solid-js'
 import { createMaybeMemo, maybe, styleBorderRadius } from './utils'
 
-export const transform: Directive<mat2d | undefined> = (target, value) => {
+export const transform: Directive<Mat2d.Type | undefined> = (target, value) => {
   if (target instanceof HTMLElement) {
     const layout = useLayoutObserver()
 
@@ -22,7 +22,7 @@ export const borderRadius: Directive<number | undefined> = (target, value) => {
     const matrix = layout.useMatrix(target)
     const transform = layout.useTransform(target)
 
-    const totalTransform = createMaybeMemo(mat2d.multiply, mat2d.create(), matrix, transform)
+    const totalTransform = createMaybeMemo(mat2d.multiply, Mat2d.create(), matrix, transform)
 
     createEffect(() => {
       target.style.borderRadius = maybe(styleBorderRadius, value, rect, totalTransform) ?? ''
@@ -30,23 +30,28 @@ export const borderRadius: Directive<number | undefined> = (target, value) => {
   }
 }
 
-export const quad: Directive<Quad | undefined> = (target, value) => {
+// q = r * m * t
+// t = q / (r * m)
+
+export const quad: Directive<Mat2d.Type | undefined> = (target, value) => {
   if (target instanceof HTMLElement) {
     const layout = useLayoutObserver()
     const rect = layout.useRect(target)
     const matrix = layout.useMatrix(target)
 
-    const quad = createMaybeMemo(Quad.fromDOMRect, Quad.create(), rect)
-
-    const inverseMatrix = createMaybeMemo(mat2d.invert, mat2d.create(), matrix)
-
-    const deltaMatrix = createMaybeMemo(Quad.divide, mat2d.create(), value, quad)
+    const quad = createMaybeMemo(Mat2d.fromRect, Mat2d.create(), rect)
 
     const targetTransform = createMaybeMemo(
-      mat2d.multiply,
+      (out, quad, matrix, value) => {
+        mat2d.multiply(out, quad, matrix)
+        mat2d.invert(out, out)
+        mat2d.multiply(out, out, value)
+        return out
+      },
       mat2d.create(),
-      inverseMatrix,
-      deltaMatrix,
+      quad,
+      matrix,
+      value,
     )
 
     transform(target, targetTransform)

@@ -9,9 +9,9 @@ import {
   createTimeCallback,
   MaybeAccessor,
 } from '@chloranthy/solid'
-import { Axis2, Quad } from '@chloranthy/animation'
+import { Body2d, Mat2d, Rect } from '@chloranthy/animation'
 import { useLayoutObserver } from '@chloranthy/layout-observer'
-import { mat2d, vec2 } from 'gl-matrix'
+import { vec2 } from 'gl-matrix'
 
 quad
 borderRadius
@@ -19,22 +19,26 @@ borderRadius
 declare module 'solid-js' {
   namespace JSX {
     interface Directives {
-      quad: Quad | undefined
+      quad: Mat2d.Type | undefined
       borderRadius: number | undefined
     }
   }
 }
 
-function createTransition(target: MaybeAccessor<Axis2 | undefined>, halflife: number) {
-  const [value, setValue] = createSignal(new Axis2(), { equals: false })
+function createTransition(target: MaybeAccessor<vec2 | undefined>, halflife: number) {
+  const [value, setValue] = createSignal<Body2d.Type>(new Body2d.Instance(), { equals: false })
 
-  const isRunning = createMemo(() => maybe(Axis2.isAtRest, value, target) === false)
+  const isRunning = createMemo(() => maybe(Body2d.isAtRest, value, target) === false)
+
+  createEffect(() => {
+    console.log(isRunning())
+  })
 
   createEffect(
     on(isRunning, isRunning => {
       if (isRunning) {
         createTimeCallback((_, deltaTime) => {
-          setValue(out => maybe(Axis2.criticalSpring, out, out, target, halflife, deltaTime) ?? out)
+          setValue(out => maybe(Body2d.simpleSpring, out, out, target, halflife, deltaTime) ?? out)
         })
       }
     }),
@@ -52,39 +56,36 @@ export default function SharedElement() {
   const [innerElement, setInnerElement] = createSignal<HTMLElement | undefined>()
 
   const layoutObserver = useLayoutObserver()
-  const outerTargetQuad = createMaybeMemo(
-    Quad.fromDOMRect,
-    Quad.create(),
-    layoutObserver.useRect(outerElement),
-  )
-  const innerTargetQuad = createMaybeMemo(
-    Quad.fromDOMRect,
-    Quad.create(),
-    layoutObserver.useRect(innerElement),
-  )
+  const outerTargetRect = layoutObserver.useRect(outerElement)
+  const innerTargetRect = layoutObserver.useRect(innerElement)
 
-  const translation = createTransition(() => outerTargetQuad()?.translation, 150)
-  const scaling = createTransition(() => outerTargetQuad()?.scaling, 300)
+  const targetTranslation = createMaybeMemo(Rect.getTranslation, vec2.create(), outerTargetRect)
+  const targetScaling = createMaybeMemo(Rect.getScaling, vec2.create(), outerTargetRect)
+
+  const translation = createTransition(targetTranslation, 150)
+  const scaling = createTransition(targetScaling, 300)
 
   const outerMatrix = layoutObserver.useMatrix(outerElement)
 
   const outerQuad = createMaybeMemo(
-    (out: Quad, translation: Axis2, scaling: Axis2, matrix: mat2d) => {
-      const test = mat2d.create()
-      mat2d.copy(test, matrix)
-      mat2d.translate(test, test, translation.p)
-      mat2d.scale(test, test, scaling.p)
-      vec2.set(out.translation.p, test[4], test[5])
-      vec2.set(out.scaling.p, test[0], test[3])
+    (out: Mat2d.Type, translation: vec2, scaling: vec2, matrix: Mat2d.Type) => {
+      Mat2d.translate(out, matrix, translation)
+      Mat2d.scale(out, out, scaling)
       return out
     },
-    Quad.create(),
-    translation,
-    scaling,
+    Mat2d.create(),
+    () => translation().p,
+    () => scaling().p,
     outerMatrix,
   )
 
-  const innerQuad = createMaybeMemo(Quad.cover, Quad.create(), innerTargetQuad, outerQuad)
+  createEffect(() => {
+    console.log(targetTranslation())
+  })
+
+  const innerTargetQuad = createMaybeMemo(Mat2d.fromRect, Mat2d.create(), innerTargetRect)
+
+  const innerQuad = createMaybeMemo(Mat2d.cover, Mat2d.create(), innerTargetQuad, outerQuad)
 
   return (
     <>

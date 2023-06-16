@@ -1,26 +1,73 @@
-import { mat2d } from 'gl-matrix'
+import { mat2d, vec2 } from 'gl-matrix'
 
-interface RectLike {
-  x: number
-  y: number
-  width: number
-  height: number
-}
-
-export class Rect implements RectLike {
-  x: number
-  y: number
-  width: number
-  height: number
-
-  constructor(x: number, y: number, width: number, height: number) {
-    this.x = x
-    this.y = y
-    this.width = width
-    this.height = height
+export namespace Rect {
+  export interface Type {
+    x: number
+    y: number
+    width: number
+    height: number
   }
 
-  static divide(out: mat2d, a: Rect, b: Rect) {
+  export class Instance implements Type {
+    x = 0
+    y = 0
+    width = 0
+    height = 0
+  }
+
+  export function getCenterX(rect: Type): number {
+    return rect.x + rect.width / 2
+  }
+
+  export function getCenterY(rect: Type): number {
+    return rect.y + rect.height / 2
+  }
+
+  export function getTranslation(out: vec2, rect: Type): vec2 {
+    return vec2.set(out, getCenterX(rect), getCenterY(rect))
+  }
+
+  export function getScaling(out: vec2, rect: Type): vec2 {
+    return vec2.set(out, rect.width, rect.height)
+  }
+
+  export function fromTranslationScaling(
+    out: Type,
+    translation: Readonly<vec2>,
+    scaling: Readonly<vec2>,
+  ): Type {
+    out.x = translation[0]
+    out.y = translation[1]
+    out.width = scaling[0]
+    out.height = scaling[1]
+    return out
+  }
+
+  export function fit(
+    out: Type,
+    source: Readonly<Type>,
+    target: Readonly<Type>,
+    compare: (a: number, b: number) => number,
+  ): Type {
+    const sx = target.width / source.width
+    const sy = target.height / source.height
+    const s = compare(sx, sy)
+    out.width *= s
+    out.height *= s
+    out.x = target.x
+    out.y = target.y
+    return out
+  }
+
+  export function contain(out: Type, source: Readonly<Type>, target: Readonly<Type>): Type {
+    return fit(out, source, target, Math.min)
+  }
+
+  export function cover(out: Type, source: Readonly<Type>, target: Readonly<Type>): Type {
+    return fit(out, source, target, Math.max)
+  }
+
+  export function divide(out: mat2d, a: Type, b: Type) {
     out[0] = a.width / b.width
     out[1] = 0
     out[2] = 0
