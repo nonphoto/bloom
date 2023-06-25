@@ -1,8 +1,7 @@
-import { vec2 } from 'gl-matrix'
+import { glMatrix, vec2 } from 'gl-matrix'
 import { Body } from './body'
 import { Body1d } from './body1d'
 import { Spring } from './spring'
-import { defaultEpsilon } from './utils'
 
 export namespace Body2d {
   export interface Type extends Body<vec2> {}
@@ -54,12 +53,12 @@ export namespace Body2d {
     }
   }
 
-  export function isAtRest(body: Readonly<Type>, epsilon = defaultEpsilon): boolean {
+  export function isAtRest(body: Readonly<Type>, p: vec2): boolean {
     return (
-      Math.abs(body.p[0]) <= epsilon &&
-      Math.abs(body.p[1]) <= epsilon &&
-      Math.abs(body.v[0]) <= epsilon &&
-      Math.abs(body.v[1]) <= epsilon
+      glMatrix.equals(body.p[0], p[0]) &&
+      glMatrix.equals(body.p[1], p[1]) &&
+      glMatrix.equals(body.v[0], 0) &&
+      glMatrix.equals(body.v[1], 0)
     )
   }
 

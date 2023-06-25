@@ -24,6 +24,16 @@ non-relative-positioned elements are not allowed as children of static-positione
 
 ### Computing extrinsic matrix
 
+- Undo translate layout
+- Undo rotate layout
+- Undo scale layout
+- Redo scale layout
+- scale
+- Redo rotate layout
+- rotate
+- Redo translate layout
+- translate
+
 Pseudocode:
 
 ```ts

@@ -24,18 +24,21 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import { defaultEpsilon, fastAtan, fastNegExp, mix, square } from './utils'
+import { fastAtan, fastNegExp, mix, square } from './utils'
+import { glMatrix } from 'gl-matrix'
+
+const epsilon = glMatrix.EPSILON
 
 type KeyOfType<T, V> = {
   [K in keyof T]: T[K] extends V ? K : never
 }[keyof T]
 
 export namespace Spring {
-  export function halflifeToDamping(halflife: number, epsilon: number = defaultEpsilon) {
+  export function halflifeToDamping(halflife: number) {
     return (4 * Math.LN2) / (halflife + epsilon)
   }
 
-  export function dampingToHalflife(damping: number, epsilon: number = defaultEpsilon) {
+  export function dampingToHalflife(damping: number) {
     return (4 * Math.LN2) / (damping + epsilon)
   }
 
@@ -63,22 +66,11 @@ export namespace Spring {
     return ratio * 2 * Math.sqrt(stiffness)
   }
 
-  export function damper(
-    start: number,
-    end: number,
-    halflife: number,
-    dt: number,
-    epsilon: number = defaultEpsilon,
-  ): number {
+  export function damper(start: number, end: number, halflife: number, dt: number): number {
     return mix(start, end, 1 - fastNegExp((Math.LN2 * dt) / (halflife + epsilon)))
   }
 
-  export function decayDamper(
-    position: number,
-    halflife: number,
-    dt: number,
-    epsilon: number = defaultEpsilon,
-  ): number {
+  export function decayDamper(position: number, halflife: number, dt: number): number {
     return position * fastNegExp((Math.LN2 * dt) / (halflife + epsilon))
   }
 
@@ -94,7 +86,6 @@ export namespace Spring {
     stiffness: number,
     damping: number,
     dt: number,
-    epsilon: number = defaultEpsilon,
   ) {
     const g = endPosition
     const q = endVelocity
@@ -147,7 +138,6 @@ export namespace Spring {
     frequency: number,
     halflife: number,
     dt: number,
-    epsilon: number = defaultEpsilon,
   ) {
     springStiffnessDamping(
       outPosition,
@@ -161,7 +151,6 @@ export namespace Spring {
       frequencyToStiffness(frequency),
       halflifeToDamping(halflife),
       dt,
-      epsilon,
     )
   }
 
@@ -177,7 +166,6 @@ export namespace Spring {
     halflife: number,
     dampingRatio: number,
     dt: number,
-    epsilon: number = defaultEpsilon,
   ) {
     const damping = halflifeToDamping(halflife)
     springStiffnessDamping(
@@ -192,7 +180,6 @@ export namespace Spring {
       dampingRatioToStiffness(dampingRatio, damping),
       damping,
       dt,
-      epsilon,
     )
   }
 

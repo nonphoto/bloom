@@ -1,45 +1,17 @@
-.scale {
-  margin: 5rem;
-  width: 20rem;
-  height: 20rem;
-  background: #aab5;
-  display: grid;
-  transform: scale(1.5, 1);
+.source {
+  position: relative;
+  top: 100px;
+  left: 300px;
+  width: 100px;
+  height: 200px;
+  background-color: yellow;
 }
 
-.rotate {
-  width: 10rem;
-  height: 10rem;
-  background: #aab5;
-  place-self: end;
-  display: grid;
-  transform: rotate(30deg);
-}
-
-.translate {
-  width: 5rem;
-  height: 5rem;
-  background: cyan;
-  place-self: end;
-  transform: translate(5rem, -5rem);
-}
-
-.matrix {
-  position: fixed;
-  top: 20rem;
-  left: 20rem;
-  width: 5rem;
-  height: 5rem;
-  background: magenta;
-  mix-blend-mode: multiply;
-}
-
-.shadow {
-  position: fixed;
-  top: 20rem;
-  left: 20rem;
-  width: 5rem;
-  height: 5rem;
-  background: yellow;
-  mix-blend-mode: multiply;
+.target {
+  position: relative;
+  top: 300px;
+  left: 100px;
+  width: 200px;
+  height: 100px;
+  background-color: magenta;
 }

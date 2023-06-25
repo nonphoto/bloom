@@ -15,32 +15,20 @@ export namespace Rect {
     height = 0
   }
 
-  export function getCenterX(rect: Type): number {
+  export function cx(rect: Type): number {
     return rect.x + rect.width / 2
   }
 
-  export function getCenterY(rect: Type): number {
+  export function cy(rect: Type): number {
     return rect.y + rect.height / 2
   }
 
-  export function getTranslation(out: vec2, rect: Type): vec2 {
-    return vec2.set(out, getCenterX(rect), getCenterY(rect))
+  export function position(out: vec2, rect: Type): vec2 {
+    return vec2.set(out, cx(rect), cy(rect))
   }
 
-  export function getScaling(out: vec2, rect: Type): vec2 {
+  export function size(out: vec2, rect: Type): vec2 {
     return vec2.set(out, rect.width, rect.height)
-  }
-
-  export function fromTranslationScaling(
-    out: Type,
-    translation: Readonly<vec2>,
-    scaling: Readonly<vec2>,
-  ): Type {
-    out.x = translation[0]
-    out.y = translation[1]
-    out.width = scaling[0]
-    out.height = scaling[1]
-    return out
   }
 
   export function fit(
@@ -67,13 +55,13 @@ export namespace Rect {
     return fit(out, source, target, Math.max)
   }
 
-  export function divide(out: mat2d, a: Type, b: Type) {
-    out[0] = a.width / b.width
+  export function untransform(out: mat2d, source: Type, target: Type) {
+    out[0] = target.width / source.width
     out[1] = 0
     out[2] = 0
-    out[3] = a.height / b.height
-    out[4] = a.x + a.width / 2 - (b.x + b.width / 2)
-    out[5] = a.y + a.height / 2 - (b.y + b.height / 2)
+    out[3] = target.height / source.height
+    out[4] = cx(target) - cx(source)
+    out[5] = cy(target) - cy(source)
     return out
   }
 }

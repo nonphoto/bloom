@@ -1,6 +1,6 @@
 import { Body } from './body'
 import { Spring } from './spring'
-import { defaultEpsilon } from './utils'
+import { glMatrix } from 'gl-matrix'
 
 export namespace Body1d {
   export interface Type extends Body<number> {}
@@ -22,8 +22,8 @@ export namespace Body1d {
     return out
   }
 
-  export function isAtRest(body: Readonly<Type>, epsilon = defaultEpsilon): boolean {
-    return Math.abs(body.p) <= epsilon && Math.abs(body.v) <= epsilon
+  export function isAtRest(body: Readonly<Type>, p: number): boolean {
+    return glMatrix.equals(body.p, p) && glMatrix.equals(body.v, 0)
   }
 
   export function criticalSpring(
