@@ -72,6 +72,10 @@ export default function SharedElement() {
 
   const innerQuad = createMaybeMemo(Quad2d.cover, Quad2d.create(), innerTargetQuad, outerQuad)
 
+  // createEffect(() => {
+  //   console.log(outerQuad()?.k[1] === innerQuad()?.k[1])
+  // })
+
   return (
     <>
       <div

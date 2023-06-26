@@ -1,5 +1,5 @@
 import { Directive } from '@solid-primitives/utils'
-import { Mat2d, Quad2d } from '@chloranthy/animation'
+import { Mat2d, Quad2d, Rect } from '@chloranthy/animation'
 import { mat2d } from 'gl-matrix'
 import { useLayoutObserver } from '@chloranthy/layout-observer'
 import { createEffect } from 'solid-js'
@@ -37,12 +37,20 @@ export const quad: Directive<Quad2d.Type | undefined> = (target, value) => {
     const matrix = layout.useMatrix(target)
 
     const targetTransform = createMaybeMemo(
-      (out, quad, matrix, rect, value) => {
+      (
+        out: mat2d,
+        inverseMatrix: mat2d,
+        quad: Quad2d.Type,
+        matrix: mat2d,
+        rect: Rect.Type,
+        value: Quad2d.Type,
+      ) => {
         Quad2d.fromRect(quad, rect)
-        Quad2d.transformMat2d(quad, quad, matrix)
         Quad2d.untransformMat2d(out, quad, value)
-        return out
+        mat2d.invert(inverseMatrix, matrix)
+        return mat2d.multiply(out, inverseMatrix, out)
       },
+      mat2d.create(),
       mat2d.create(),
       Quad2d.create(),
       matrix,

@@ -40,8 +40,8 @@ export namespace Rect {
     const sx = target.width / source.width
     const sy = target.height / source.height
     const s = compare(sx, sy)
-    out.width *= s
-    out.height *= s
+    out.width = source.width * s
+    out.height = source.height * s
     out.x = target.x
     out.y = target.y
     return out

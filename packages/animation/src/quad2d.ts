@@ -69,8 +69,8 @@ export namespace Quad2d {
     const sy = target.ij[3] / source.ij[3]
     const s = compare(sx, sy)
     vec2.copy(out.k, target.k)
-    out.ij[0] *= s
-    out.ij[3] *= s
+    out.ij[0] = source.ij[0] * s
+    out.ij[3] = source.ij[3] * s
     return out
   }
 
