@@ -1,0 +1,53 @@
+.section {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 1rem;
+}
+
+.h1 {
+  grid-column: 3 / 4;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.p {
+  width: 18em;
+  grid-column: 4 / 5;
+}
+
+.images {
+  position: absolute;
+}
+
+.images > * {
+  position: absolute;
+}
+
+.ul {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  counter-reset: ul;
+}
+
+.li {
+  display: flex;
+  flex-direction: column;
+}
+
+.li a {
+  display: flex;
+  justify-content: space-between;
+  font-family: Pantograph;
+  font-size: 15vw;
+  line-height: 1.8;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+  counter-increment: ul;
+}
+
+.li a::before {
+  content: '#' counter(ul);
+  margin-left: -0.03em;
+}

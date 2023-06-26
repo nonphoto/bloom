@@ -1,9 +1,17 @@
-type ImageOptions = {
+interface ImageOptions {
   w: number
   q: number
 }
 
-export const images = [
+interface ImageData {
+  src: string
+  attribution?: {
+    href: string
+    label: string
+  }
+}
+
+export const images: ImageData[] = [
   {
     src: 'https://images.unsplash.com/photo-1620005446924-b31462716675?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop',
     attribution: {
@@ -48,11 +56,11 @@ export const images = [
   },
 ]
 
-export function imageSrcs(index: number, options: Partial<ImageOptions> = {}) {
-  const url = new URL(images[index].src)
+export function imageOptions(src: string, options: Partial<ImageOptions> = {}) {
+  const url = new URL(src)
 
   for (const key in options) {
-    url.searchParams.set(key, options[key])
+    url.searchParams.set(key, String(options[key as keyof ImageOptions]))
   }
 
   return url.href

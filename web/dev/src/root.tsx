@@ -10,26 +10,12 @@ import {
   Routes,
   Scripts,
   Title,
-  useLocation,
-  useNavigate,
 } from 'solid-start'
 import '@nonphoto/css/reset.css'
 import './root.css'
 import Header from './components/Header'
 
 export default function Root() {
-  const options = Object.keys(import.meta.glob('./routes/examples/*.tsx'))
-    .map(path => path.match(/^\.\/routes\/examples\/(.+)\.tsx$/)?.[1])
-    .filter((routeName): routeName is string => typeof routeName === 'string')
-    .map(routeName => ({
-      value: `/examples/${routeName}`,
-      label: routeName,
-    }))
-
-  const navigate = useNavigate()
-
-  const location = useLocation()
-
   return (
     <Html lang="en">
       <Head>
@@ -40,7 +26,7 @@ export default function Root() {
       <Body>
         <Suspense>
           <ErrorBoundary>
-            <Header options={options} value={location.pathname} onValue={navigate} />
+            <Header />
             <Routes>
               <FileRoutes />
             </Routes>
