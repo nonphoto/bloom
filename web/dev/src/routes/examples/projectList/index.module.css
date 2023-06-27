@@ -1,8 +1,18 @@
+@keyframes fade-out {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
 .section {
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(4, 1fr);
   padding: 1rem;
+  overflow: hidden;
 }
 
 .h1 {
@@ -17,11 +27,22 @@
 }
 
 .images {
+  pointer-events: none;
   position: absolute;
+  inset: 0 auto auto 0;
+  width: 40vw;
+  height: 40vw;
+  overflow: hidden;
+  background: black;
 }
 
-.images > * {
+.img {
   position: absolute;
+  inset: 0 0 auto 0;
+}
+
+.img:global(.s-exit-active) {
+  animation: fade-out 0.5s ease-in-out;
 }
 
 .ul {

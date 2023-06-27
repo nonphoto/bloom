@@ -1,7 +1,7 @@
 import { images } from './images'
 
 export const titles = [
-  { text: 'Alpha', style: { 'margin-left': '-0.03em', 'margin-right': '0.03em' } },
+  { text: 'Alpha', style: { 'margin-right': '0.03em' } },
   { text: 'Bravo' },
   { text: 'Charlie', style: { 'margin-right': '0.025em' } },
   { text: 'Delta', style: { 'margin-right': '0.03em' } },

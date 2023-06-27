@@ -9,15 +9,6 @@ import { mat2d, vec2 } from 'gl-matrix'
 quad
 borderRadius
 
-declare module 'solid-js' {
-  namespace JSX {
-    interface Directives {
-      quad: Quad2d.Type | undefined
-      borderRadius: number | undefined
-    }
-  }
-}
-
 function createTransition(target: Accessor<vec2 | undefined>, halflife: number) {
   const [value, setValue] = createSignal<Body2d.Type>(new Body2d.Instance(), { equals: false })
 

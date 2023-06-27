@@ -25,8 +25,9 @@
     "@chloranthy/solid": "workspace:*",
     "@nonphoto/css": "1.0.4",
     "@solid-devtools/logger": "0.6.1",
-    "@solid-devtools/overlay": "0.6.0",
+    "@solid-primitives/mouse": "2.0.14",
     "@solid-primitives/raf": "2.1.10",
+    "@solid-primitives/resize-observer": "2.0.15",
     "@solid-primitives/rootless": "1.3.2",
     "@solidjs/meta": "^0.28.2",
     "@solidjs/router": "^0.8.2",
@@ -35,6 +36,7 @@
     "solid-js": "^1.7.2",
     "solid-start": "^0.2.26",
     "solid-start-static": "0.2.26",
+    "solid-transition-group": "0.2.2",
     "undici": "^5.15.1"
   },
   "engines": {
