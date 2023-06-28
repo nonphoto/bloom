@@ -1,4 +1,5 @@
 import { mat2d, vec2 } from 'gl-matrix'
+import * as common from './common'
 
 export namespace Rect {
   export interface Type {
@@ -49,10 +50,7 @@ export namespace Rect {
     aspectRatio: number,
     compare: (a: number, b: number) => number,
   ): Type {
-    const sy = source.height > 0 ? (source.width * aspectRatio) / source.height : aspectRatio
-    const s = compare(1, sy)
-    out.width = source.width * s
-    out.height = source.height * s
+    common.setAspectRatio(out, 'width', 'height', source.width, source.height, aspectRatio, compare)
     setcx(out, cx(source))
     setcy(out, cy(source))
     return out
@@ -64,11 +62,16 @@ export namespace Rect {
     target: Readonly<Type>,
     compare: (a: number, b: number) => number,
   ): Type {
-    const sx = target.width / source.width
-    const sy = target.height / source.height
-    const s = compare(sx, sy)
-    out.width = source.width * s
-    out.height = source.height * s
+    common.fit(
+      out,
+      'width',
+      'height',
+      source.width,
+      source.height,
+      target.width,
+      target.height,
+      compare,
+    )
     setcx(out, cx(target))
     setcy(out, cy(target))
     return out
@@ -82,7 +85,7 @@ export namespace Rect {
     return fit(out, source, target, Math.max)
   }
 
-  export function untransform(out: mat2d, source: Type, target: Type) {
+  export function untransformMat2d(out: mat2d, source: Type, target: Type) {
     out[0] = target.width / source.width
     out[1] = 0
     out[2] = 0

@@ -24,7 +24,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import { fastAtan, fastNegExp, mix, square } from './utils'
+import { fastAtan, fastNegExp, mix, square } from './math'
 import { glMatrix } from 'gl-matrix'
 
 const epsilon = glMatrix.EPSILON

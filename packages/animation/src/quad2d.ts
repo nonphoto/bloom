@@ -1,5 +1,6 @@
 import { mat2, mat2d, vec2 } from 'gl-matrix'
 import { Rect } from './rect'
+import * as common from './common'
 
 export namespace Quad2d {
   export type Type = {
@@ -59,18 +60,24 @@ export namespace Quad2d {
     return out
   }
 
+  export function setAspectRatio(
+    out: Type,
+    source: Readonly<Type>,
+    aspectRatio: number,
+    compare: (a: number, b: number) => number,
+  ) {
+    common.setAspectRatio(out.ij, 0, 3, source.ij[0], source.ij[3], aspectRatio, compare)
+    vec2.copy(out.k, source.k)
+  }
+
   export function fit(
     out: Type,
     source: Readonly<Type>,
     target: Readonly<Type>,
     compare: (a: number, b: number) => number,
   ): Type {
-    const sx = target.ij[0] / source.ij[0]
-    const sy = target.ij[3] / source.ij[3]
-    const s = compare(sx, sy)
+    common.fit(out.ij, 0, 3, source.ij[0], source.ij[3], target.ij[0], target.ij[3], compare)
     vec2.copy(out.k, target.k)
-    out.ij[0] = source.ij[0] * s
-    out.ij[3] = source.ij[3] * s
     return out
   }
 
