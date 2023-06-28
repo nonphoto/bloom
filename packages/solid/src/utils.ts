@@ -34,3 +34,7 @@ export function styleBorderRadius(radius: number, rect: DOMRect, transform: mat2
   const y = (radius / (rect.height * transform[3])) * 100
   return `${x}% / ${y}%`
 }
+
+export function safeWindow() {
+  return typeof window !== 'undefined' ? window : undefined
+}

@@ -15,12 +15,24 @@ export namespace Rect {
     height = 0
   }
 
-  export function cx(rect: Type): number {
+  export function create(): Instance {
+    return new Instance()
+  }
+
+  export function cx(rect: Readonly<Type>): number {
     return rect.x + rect.width / 2
   }
 
-  export function cy(rect: Type): number {
+  export function cy(rect: Readonly<Type>): number {
     return rect.y + rect.height / 2
+  }
+
+  export function setcx(rect: Type, cx: number) {
+    rect.x = cx - rect.width / 2
+  }
+
+  export function setcy(rect: Type, cy: number) {
+    rect.y = cy - rect.height / 2
   }
 
   export function position(out: vec2, rect: Type): vec2 {
@@ -29,6 +41,21 @@ export namespace Rect {
 
   export function size(out: vec2, rect: Type): vec2 {
     return vec2.set(out, rect.width, rect.height)
+  }
+
+  export function setAspectRatio(
+    out: Type,
+    source: Readonly<Type>,
+    aspectRatio: number,
+    compare: (a: number, b: number) => number,
+  ): Type {
+    const sy = source.height > 0 ? (source.width * aspectRatio) / source.height : aspectRatio
+    const s = compare(1, sy)
+    out.width = source.width * s
+    out.height = source.height * s
+    setcx(out, cx(source))
+    setcy(out, cy(source))
+    return out
   }
 
   export function fit(
@@ -42,8 +69,8 @@ export namespace Rect {
     const s = compare(sx, sy)
     out.width = source.width * s
     out.height = source.height * s
-    out.x = target.x
-    out.y = target.y
+    setcx(out, cx(target))
+    setcy(out, cy(target))
     return out
   }
 

@@ -1,31 +1,13 @@
 import classes from './SharedElement.module.css'
-import { createSignal, createEffect, on, createMemo, Accessor } from 'solid-js'
+import { createSignal } from 'solid-js'
 import { xprod } from 'ramda'
-import { quad, borderRadius, createMaybeMemo, maybe, createTimeCallback } from '@chloranthy/solid'
-import { Body2d, Quad2d, Rect } from '@chloranthy/animation'
+import { quad, borderRadius, createMaybeMemo, createTransition } from '@chloranthy/solid'
+import { Quad2d, Rect } from '@chloranthy/animation'
 import { useLayoutObserver } from '@chloranthy/layout-observer'
 import { mat2d, vec2 } from 'gl-matrix'
 
 quad
 borderRadius
-
-function createTransition(target: Accessor<vec2 | undefined>, halflife: number) {
-  const [value, setValue] = createSignal<Body2d.Type>(new Body2d.Instance(), { equals: false })
-
-  const isRunning = createMemo(() => maybe(Body2d.isAtRest, value, target) === false)
-
-  createEffect(
-    on(isRunning, isRunning => {
-      if (isRunning) {
-        createTimeCallback((_, deltaTime) => {
-          setValue(out => maybe(Body2d.simpleSpring, out, out, target, halflife, deltaTime) ?? out)
-        })
-      }
-    }),
-  )
-
-  return value
-}
 
 const areas = xprod([1, 2, 3], [1, 2, 3])
 

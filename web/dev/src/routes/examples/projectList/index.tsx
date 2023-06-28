@@ -1,55 +1,79 @@
-import { createMousePosition } from '@solid-primitives/mouse'
 import classes from './index.module.css'
 import { For, Show, createEffect, createSignal } from 'solid-js'
 import { A } from 'solid-start'
 import { imageOptions } from '~/data/images'
 import { projects } from '~/data/projects'
-import { createMaybeMemo, quad } from '@chloranthy/solid'
-import { Quad2d } from '@chloranthy/animation'
+import {
+  createMaybeMemo,
+  quad,
+  borderRadius,
+  createMousePosition,
+  createTransition,
+} from '@chloranthy/solid'
+import { Quad2d, Rect } from '@chloranthy/animation'
 import { vec2 } from 'gl-matrix'
-import { createWindowSize } from '@solid-primitives/resize-observer'
 import { Transition } from 'solid-transition-group'
+import { useLayoutObserver } from '@chloranthy/layout-observer'
 
 quad
+borderRadius
 
 function styleAspectRatio(props: { naturalWidth: number; naturalHeight: number }) {
   return `${props.naturalWidth} / ${props.naturalHeight}`
 }
 
-function safeWindow() {
-  return typeof window !== 'undefined' ? window : undefined
+function Image(props: {
+  src: string
+  naturalWidth: number
+  naturalHeight: number
+  parentQuad: Quad2d.Type | undefined
+}) {
+  const [element, setElement] = createSignal<HTMLDivElement>()
+  const layoutObserver = useLayoutObserver()
+  const rect = layoutObserver.useRect(element)
+
+  const childQuad = createMaybeMemo(Quad2d.fromRect, Quad2d.create(), rect)
+
+  const fitQuad = createMaybeMemo(Quad2d.cover, Quad2d.create(), childQuad, () => props.parentQuad)
+
+  return (
+    <img
+      ref={setElement}
+      src={imageOptions(props.src, { w: 500 })}
+      class={classes.img}
+      style={{ 'aspect-ratio': styleAspectRatio(props) }}
+      use:quad={fitQuad()}
+    />
+  )
 }
 
 export default function ProjectListIndex() {
+  const [imageContainerElement, setImageContainerElement] = createSignal<HTMLDivElement>()
+
   const [hoveredIndex, setHoveredIndex] = createSignal<number>()
   const hoveredProject = () => (hoveredIndex() != null ? projects[hoveredIndex()!] : undefined)
 
-  createEffect(() => {
-    console.log(hoveredProject())
-  })
-
   const mousePosition = createMousePosition()
-  const windowSize = createWindowSize()
 
-  const mousePositionVec2 = createMaybeMemo(
-    vec2.fromValues,
-    () => mousePosition.x - (safeWindow()?.scrollX ?? 0),
-    () => mousePosition.y - (safeWindow()?.scrollY ?? 0),
+  const layoutObserver = useLayoutObserver()
+  const imageContainerRect = layoutObserver.useRect(imageContainerElement)
+  const imageContainerFitRect = createMaybeMemo(
+    Rect.setAspectRatio,
+    Rect.create(),
+    imageContainerRect,
+    9 / 16,
+    () => (a: number, b: number) => (a + b) / 2,
   )
 
-  const windowSizeVec2 = createMaybeMemo(
-    vec2.fromValues,
-    () => windowSize.width,
-    () => windowSize.height,
-  )
+  const size = createMaybeMemo(Rect.size, vec2.create(), imageContainerFitRect)
 
-  const scaledWindowSize = createMaybeMemo(vec2.scale, vec2.create(), windowSizeVec2, 0.4)
+  const transitionSize = createTransition(size, 200)
 
   const imageContainerQuad = createMaybeMemo(
     Quad2d.fromPositionSize,
     Quad2d.create(),
-    mousePositionVec2,
-    scaledWindowSize,
+    mousePosition,
+    () => transitionSize().p,
   )
 
   return (
@@ -58,16 +82,15 @@ export default function ProjectListIndex() {
       <p class={classes.p}>
         Supports keyframes, spring and inertia animations on numbers, colors, and complex strings.
       </p>
-      <div class={classes.images} use:quad={imageContainerQuad()}>
+      <div
+        ref={setImageContainerElement}
+        class={classes.images}
+        use:quad={imageContainerQuad()}
+        use:borderRadius={50}
+      >
         <Transition>
           <Show when={hoveredProject()} keyed>
-            {project => (
-              <img
-                src={imageOptions(project.image.src, { w: 500 })}
-                class={classes.img}
-                style={{ 'aspect-ratio': styleAspectRatio(project.image) }}
-              />
-            )}
+            {project => <Image {...project.image} parentQuad={imageContainerQuad()} />}
           </Show>
         </Transition>
       </div>

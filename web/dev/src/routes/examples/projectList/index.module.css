@@ -13,6 +13,7 @@
   grid-template-columns: repeat(4, 1fr);
   padding: 1rem;
   overflow: hidden;
+  position: relative;
 }
 
 .h1 {
@@ -30,18 +31,21 @@
   pointer-events: none;
   position: absolute;
   inset: 0 auto auto 0;
-  width: 40vw;
-  height: 40vw;
+  width: 60vw;
   overflow: hidden;
-  background: black;
 }
 
 .img {
-  position: absolute;
-  inset: 0 0 auto 0;
+  width: 100%;
+}
+
+.img:global(.s-enter-active) {
+  position: relative;
 }
 
 .img:global(.s-exit-active) {
+  position: absolute;
+  inset: 0 0 auto 0;
   animation: fade-out 0.5s ease-in-out;
 }
 
