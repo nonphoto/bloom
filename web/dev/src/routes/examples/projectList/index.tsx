@@ -12,8 +12,8 @@ import {
 } from '@chloranthy/solid'
 import { Quad2d, Rect } from '@chloranthy/animation'
 import { vec2 } from 'gl-matrix'
-import { Transition } from 'solid-transition-group'
 import { useLayoutObserver } from '@chloranthy/layout-observer'
+import { TransitionCallback, createListTransition } from '~/lib/transition-group'
 
 quad
 borderRadius
@@ -27,6 +27,7 @@ function Image(props: {
   naturalWidth: number
   naturalHeight: number
   parentQuad: Quad2d.Type | undefined
+  useExit: (callback: TransitionCallback) => void
 }) {
   const [element, setElement] = createSignal<HTMLDivElement>()
   const layoutObserver = useLayoutObserver()
@@ -35,6 +36,14 @@ function Image(props: {
   const childQuad = createMaybeMemo(Quad2d.fromRect, Quad2d.create(), rect)
 
   const fitQuad = createMaybeMemo(Quad2d.cover, Quad2d.create(), childQuad, () => props.parentQuad)
+
+  createEffect(() => {
+    props.useExit(() => () => {
+      return (
+        element()?.animate({ opacity: [1, 0] }, { duration: 500 })?.finished ?? Promise.resolve()
+      )
+    })
+  })
 
   return (
     <img
@@ -76,6 +85,11 @@ export default function ProjectListIndex() {
     () => transitionSize().p,
   )
 
+  const visibleProjects = createListTransition(
+    () => (hoveredProject() ? [hoveredProject()!] : []),
+    { exitMethod: 'move-to-end' },
+  )
+
   return (
     <section class={classes.section}>
       <h1 class={classes.h1}>Projects</h1>
@@ -88,11 +102,11 @@ export default function ProjectListIndex() {
         use:quad={imageContainerQuad()}
         use:borderRadius={50}
       >
-        <Transition>
-          <Show when={hoveredProject()} keyed>
-            {project => <Image {...project.image} parentQuad={imageContainerQuad()} />}
-          </Show>
-        </Transition>
+        <For each={visibleProjects()}>
+          {([project, { useExit }]) => {
+            return <Image {...project.image} parentQuad={imageContainerQuad()} useExit={useExit} />
+          }}
+        </For>
       </div>
       <ul class={classes.ul}>
         <For each={projects}>
