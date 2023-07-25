@@ -4,7 +4,7 @@ import { Rect } from '@chloranthy/core'
 import { createRAF } from '@solid-primitives/raf'
 import { mat2d } from 'gl-matrix'
 import { createEffect, createMemo, createSignal } from 'solid-js'
-import { useLayoutObserver } from '@chloranthy/layout-observer'
+import { useLayoutModel } from '@chloranthy/layout-model'
 
 transform
 
@@ -32,7 +32,7 @@ export default function ScrollingLayout() {
     start()
   })
 
-  const layout = useLayoutObserver()
+  const layout = useLayoutModel()
   const innerRect = layout.useRect(innerElement)
   const innerMatrix = layout.useMatrix(innerElement)
   const shadowRect = layout.useRect(fixedElement)

@@ -1,13 +1,13 @@
 import { Directive } from '@solid-primitives/utils'
 import { Mat2d, Quad2d, Rect } from '@chloranthy/core'
 import { mat2d } from 'gl-matrix'
-import { useLayoutObserver } from '@chloranthy/layout-observer'
+import { useLayoutModel } from '@chloranthy/layout-model'
 import { createEffect } from 'solid-js'
 import { createMaybeMemo, maybe, styleBorderRadius } from './utils'
 
 export const transform: Directive<Mat2d.Type | undefined> = (target, value) => {
   if (target instanceof HTMLElement) {
-    const layout = useLayoutObserver()
+    const layout = useLayoutModel()
 
     createEffect(() => {
       layout.setTransform(target, value())
@@ -17,7 +17,7 @@ export const transform: Directive<Mat2d.Type | undefined> = (target, value) => {
 
 export const borderRadius: Directive<number | undefined> = (target, value) => {
   if (target instanceof HTMLElement) {
-    const layout = useLayoutObserver()
+    const layout = useLayoutModel()
     const rect = layout.useRect(target)
     const matrix = layout.useMatrix(target)
     const transform = layout.useTransform(target)
@@ -32,7 +32,7 @@ export const borderRadius: Directive<number | undefined> = (target, value) => {
 
 export const quad: Directive<Quad2d.Type | undefined> = (target, value) => {
   if (target instanceof HTMLElement) {
-    const layout = useLayoutObserver()
+    const layout = useLayoutModel()
     const rect = layout.useRect(target)
     const matrix = layout.useMatrix(target)
 

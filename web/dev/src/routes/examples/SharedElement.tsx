@@ -3,7 +3,7 @@ import { createSignal } from 'solid-js'
 import { xprod } from 'ramda'
 import { quad, borderRadius, createMaybeMemo, createTransition } from '@chloranthy/solid'
 import { Quad2d, Rect } from '@chloranthy/core'
-import { useLayoutObserver } from '@chloranthy/layout-observer'
+import { useLayoutModel } from '@chloranthy/layout-model'
 import { mat2d, vec2 } from 'gl-matrix'
 
 quad
@@ -17,9 +17,9 @@ export default function SharedElement() {
   const [outerElement, setOuterElement] = createSignal<HTMLElement | undefined>()
   const [innerElement, setInnerElement] = createSignal<HTMLElement | undefined>()
 
-  const layoutObserver = useLayoutObserver()
-  const outerTargetRect = layoutObserver.useRect(outerElement)
-  const innerTargetRect = layoutObserver.useRect(innerElement)
+  const layoutModel = useLayoutModel()
+  const outerTargetRect = layoutModel.useRect(outerElement)
+  const innerTargetRect = layoutModel.useRect(innerElement)
 
   const targetPosition = createMaybeMemo(Rect.position, vec2.create(), outerTargetRect)
   const targetSize = createMaybeMemo(Rect.size, vec2.create(), outerTargetRect)
@@ -27,7 +27,7 @@ export default function SharedElement() {
   const position = createTransition(targetPosition, 150)
   const size = createTransition(targetSize, 300)
 
-  const outerMatrix = layoutObserver.useMatrix(outerElement)
+  const outerMatrix = layoutModel.useMatrix(outerElement)
 
   const outerQuad = createMaybeMemo(
     (out: Quad2d.Type, position: vec2, size: vec2, matrix: mat2d) => {

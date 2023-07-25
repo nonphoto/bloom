@@ -1,4 +1,4 @@
-import { useLayoutObserver } from '@chloranthy/layout-observer'
+import { useLayoutModel } from '@chloranthy/layout-model'
 import classes from './MatrixPlayground.module.css'
 import { createEffect } from 'solid-js'
 import { maybe } from '@chloranthy/solid'
@@ -9,9 +9,9 @@ export default function MatrixPlayground() {
   const sourceElement = (<div class={classes.source} />) as HTMLElement
   const targetElement = (<div class={classes.target} />) as HTMLElement
 
-  const layoutObserver = useLayoutObserver()
-  const sourceRect = layoutObserver.useRect(sourceElement)
-  const targetRect = layoutObserver.useRect(targetElement)
+  const layoutModel = useLayoutModel()
+  const sourceRect = layoutModel.useRect(sourceElement)
+  const targetRect = layoutModel.useRect(targetElement)
 
   createEffect(() => {
     maybe(
@@ -25,7 +25,7 @@ export default function MatrixPlayground() {
           transformationMatrix,
         )
         console.log(Quad2d.equals(transformedSourceQuad, targetQuad))
-        layoutObserver.setTransform(sourceElement, transformationMatrix)
+        layoutModel.setTransform(sourceElement, transformationMatrix)
       },
       sourceRect,
       targetRect,

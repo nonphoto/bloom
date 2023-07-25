@@ -20,7 +20,8 @@
     "vite": "^4.1.4"
   },
   "dependencies": {
-    "@chloranthy/layout-observer": "workspace:*",
+    "@chloranthy/core": "workspace:*",
+    "@chloranthy/layout-model": "workspace:*",
     "@chloranthy/solid": "workspace:*",
     "@nonphoto/css": "1.0.4",
     "@solid-devtools/logger": "0.6.1",

@@ -68,6 +68,33 @@ importers:
         specifier: 0.24.8
         version: 0.24.8(typescript@5.1.3)
 
+  packages/layout-model:
+    dependencies:
+      '@solid-primitives/map':
+        specifier: ^0.4.3
+        version: 0.4.3(solid-js@1.7.6)
+      '@solid-primitives/mutation-observer':
+        specifier: 1.1.13
+        version: 1.1.13(solid-js@1.7.6)
+      '@solid-primitives/raf':
+        specifier: 2.1.10
+        version: 2.1.10(solid-js@1.7.6)
+      '@solid-primitives/resize-observer':
+        specifier: 2.0.15
+        version: 2.0.15(solid-js@1.7.6)
+      '@solid-primitives/rootless':
+        specifier: 1.3.2
+        version: 1.3.2(solid-js@1.7.6)
+      '@solid-primitives/utils':
+        specifier: 6.1.0
+        version: 6.1.0(solid-js@1.7.6)
+      gl-matrix:
+        specifier: ^3.4.3
+        version: 3.4.3
+      solid-js:
+        specifier: ^1.7.3
+        version: 1.7.6
+
   packages/layout-observer:
     dependencies:
       '@solid-primitives/map':
@@ -100,9 +127,9 @@ importers:
       '@chloranthy/core':
         specifier: workspace:*
         version: link:../core
-      '@chloranthy/layout-observer':
+      '@chloranthy/layout-model':
         specifier: workspace:*
-        version: link:../layout-observer
+        version: link:../layout-model
       '@solid-primitives/mouse':
         specifier: 2.0.14
         version: 2.0.14(solid-js@1.7.6)
@@ -140,9 +167,12 @@ importers:
 
   web/dev:
     dependencies:
-      '@chloranthy/layout-observer':
+      '@chloranthy/core':
         specifier: workspace:*
-        version: link:../../packages/layout-observer
+        version: link:../../packages/core
+      '@chloranthy/layout-model':
+        specifier: workspace:*
+        version: link:../../packages/layout-model
       '@chloranthy/solid':
         specifier: workspace:*
         version: link:../../packages/solid
@@ -2121,7 +2151,7 @@ packages:
     peerDependencies:
       solid-js: ^1.6.12
     dependencies:
-      '@solid-primitives/utils': 6.2.0(solid-js@1.7.6)
+      '@solid-primitives/utils': 6.1.0(solid-js@1.7.6)
       solid-js: 1.7.6
     dev: false
 
@@ -2147,7 +2177,7 @@ packages:
     peerDependencies:
       solid-js: ^1.6.12
     dependencies:
-      '@solid-primitives/utils': 6.2.0(solid-js@1.7.6)
+      '@solid-primitives/utils': 6.1.0(solid-js@1.7.6)
       solid-js: 1.7.6
     dev: false
 

@@ -55,7 +55,7 @@ type MatrixRoot = {
   rectPosition: Accessor<vec2 | undefined>
 }
 
-type LayoutObserverReturn = {
+type LayoutModelReturn = {
   setTransform(element: HTMLElement, transform: mat2d | undefined): void
   useRect(element: MaybeAccessor<HTMLElement | null | undefined>): Accessor<DOMRect | undefined>
   useMatrix(element: MaybeAccessor<HTMLElement | null | undefined>): Accessor<mat2d | undefined>
@@ -65,7 +65,7 @@ type LayoutObserverReturn = {
   invalidateParent(element: HTMLElement): void
 }
 
-const layoutObserverStub: LayoutObserverReturn = {
+const layoutModelStub: LayoutModelReturn = {
   setTransform() {},
   useRect() {
     return () => undefined
@@ -83,7 +83,7 @@ const layoutObserverStub: LayoutObserverReturn = {
 
 const identity = mat2d.identity(mat2d.create())
 
-export function createLayoutObserver(root: HTMLElement): LayoutObserverReturn {
+export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
   const transformMap = new ReactiveMap<HTMLElement, mat2d>()
 
   createResizeObserver(
@@ -325,21 +325,21 @@ export function createLayoutObserver(root: HTMLElement): LayoutObserverReturn {
   }
 }
 
-export const useLayoutObserver = createSingletonRoot<LayoutObserverReturn>(() => {
+export const useLayoutModel = createSingletonRoot<LayoutModelReturn>(() => {
   return (
     withDocument(document => {
-      return createLayoutObserver(document.documentElement)
-    }) ?? layoutObserverStub
+      return createLayoutModel(document.documentElement)
+    }) ?? layoutModelStub
   )
 })
 
-export class LayoutObserver {
-  #observer: LayoutObserverReturn
+export class LayoutModel {
+  #observer: LayoutModelReturn
   #dispose: () => void
 
   constructor(root: HTMLElement) {
     const { observer, dispose } = createRoot(dispose => {
-      const observer = createLayoutObserver(root)
+      const observer = createLayoutModel(root)
       return { observer, dispose }
     })
 

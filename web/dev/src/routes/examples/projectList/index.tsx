@@ -1,5 +1,5 @@
 import classes from './index.module.css'
-import { For, Show, createEffect, createSignal } from 'solid-js'
+import { For, createEffect, createSignal } from 'solid-js'
 import { A } from 'solid-start'
 import { imageOptions } from '~/data/images'
 import { projects } from '~/data/projects'
@@ -12,7 +12,7 @@ import {
 } from '@chloranthy/solid'
 import { Quad2d, Rect } from '@chloranthy/core'
 import { vec2 } from 'gl-matrix'
-import { useLayoutObserver } from '@chloranthy/layout-observer'
+import { useLayoutModel } from '@chloranthy/layout-model'
 import { TransitionCallback, createListTransition } from '~/lib/transition-group'
 
 quad
@@ -30,8 +30,8 @@ function Image(props: {
   useExit: (callback: TransitionCallback) => void
 }) {
   const [element, setElement] = createSignal<HTMLDivElement>()
-  const layoutObserver = useLayoutObserver()
-  const rect = layoutObserver.useRect(element)
+  const layoutModel = useLayoutModel()
+  const rect = layoutModel.useRect(element)
 
   const childQuad = createMaybeMemo(Quad2d.fromRect, Quad2d.create(), rect)
 
@@ -64,8 +64,8 @@ export default function ProjectListIndex() {
 
   const mousePosition = createMousePosition()
 
-  const layoutObserver = useLayoutObserver()
-  const imageContainerRect = layoutObserver.useRect(imageContainerElement)
+  const layoutModel = useLayoutModel()
+  const imageContainerRect = layoutModel.useRect(imageContainerElement)
   const imageContainerFitRect = createMaybeMemo(
     Rect.setAspectRatio,
     Rect.create(),

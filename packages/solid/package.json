@@ -64,7 +64,7 @@
   },
   "dependencies": {
     "@chloranthy/core": "workspace:*",
-    "@chloranthy/layout-observer": "workspace:*",
+    "@chloranthy/layout-model": "workspace:*",
     "@solid-primitives/mouse": "2.0.14",
     "@solid-primitives/raf": "2.1.10",
     "@solid-primitives/resize-observer": "2.0.15",
