@@ -1,5 +1,5 @@
 {
-  "name": "@chloranthy/animation",
+  "name": "chloranthy",
   "version": "0.0.1",
   "description": "",
   "license": "MIT",
@@ -54,5 +54,8 @@
   },
   "dependencies": {
     "gl-matrix": "3.4.3"
+  },
+  "devDependencies": {
+    "typedoc": "0.24.8"
   }
 }
