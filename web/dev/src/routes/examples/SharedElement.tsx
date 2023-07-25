@@ -2,7 +2,7 @@ import classes from './SharedElement.module.css'
 import { createSignal } from 'solid-js'
 import { xprod } from 'ramda'
 import { quad, borderRadius, createMaybeMemo, createTransition } from '@chloranthy/solid'
-import { Quad2d, Rect } from '@chloranthy/animation'
+import { Quad2d, Rect } from '@chloranthy/core'
 import { useLayoutObserver } from '@chloranthy/layout-observer'
 import { mat2d, vec2 } from 'gl-matrix'
 

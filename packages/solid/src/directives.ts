@@ -1,5 +1,5 @@
 import { Directive } from '@solid-primitives/utils'
-import { Mat2d, Quad2d, Rect } from '@chloranthy/animation'
+import { Mat2d, Quad2d, Rect } from '@chloranthy/core'
 import { mat2d } from 'gl-matrix'
 import { useLayoutObserver } from '@chloranthy/layout-observer'
 import { createEffect } from 'solid-js'

@@ -63,7 +63,7 @@
     "solid-js": "^1.6.0"
   },
   "dependencies": {
-    "@chloranthy/animation": "workspace:*",
+    "@chloranthy/core": "workspace:*",
     "@chloranthy/layout-observer": "workspace:*",
     "@solid-primitives/mouse": "2.0.14",
     "@solid-primitives/raf": "2.1.10",

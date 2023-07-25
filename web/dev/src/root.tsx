@@ -14,7 +14,7 @@ import {
 import '@nonphoto/css/reset.css'
 import './root.css'
 import Header from './components/Header'
-import { Quad2d } from '@chloranthy/animation'
+import { Quad2d } from '@chloranthy/core'
 
 declare module 'solid-js' {
   namespace JSX {

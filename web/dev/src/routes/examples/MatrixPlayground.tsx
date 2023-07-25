@@ -3,7 +3,7 @@ import classes from './MatrixPlayground.module.css'
 import { createEffect } from 'solid-js'
 import { maybe } from '@chloranthy/solid'
 import { mat2d } from 'gl-matrix'
-import { Quad2d } from '@chloranthy/animation'
+import { Quad2d } from '@chloranthy/core'
 
 export default function MatrixPlayground() {
   const sourceElement = (<div class={classes.source} />) as HTMLElement

@@ -1,6 +1,6 @@
 import classes from './ScrollingLayout.module.css'
 import { transform } from '@chloranthy/solid'
-import { Rect } from '@chloranthy/animation'
+import { Rect } from '@chloranthy/core'
 import { createRAF } from '@solid-primitives/raf'
 import { mat2d } from 'gl-matrix'
 import { createEffect, createMemo, createSignal } from 'solid-js'

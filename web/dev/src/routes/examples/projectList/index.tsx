@@ -10,7 +10,7 @@ import {
   createMousePosition,
   createTransition,
 } from '@chloranthy/solid'
-import { Quad2d, Rect } from '@chloranthy/animation'
+import { Quad2d, Rect } from '@chloranthy/core'
 import { vec2 } from 'gl-matrix'
 import { useLayoutObserver } from '@chloranthy/layout-observer'
 import { TransitionCallback, createListTransition } from '~/lib/transition-group'

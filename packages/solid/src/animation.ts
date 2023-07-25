@@ -3,7 +3,7 @@ import { createRAF } from '@solid-primitives/raf'
 import { createMousePosition as createMousePositionStore } from '@solid-primitives/mouse'
 import { maybe, safeWindow } from './utils'
 import { vec2 } from 'gl-matrix'
-import { Body2d } from '@chloranthy/animation'
+import { Body2d } from '@chloranthy/core'
 
 export function createTimeCallback(fn: (time: number, deltaTime: number) => void) {
   let time = performance.now()

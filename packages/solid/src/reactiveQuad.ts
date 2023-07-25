@@ -1,6 +1,6 @@
-import { Quad } from '@chloranthy/animation'
+import { Quad } from '@chloranthy/core'
 import { Accessor } from 'solid-js'
-import { Maybe, createMaybeMemo } from './utils'
+import { MaybeAccessor, createMaybeMemo } from './utils'
 
 export class ReactiveQuad {
   value: Accessor<Quad | undefined>
@@ -13,27 +13,27 @@ export class ReactiveQuad {
     return new ReactiveQuad(Quad.create)
   }
 
-  static fromDOMRect(source: Maybe<DOMRect>): ReactiveQuad {
+  static fromDOMRect(source: MaybeAccessor<DOMRect>): ReactiveQuad {
     return new ReactiveQuad(Quad.fromDOMRect, source)
   }
 
   static fit(
-    source: Maybe<Quad>,
-    target: Maybe<Quad>,
+    source: MaybeAccessor<Quad>,
+    target: MaybeAccessor<Quad>,
     compare: (a: number, b: number) => number,
   ): ReactiveQuad {
     return new ReactiveQuad(Quad.fit, source, target, () => compare)
   }
 
-  static contain(source: Maybe<Quad>, target: Maybe<Quad>): ReactiveQuad {
+  static contain(source: MaybeAccessor<Quad>, target: MaybeAccessor<Quad>): ReactiveQuad {
     return new ReactiveQuad(Quad.contain, source, target)
   }
 
-  static cover(source: Maybe<Quad>, target: Maybe<Quad>): ReactiveQuad {
+  static cover(source: MaybeAccessor<Quad>, target: MaybeAccessor<Quad>): ReactiveQuad {
     return new ReactiveQuad(Quad.cover, source, target)
   }
 
-  static copy(a: Maybe<Quad>): ReactiveQuad {
+  static copy(a: MaybeAccessor<Quad>): ReactiveQuad {
     return new ReactiveQuad(Quad.copy, a)
   }
 
@@ -41,15 +41,15 @@ export class ReactiveQuad {
     return new ReactiveQuad(Quad.zero)
   }
 
-  fit(target: Maybe<Quad>, compare: (a: number, b: number) => number): ReactiveQuad {
+  fit(target: MaybeAccessor<Quad>, compare: (a: number, b: number) => number): ReactiveQuad {
     return new ReactiveQuad(Quad.fit, this.value, target, () => compare)
   }
 
-  contain(target: Maybe<Quad>): ReactiveQuad {
+  contain(target: MaybeAccessor<Quad>): ReactiveQuad {
     return new ReactiveQuad(Quad.contain, this.value, target)
   }
 
-  cover(target: Maybe<Quad>): ReactiveQuad {
+  cover(target: MaybeAccessor<Quad>): ReactiveQuad {
     return new ReactiveQuad(Quad.cover, this.value, target)
   }
 }
