@@ -32,8 +32,6 @@ import { createMutationObserver } from '@solid-primitives/mutation-observer'
 import { createResizeObserver } from '@solid-primitives/resize-observer'
 import { createSingletonRoot } from '@solid-primitives/rootless'
 
-export * from './computedStyle'
-
 type RectRoot = {
   rect: Accessor<DOMRect | undefined>
   invalidate(): void
@@ -55,13 +53,59 @@ type MatrixRoot = {
   rectPosition: Accessor<vec2 | undefined>
 }
 
-type LayoutModelReturn = {
+export type { Accessor }
+
+/**
+ * The return type of {@link createLayoutModel}.
+ */
+export type LayoutModelReturn = {
+  /**
+   * Sets the transform property of an element.
+   * @param element - The element to set the transform of.
+   * @param transform - The transform to set on the element.
+   */
   setTransform(element: HTMLElement, transform: mat2d | undefined): void
+
+  /**
+   * Returns an accessor for the layout rect of an element.
+   * The layout rect is a document relative DOMRect; it is equivalent to calling `element.getBoundingClientRect()` when the transform properties and scroll positions of all elements in the document are unset. The accessor updates whenever the DOMRect changes.
+   * @param element - The element to get the layout rect accessor of.
+   * @returns An accessor that returns the layout rect of the element.
+   */
   useRect(element: MaybeAccessor<HTMLElement | null | undefined>): Accessor<DOMRect | undefined>
+
+  /**
+   * Returns an accessor for the view matrix of the element.
+   * The view matrix represents all affine transformations of an element applied to the layout rect of the element, including the scroll translations and transforms of all of its ancestors. The accessor updates whenever the calculated view matrix changes.
+   * @remarks Premultiplying the layout rect by the view matrix will result in a quad representing the exact placement of the element on screen.
+   * @param element - The element to get the view matrix accessor of.
+   * @returns An accessor that returns the view matrix of the element.
+   */
   useMatrix(element: MaybeAccessor<HTMLElement | null | undefined>): Accessor<mat2d | undefined>
+
+  /**
+   * Returns an accessor for transformation matrix of an element, as set by `setTransform`.
+   * @param element - The element to get the transform property accessor of.
+   * @returns An accessor that returns the transformation matrix of the element.
+   */
   useTransform(element: MaybeAccessor<HTMLElement | null | undefined>): Accessor<mat2d | undefined>
+
+  /**
+   * Invalidate the measured layout rect of the element, causing the layout model to remeasure it. This can sometimes be necessary if it's position in the layout changed without its width or height changing.
+   * @param element - The element to invalidate.
+   */
   invalidateRect(element: HTMLElement): void
+
+  /**
+   * Invalidate the measured overflow property of the element, causing the layout model to rebind scroll event listeners. This can sometimes be necessary if the element's `overflow` style property changed from `auto` or `scroll` to `hidden`, or vice versa.
+   * @param element - The element to invalidate.
+   */
   invalidateScroll(element: HTMLElement): void
+
+  /**
+   * Invalidate the offset parent of the element, causing the layout model to recalculate the parent tree. This can sometimes be necessary if the offset parent of the element changed due to the `position` property of the element or one of its ancestors changing.
+   * @param element - The element to invalidate.
+   */
   invalidateParent(element: HTMLElement): void
 }
 
@@ -83,6 +127,10 @@ const layoutModelStub: LayoutModelReturn = {
 
 const identity = mat2d.identity(mat2d.create())
 
+/**
+ * Creates a new layout model from the root element. The layout model will track changes to the layout rects and view matrices of elements in the document.
+ * @param root - The root element of the document.
+ */
 export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
   const transformMap = new ReactiveMap<HTMLElement, mat2d>()
 
@@ -325,6 +373,10 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
   }
 }
 
+/**
+ * Returns a layout model created from the document element. Subsequent calls will return the same layout model.
+ * @returns The layout model.
+ */
 export const useLayoutModel = createSingletonRoot<LayoutModelReturn>(() => {
   return (
     withDocument(document => {
@@ -333,10 +385,17 @@ export const useLayoutModel = createSingletonRoot<LayoutModelReturn>(() => {
   )
 })
 
+/**
+ * A layout model that tracks changes to the layout rects and view matrices of elements in the document.
+ */
 export class LayoutModel {
   #observer: LayoutModelReturn
   #dispose: () => void
 
+  /**
+   * Creates a new layout model from the root element.
+   * @param root - The root element of the document.
+   */
   constructor(root: HTMLElement) {
     const { observer, dispose } = createRoot(dispose => {
       const observer = createLayoutModel(root)
@@ -347,30 +406,56 @@ export class LayoutModel {
     this.#dispose = dispose
   }
 
+  /**
+   * Properly disposes the reactive graph for this layout model.
+   */
   dispose(): void {
     this.#dispose()
   }
 
+  /**
+   * Sets the transform property of an element.
+   * @param element - The element to set the transform of.
+   * @param transform - The transform to set on the element.
+   */
   setTransform(element: HTMLElement, transform: mat2d): void {
     this.#observer.setTransform(element, transform)
   }
 
+  /**
+   * @returns A disposing function. Calling the function disposes the reactive graph for the callback.
+   */
   useRect(element: HTMLElement, callback: (rect: DOMRect | undefined) => void): () => void {
     return createDisposableEffect(() => this.#observer.useRect(element), callback)
   }
 
+  /**
+   * @returns A disposing function. Calling the function disposes the reactive graph for the callback.
+   */
   useMatrix(element: HTMLElement, callback: (rect: mat2d | undefined) => void): () => void {
     return createDisposableEffect(() => this.#observer.useMatrix(element), callback)
   }
 
+  /**
+   * Invalidate the measured layout rect of the element, causing the layout model to remeasure it. This can sometimes be necessary if it's position in the layout changed without its width or height changing.
+   * @param element - The element to invalidate.
+   */
   invalidateRect(element: HTMLElement) {
     this.#observer.invalidateRect(element)
   }
 
+  /**
+   * Invalidate the measured overflow property of the element, causing the layout model to rebind scroll event listeners. This can sometimes be necessary if the element's `overflow` style property changed from `auto` or `scroll` to `hidden`, or vice versa.
+   * @param element - The element to invalidate.
+   */
   invalidateScroll(element: HTMLElement) {
     this.#observer.invalidateScroll(element)
   }
 
+  /**
+   * Invalidate the offset parent of the element, causing the layout model to recalculate the parent tree. This can sometimes be necessary if the offset parent of the element changed due to the `position` property of the element or one of its ancestors changing.
+   * @param element - The element to invalidate.
+   */
   invalidateParent(element: HTMLElement) {
     this.#observer.invalidateParent(element)
   }
