@@ -1,6 +1,5 @@
 export * as Body from './body'
 export * as Body1d from './body1d'
 export * as Body2d from './body2d'
-export * as Spring from './spring'
 export * as Rect from './rect'
 export * as Quad2d from './quad2d'
