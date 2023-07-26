@@ -47,7 +47,7 @@
   "scripts": {
     "dev": "tsup --watch",
     "build": "tsup",
-    "typedoc": "typedoc src/index.ts",
+    "docs": "typedoc src/index.ts",
     "test": "concurrently pnpm:test:*",
     "test:client": "vitest -c ../../configs/vitest.config.ts",
     "test:ssr": "pnpm run test:client --mode ssr",

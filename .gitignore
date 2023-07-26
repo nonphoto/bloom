@@ -1,6 +1,7 @@
 node_modules
 dist
 gitignore
+docs
 
 # debug
 npm-debug.log*

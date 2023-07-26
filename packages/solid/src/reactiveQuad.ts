@@ -1,55 +1,56 @@
-import { Quad } from '@chloranthy/core'
+import { Quad2d, Rect } from '@chloranthy/core'
 import { Accessor } from 'solid-js'
 import { MaybeAccessor, createMaybeMemo } from './utils'
 
-export class ReactiveQuad {
-  value: Accessor<Quad | undefined>
+export class ReactiveQuad2d {
+  value: Accessor<Quad2d.Type | undefined>
 
   constructor(...args: Parameters<typeof createMaybeMemo>) {
     this.value = createMaybeMemo(...args)
   }
 
-  static create(): ReactiveQuad {
-    return new ReactiveQuad(Quad.create)
+  static create(): ReactiveQuad2d {
+    return new ReactiveQuad2d(Quad2d.create)
   }
 
-  static fromDOMRect(source: MaybeAccessor<DOMRect>): ReactiveQuad {
-    return new ReactiveQuad(Quad.fromDOMRect, source)
+  static fromRect(source: MaybeAccessor<Rect.Type>): ReactiveQuad2d {
+    return new ReactiveQuad2d(Quad2d.fromRect, source)
   }
 
   static fit(
-    source: MaybeAccessor<Quad>,
-    target: MaybeAccessor<Quad>,
+    source: MaybeAccessor<Quad2d.Type>,
+    target: MaybeAccessor<Quad2d.Type>,
     compare: (a: number, b: number) => number,
-  ): ReactiveQuad {
-    return new ReactiveQuad(Quad.fit, source, target, () => compare)
+  ): ReactiveQuad2d {
+    return new ReactiveQuad2d(Quad2d.fit, source, target, () => compare)
   }
 
-  static contain(source: MaybeAccessor<Quad>, target: MaybeAccessor<Quad>): ReactiveQuad {
-    return new ReactiveQuad(Quad.contain, source, target)
+  static contain(
+    source: MaybeAccessor<Quad2d.Type>,
+    target: MaybeAccessor<Quad2d.Type>,
+  ): ReactiveQuad2d {
+    return new ReactiveQuad2d(Quad2d.contain, source, target)
   }
 
-  static cover(source: MaybeAccessor<Quad>, target: MaybeAccessor<Quad>): ReactiveQuad {
-    return new ReactiveQuad(Quad.cover, source, target)
+  static cover(
+    source: MaybeAccessor<Quad2d.Type>,
+    target: MaybeAccessor<Quad2d.Type>,
+  ): ReactiveQuad2d {
+    return new ReactiveQuad2d(Quad2d.cover, source, target)
   }
 
-  static copy(a: MaybeAccessor<Quad>): ReactiveQuad {
-    return new ReactiveQuad(Quad.copy, a)
+  fit(
+    target: MaybeAccessor<Quad2d.Type>,
+    compare: (a: number, b: number) => number,
+  ): ReactiveQuad2d {
+    return new ReactiveQuad2d(Quad2d.fit, this.value, target, () => compare)
   }
 
-  static zero(): ReactiveQuad {
-    return new ReactiveQuad(Quad.zero)
+  contain(target: MaybeAccessor<Quad2d.Type>): ReactiveQuad2d {
+    return new ReactiveQuad2d(Quad2d.contain, this.value, target)
   }
 
-  fit(target: MaybeAccessor<Quad>, compare: (a: number, b: number) => number): ReactiveQuad {
-    return new ReactiveQuad(Quad.fit, this.value, target, () => compare)
-  }
-
-  contain(target: MaybeAccessor<Quad>): ReactiveQuad {
-    return new ReactiveQuad(Quad.contain, this.value, target)
-  }
-
-  cover(target: MaybeAccessor<Quad>): ReactiveQuad {
-    return new ReactiveQuad(Quad.cover, this.value, target)
+  cover(target: MaybeAccessor<Quad2d.Type>): ReactiveQuad2d {
+    return new ReactiveQuad2d(Quad2d.cover, this.value, target)
   }
 }

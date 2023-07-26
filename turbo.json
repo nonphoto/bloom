@@ -10,6 +10,7 @@
     },
     "typecheck": {
       "dependsOn": ["^build"]
-    }
+    },
+    "docs": {}
   }
 }

@@ -1,11 +1,11 @@
 import { Directive } from '@solid-primitives/utils'
-import { Mat2d, Quad2d, Rect } from '@chloranthy/core'
+import { Quad2d, Rect } from '@chloranthy/core'
 import { mat2d } from 'gl-matrix'
 import { useLayoutModel } from '@chloranthy/layout-model'
 import { createEffect } from 'solid-js'
 import { createMaybeMemo, maybe, styleBorderRadius } from './utils'
 
-export const transform: Directive<Mat2d.Type | undefined> = (target, value) => {
+export const transform: Directive<mat2d | undefined> = (target, value) => {
   if (target instanceof HTMLElement) {
     const layout = useLayoutModel()
 
