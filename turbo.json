@@ -11,6 +11,9 @@
     "typecheck": {
       "dependsOn": ["^build"]
     },
-    "docs": {}
+    "docs": {
+      "dependsOn": ["^build"],
+      "outputs": ["docs/**"]
+    }
   }
 }
