@@ -1,25 +1,25 @@
-import { Accessor, onCleanup, untrack } from "solid-js";
+import { Accessor, onCleanup, untrack } from 'solid-js'
 
 export function makeSetItem<T>(set: Set<T>, item: T) {
-  set.add(item);
+  set.add(item)
   onCleanup(() => {
-    set.delete(item);
-  });
+    set.delete(item)
+  })
 }
 
 export function arrayEquals<T extends Array<unknown>>(a: T, b: T): boolean {
-  if (a.length !== b.length) return false;
+  if (a.length !== b.length) return false
   for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) return false;
+    if (a[i] !== b[i]) return false
   }
-  return true;
+  return true
 }
 
 export function trackTransitionPending(isPending: Accessor<boolean>, callback: () => void): void {
   if (untrack(isPending)) {
-    isPending();
-    return;
+    isPending()
+    return
   } else {
-    callback();
+    callback()
   }
 }

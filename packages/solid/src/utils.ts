@@ -2,14 +2,23 @@ import { MaybeAccessor as SolidMaybeAccessor, access } from '@solid-primitives/u
 import { Accessor, createMemo } from 'solid-js'
 import { mat2d } from 'gl-matrix'
 
+/**
+ * @private
+ */
 export type MaybeAccessor<T> = SolidMaybeAccessor<T>
 
+/**
+ * @private
+ */
 export type MapMaybeAccessor<T> = T extends any[]
   ? {
       [K in keyof T]: MaybeAccessor<T[K] | undefined>
     }
   : never
 
+/**
+ * @private
+ */
 export function maybe<F extends (...args: any[]) => any>(
   fn: F,
   ...args: MapMaybeAccessor<Parameters<F>>
@@ -20,6 +29,9 @@ export function maybe<F extends (...args: any[]) => any>(
   }
 }
 
+/**
+ * @private
+ */
 export function createMaybeMemo<F extends (...args: any[]) => any>(
   fn: F,
   ...args: MapMaybeAccessor<Parameters<F>>
@@ -29,12 +41,18 @@ export function createMaybeMemo<F extends (...args: any[]) => any>(
   })
 }
 
+/**
+ * @private
+ */
 export function styleBorderRadius(radius: number, rect: DOMRect, transform: mat2d) {
   const x = (radius / (rect.width * transform[0])) * 100
   const y = (radius / (rect.height * transform[3])) * 100
   return `${x}% / ${y}%`
 }
 
+/**
+ * @private
+ */
 export function safeWindow() {
   return typeof window !== 'undefined' ? window : undefined
 }

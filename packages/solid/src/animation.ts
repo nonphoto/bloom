@@ -5,7 +5,18 @@ import { maybe, safeWindow } from './utils'
 import { vec2 } from 'gl-matrix'
 import { Body2d } from '@chloranthy/core'
 
-export function createTimeCallback(fn: (time: number, deltaTime: number) => void) {
+/**
+ * A callback for an animation frame.
+ * @param time - The time that the animation frame occurred.
+ * @param deltaTime - The time since the last animation frame occurred.
+ */
+export type TimeCallback = (time: number, deltaTime: number) => void
+
+/**
+ * Creates a new effect that calls the callback on every animation frame.
+ * @param fn - The callback to call on animation frame.
+ */
+export function createTimeCallback(fn: TimeCallback): void {
   let time = performance.now()
   let deltaTime = 0
   const startTime = time
@@ -21,8 +32,24 @@ export function createTimeCallback(fn: (time: number, deltaTime: number) => void
   })
 }
 
-type CreateTimeReturn = [Accessor<number>, Accessor<number>]
+/**
+ * A time and delta-time accessor pair.
+ */
+export type CreateTimeReturn = [
+  /**
+   * The time that the animation frame occurred. Updates every animation frame.
+   */
+  Accessor<number>,
 
+  /**
+   * The time since the last animation frame occurred. Updates every animation frame.
+   */
+  Accessor<number>,
+]
+
+/**
+ * Creates a new time and delta-time accessor pair.
+ */
 export function createTime(): CreateTimeReturn {
   const [time, setTime] = createSignal(0, { equals: false })
   const [deltaTime, setDeltaTime] = createSignal(0, { equals: false })
@@ -37,7 +64,11 @@ export function createTime(): CreateTimeReturn {
   return [time, deltaTime]
 }
 
-export function createMousePosition() {
+/**
+ * Creates a signal for the position of the mouse on screen.
+ * @returns An accessor that returns the screen-relative mouse position as a 2d vector.
+ */
+export function createMousePosition(): Accessor<vec2> {
   const store = createMousePositionStore()
 
   return createMemo<vec2>(
@@ -48,6 +79,12 @@ export function createMousePosition() {
   )
 }
 
+/**
+ * Create a new real-time spring transition to the target value.
+ * @param target - An accessor for the target position
+ * @param halflife - The halflife of the transition spring.
+ * @returns A 2d body representing the current position and velocity of the spring.
+ */
 export function createTransition(
   target: Accessor<vec2 | undefined>,
   halflife: number,
