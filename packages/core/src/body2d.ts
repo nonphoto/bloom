@@ -1,7 +1,7 @@
 import { glMatrix, vec2 } from 'gl-matrix'
 import { Body } from './body'
-import * as Body1d from './body1d'
-import * as Spring from './spring'
+import { Instance as Body1dInstance } from './body1d'
+import { spring as coreSpring, simpleSpring as coreSimpleSpring } from '@nonphoto/spring'
 
 /**
  * A 2-dimensional physics body
@@ -19,16 +19,16 @@ export class Instance implements Type {
   /**
    * The 1-dimensional body representing the x axis.
    */
-  x: Body1d.Instance
+  x: Body1dInstance
 
   /**
    * The 1-dimensional body representing the y axis.
    */
-  y: Body1d.Instance
+  y: Body1dInstance
 
   constructor() {
     const self = this
-    this.x = Object.defineProperties(new Body1d.Instance(), {
+    this.x = Object.defineProperties(new Body1dInstance(), {
       p: {
         get() {
           return self.p[0]
@@ -46,7 +46,7 @@ export class Instance implements Type {
         },
       },
     })
-    this.y = Object.defineProperties(new Body1d.Instance(), {
+    this.y = Object.defineProperties(new Body1dInstance(), {
       p: {
         get() {
           return self.p[1]
@@ -98,7 +98,7 @@ export function spring(
   dampingRatio: number,
   dt: number,
 ) {
-  Spring.spring(
+  coreSpring(
     out.p,
     0,
     out.v,
@@ -111,7 +111,7 @@ export function spring(
     dampingRatio,
     dt,
   )
-  Spring.spring(
+  coreSpring(
     out.p,
     1,
     out.v,
@@ -146,7 +146,7 @@ export function simpleSpring(
   halflife: number,
   dt: number,
 ) {
-  Spring.simpleSpring(out.p, 0, out.v, 0, start.p[0], start.v[0], end[0], halflife, dt)
-  Spring.simpleSpring(out.p, 1, out.v, 1, start.p[1], start.v[1], end[1], halflife, dt)
+  coreSimpleSpring(out.p, 0, out.v, 0, start.p[0], start.v[0], end[0], halflife, dt)
+  coreSimpleSpring(out.p, 1, out.v, 1, start.p[1], start.v[1], end[1], halflife, dt)
   return out
 }

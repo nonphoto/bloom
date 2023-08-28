@@ -54,6 +54,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@nonphoto/spring": "0.0.3",
     "gl-matrix": "3.4.3"
   },
   "devDependencies": {

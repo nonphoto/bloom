@@ -9,7 +9,6 @@ export default defineConfig({
     'src/body2d.ts',
     'src/quad2d.ts',
     'src/rect.ts',
-    'src/spring.ts',
   ],
   dts: true,
 })

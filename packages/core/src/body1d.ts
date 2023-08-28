@@ -1,5 +1,5 @@
 import { Body } from './body'
-import * as Spring from './spring'
+import { spring as coreSpring } from '@nonphoto/spring'
 import { glMatrix } from 'gl-matrix'
 
 /**
@@ -59,6 +59,6 @@ export function spring(
   dampingRatio: number,
   dt: number,
 ) {
-  Spring.spring(out, 'p', out, 'v', start.p, start.v, end.p, end.v, halflife, dampingRatio, dt)
+  coreSpring(out, 'p', out, 'v', start.p, start.v, end.p, end.v, halflife, dampingRatio, dt)
   return out
 }
