@@ -1,9 +1,20 @@
 import { Directive } from '@solid-primitives/utils'
-import { Quad2d, Rect } from '@chloranthy/core'
-import { mat2d } from 'gl-matrix'
+import {
+  Quad2d,
+  create as quad2dCreate,
+  fromRect as quad2dFromRect,
+  untransformMat2d as quad2dUntransformMat2d,
+} from '@chloranthy/core/quad2d'
+import { Rect } from '@chloranthy/core/rect'
+import type { mat2d } from 'gl-matrix'
+import {
+  multiply as mat2dMultiply,
+  create as mat2dCreate,
+  invert as mat2dInvert,
+} from 'gl-matrix/esm/mat2d.js'
 import { useLayoutModel } from '@chloranthy/layout-model'
 import { createEffect } from 'solid-js'
-import { createMaybeMemo, maybe, styleBorderRadius } from './utils'
+import { createMaybeMemo, maybe, styleBorderRadius } from './utils.js'
 
 /**
  * A directive for setting the transformation matrix of an element.
@@ -34,7 +45,7 @@ export const borderRadius: Directive<number | undefined> = (target, value) => {
     const matrix = layout.useMatrix(target)
     const transform = layout.useTransform(target)
 
-    const totalTransform = createMaybeMemo(mat2d.multiply, mat2d.create(), matrix, transform)
+    const totalTransform = createMaybeMemo(mat2dMultiply, mat2dCreate(), matrix, transform)
 
     createEffect(() => {
       target.style.borderRadius = maybe(styleBorderRadius, value, rect, totalTransform) ?? ''
@@ -48,7 +59,7 @@ export const borderRadius: Directive<number | undefined> = (target, value) => {
  * @param target - The target element.
  * @param value - The quad to set on the element's transform to.
  */
-export const quad: Directive<Quad2d.Type | undefined> = (target, value) => {
+export const quad: Directive<Quad2d | undefined> = (target, value) => {
   if (target instanceof HTMLElement) {
     const layout = useLayoutModel()
     const rect = layout.useRect(target)
@@ -58,19 +69,19 @@ export const quad: Directive<Quad2d.Type | undefined> = (target, value) => {
       (
         out: mat2d,
         inverseMatrix: mat2d,
-        quad: Quad2d.Type,
+        quad: Quad2d,
         matrix: mat2d,
-        rect: Rect.Type,
-        value: Quad2d.Type,
+        rect: Rect,
+        value: Quad2d,
       ) => {
-        Quad2d.fromRect(quad, rect)
-        Quad2d.untransformMat2d(out, quad, value)
-        mat2d.invert(inverseMatrix, matrix)
-        return mat2d.multiply(out, inverseMatrix, out)
+        quad2dFromRect(quad, rect)
+        quad2dUntransformMat2d(out, quad, value)
+        mat2dInvert(inverseMatrix, matrix)
+        return mat2dMultiply(out, inverseMatrix, out)
       },
-      mat2d.create(),
-      mat2d.create(),
-      Quad2d.create(),
+      mat2dCreate(),
+      mat2dCreate(),
+      quad2dCreate(),
       matrix,
       rect,
       value,

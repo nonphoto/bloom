@@ -1,5 +1,6 @@
 import { MaybeAccessor, access } from '@solid-primitives/utils'
-import { mat2d, vec2 } from 'gl-matrix'
+import type { mat2d, vec2 } from 'gl-matrix'
+import { set as vec2Set } from 'gl-matrix/esm/vec2.js'
 import { createEffect, createRoot } from 'solid-js'
 
 export type MapMaybeAccessor<T> = T extends any[]
@@ -50,7 +51,7 @@ export function getScaling(out: vec2, a: mat2d) {
 }
 
 export function center(out: vec2, rect: DOMRect) {
-  return vec2.set(out, rect.x + rect.width / 2, rect.y + rect.height / 2)
+  return vec2Set(out, rect.x + rect.width / 2, rect.y + rect.height / 2)
 }
 
 export function mat2dFromNegativeTranslation(out: mat2d, a: vec2) {

@@ -1,34 +1,27 @@
-import { glMatrix, vec2 } from 'gl-matrix'
-import { Body } from './body'
-import { Instance as Body1dInstance } from './body1d'
+import { equals } from 'gl-matrix/esm/common.js'
+import type { vec2 } from 'gl-matrix'
+import { create as vec2Create } from 'gl-matrix/esm/vec2.js'
+import { Body } from './body.js'
+import { Body1d, create as body1dCreate } from './body1d.js'
 import { spring as coreSpring, simpleSpring as coreSimpleSpring } from '@nonphoto/spring'
 
 /**
  * A 2-dimensional physics body
  */
-export interface Type extends Body<vec2> {}
+export interface Body2d extends Body<vec2> {
+  x: Body1d
+  y: Body1d
+}
 
 /**
  * Creates a new 2-dimensional physics body.
  * @remarks The x and y properties of the body are proxied to p and v properties' x and y components.
  */
-export class Instance implements Type {
-  p = vec2.create()
-  v = vec2.create()
-
-  /**
-   * The 1-dimensional body representing the x axis.
-   */
-  x: Body1dInstance
-
-  /**
-   * The 1-dimensional body representing the y axis.
-   */
-  y: Body1dInstance
-
-  constructor() {
-    const self = this
-    this.x = Object.defineProperties(new Body1dInstance(), {
+export function create(): Body2d {
+  const self: Body2d = {
+    p: vec2Create(),
+    v: vec2Create(),
+    x: Object.defineProperties(body1dCreate(), {
       p: {
         get() {
           return self.p[0]
@@ -45,8 +38,8 @@ export class Instance implements Type {
           self.v[0] = value
         },
       },
-    })
-    this.y = Object.defineProperties(new Body1dInstance(), {
+    }),
+    y: Object.defineProperties(body1dCreate(), {
       p: {
         get() {
           return self.p[1]
@@ -63,19 +56,21 @@ export class Instance implements Type {
           self.v[1] = value
         },
       },
-    })
+    }),
   }
+
+  return self
 }
 
 /**
  * Returns true if the body is at rest.
  */
-export function isAtRest(body: Readonly<Type>, p: vec2): boolean {
+export function isAtRest(body: Readonly<Body2d>, p: vec2): boolean {
   return (
-    glMatrix.equals(body.p[0], p[0]) &&
-    glMatrix.equals(body.p[1], p[1]) &&
-    glMatrix.equals(body.v[0], 0) &&
-    glMatrix.equals(body.v[1], 0)
+    equals(body.p[0], p[0]) &&
+    equals(body.p[1], p[1]) &&
+    equals(body.v[0], 0) &&
+    equals(body.v[1], 0)
   )
 }
 
@@ -91,9 +86,9 @@ export function isAtRest(body: Readonly<Type>, p: vec2): boolean {
  * @returns The receiving body with the spring force applied over the elapsed time.
  */
 export function spring(
-  out: Type,
-  start: Readonly<Type>,
-  end: Readonly<Type>,
+  out: Body2d,
+  start: Readonly<Body2d>,
+  end: Readonly<Body2d>,
   halflife: number,
   dampingRatio: number,
   dt: number,
@@ -140,8 +135,8 @@ export function spring(
  * @returns The receiving body with the spring force applied over the elapsed time.
  */
 export function simpleSpring(
-  out: Type,
-  start: Readonly<Type>,
+  out: Body2d,
+  start: Readonly<Body2d>,
   end: Readonly<vec2>,
   halflife: number,
   dt: number,

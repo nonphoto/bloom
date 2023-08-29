@@ -1,3 +1,3 @@
-export * from './animation'
-export * from './directives'
-export * from './utils'
+export * from './animation.js'
+export * from './directives.js'
+export * from './utils.js'

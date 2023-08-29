@@ -1,14 +1,8 @@
-// import { defineConfig } from 'tsup-preset-solid'
 import { defineConfig } from 'tsup'
 
 export default defineConfig({
-  entry: [
-    'src/index.ts',
-    'src/body.ts',
-    'src/body1d.ts',
-    'src/body2d.ts',
-    'src/quad2d.ts',
-    'src/rect.ts',
-  ],
+  entry: ['src/index.ts', 'src/body1d.ts', 'src/body2d.ts', 'src/quad2d.ts', 'src/rect.ts'],
+  format: 'esm',
   dts: true,
+  clean: true,
 })

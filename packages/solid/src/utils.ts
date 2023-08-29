@@ -1,6 +1,6 @@
 import { MaybeAccessor as SolidMaybeAccessor, access } from '@solid-primitives/utils'
 import { Accessor, createMemo } from 'solid-js'
-import { mat2d } from 'gl-matrix'
+import type { mat2d } from 'gl-matrix'
 
 /**
  * @private

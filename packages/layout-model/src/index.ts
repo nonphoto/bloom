@@ -1,4 +1,14 @@
-import { mat2d, vec2 } from 'gl-matrix'
+import type { mat2d, vec2 } from 'gl-matrix'
+import { set as vec2Set, create as vec2Create, sub as vec2Sub } from 'gl-matrix/esm/vec2.js'
+import {
+  identity as mat2dIdentity,
+  create as mat2dCreate,
+  copy as mat2dCopy,
+  clone as mat2dClone,
+  translate as mat2dTranslate,
+  multiply as mat2dMultiply,
+  fromTranslation as mat2dFromTranslation,
+} from 'gl-matrix/esm/mat2d.js'
 import {
   Accessor,
   createEffect,
@@ -23,9 +33,9 @@ import {
   createDisposableEffect,
   withDocument,
   walkParents,
-} from './utils'
-import { SingletonMap } from './singletonMap'
-import { Batcher } from './batcher'
+} from './utils.js'
+import { SingletonMap } from './singletonMap.js'
+import { Batcher } from './batcher.js'
 import { ReactiveMap } from '@solid-primitives/map'
 import { MaybeAccessor } from '@solid-primitives/utils'
 import { createMutationObserver } from '@solid-primitives/mutation-observer'
@@ -125,7 +135,7 @@ const layoutModelStub: LayoutModelReturn = {
   invalidateParent() {},
 }
 
-const identity = mat2d.identity(mat2d.create())
+const identity = mat2dIdentity(mat2dCreate())
 
 /**
  * Creates a new layout model from the root element. The layout model will track changes to the layout rects and view matrices of elements in the document.
@@ -185,11 +195,11 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
   })
 
   const scrollRoots = new SingletonMap<HTMLElement, ScrollRoot>(element => {
-    const [scrollTranslation, setScrollTranslation] = createSignal(vec2.create(), { equals: false })
+    const [scrollTranslation, setScrollTranslation] = createSignal(vec2Create(), { equals: false })
     const [willScroll, setWillScroll] = createSignal(false)
 
     const onScroll = () => {
-      setScrollTranslation(prev => vec2.set(prev, -element.scrollLeft, -element.scrollTop))
+      setScrollTranslation(prev => vec2Set(prev, -element.scrollLeft, -element.scrollTop))
     }
 
     const invalidate = () => {
@@ -255,7 +265,7 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
       prev => {
         const rectValue = rectRoot.rect()
         if (rectValue) {
-          return center(prev ?? vec2.create(), rectValue)
+          return center(prev ?? vec2Create(), rectValue)
         }
       },
       undefined,
@@ -268,7 +278,7 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
         const rectPositionValue = rectPosition()
         return rectPositionValue
           ? parentRectPositionValue
-            ? vec2.sub(prev ?? vec2.create(), rectPositionValue, parentRectPositionValue)
+            ? vec2Sub(prev ?? vec2Create(), rectPositionValue, parentRectPositionValue)
             : isDocumentElement(element)
             ? rectPositionValue
             : undefined
@@ -282,12 +292,12 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
       prev => {
         const parentIntermediateMatrixValue = parentMatrixRoot()?.intermediateMatrix()
         const layoutDeltaValue = layoutDelta()
-        const next = prev ?? mat2d.create()
+        const next = prev ?? mat2dCreate()
         if (layoutDeltaValue) {
           if (isDocumentElement(element)) {
-            mat2d.fromTranslation(next, layoutDeltaValue)
+            mat2dFromTranslation(next, layoutDeltaValue)
           } else if (parentIntermediateMatrixValue) {
-            mat2d.translate(next, parentIntermediateMatrixValue, layoutDeltaValue)
+            mat2dTranslate(next, parentIntermediateMatrixValue, layoutDeltaValue)
           } else {
             return undefined
           }
@@ -302,13 +312,13 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
       prev => {
         const layoutMatrixValue = layoutMatrix()
         if (layoutMatrixValue) {
-          const next = prev ?? mat2d.create()
-          mat2d.copy(next, layoutMatrixValue)
+          const next = prev ?? mat2dCreate()
+          mat2dCopy(next, layoutMatrixValue)
           const transform = transformMap.get(element)
           if (transform) {
-            mat2d.multiply(next, next, transform)
+            mat2dMultiply(next, next, transform)
           }
-          return mat2d.translate(next, next, scrollRoot.scrollTranslation())
+          return mat2dTranslate(next, next, scrollRoot.scrollTranslation())
         }
       },
       undefined,
@@ -319,10 +329,10 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
       prev => {
         const rectPositionValue = rectPosition()
         const layoutMatrixValue = layoutMatrix()
-        const next = prev ?? mat2d.create()
+        const next = prev ?? mat2dCreate()
         if (rectPositionValue && layoutMatrixValue) {
           mat2dFromNegativeTranslation(next, rectPositionValue)
-          return mat2d.multiply(next, next, layoutMatrixValue)
+          return mat2dMultiply(next, next, layoutMatrixValue)
         }
       },
       undefined,
@@ -335,7 +345,7 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
   function setTransform(element: HTMLElement, transform: mat2d | undefined) {
     if (transform) {
       element.style.transform = styleTransform(transform)
-      return transformMap.set(element, mat2d.clone(transform))
+      return transformMap.set(element, mat2dClone(transform))
     } else {
       element.style.transform = ''
       return transformMap.delete(element)

@@ -25,22 +25,29 @@
     "dist"
   ],
   "type": "module",
-  "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    "development": {
-      "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/dev.js"
-      },
-      "require": "./dist/dev.cjs"
-    },
-    "import": {
+    ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "require": "./dist/index.cjs"
+    "./body1d": {
+      "types": "./dist/body1d.d.ts",
+      "default": "./dist/body1d.js"
+    },
+    "./body2d": {
+      "types": "./dist/body2d.d.ts",
+      "default": "./dist/body2d.js"
+    },
+    "./quad2d": {
+      "types": "./dist/quad2d.d.ts",
+      "default": "./dist/quad2d.js"
+    },
+    "./rect": {
+      "types": "./dist/rect.d.ts",
+      "default": "./dist/rect.js"
+    }
   },
   "browser": {},
   "typesVersions": {},
@@ -54,10 +61,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@nonphoto/spring": "0.0.3",
+    "@nonphoto/spring": "0.0.5",
     "gl-matrix": "3.4.3"
   },
   "devDependencies": {
-    "typedoc": "0.24.8"
+    "typedoc": "0.25.0"
   }
 }

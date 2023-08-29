@@ -1,24 +1,26 @@
-import { Body } from './body'
+import { Body } from './body.js'
 import { spring as coreSpring } from '@nonphoto/spring'
-import { glMatrix } from 'gl-matrix'
+import { equals } from 'gl-matrix/esm/common.js'
 
 /**
  * A 1-dimensional physics body
  */
-export interface Type extends Body<number> {}
+export interface Body1d extends Body<number> {}
 
 /**
  * Creates a new 1-dimensional physics body
  */
-export class Instance implements Type {
-  p = 0
-  v = 0
+export function create(): Body1d {
+  return {
+    p: 0,
+    v: 0,
+  }
 }
 
 /**
  * Copies the properties of one body to another
  */
-export function copy(out: Type, body: Readonly<Type>): Type {
+export function copy(out: Body1d, body: Readonly<Body1d>): Body1d {
   out.p = body.p
   out.v = body.v
   return out
@@ -27,7 +29,7 @@ export function copy(out: Type, body: Readonly<Type>): Type {
 /**
  * Sets the properties of a body
  */
-export function set(out: Type, p?: number, v?: number): Type {
+export function set(out: Body1d, p?: number, v?: number): Body1d {
   out.p = p ?? out.p
   out.v = v ?? out.v
   return out
@@ -36,8 +38,8 @@ export function set(out: Type, p?: number, v?: number): Type {
 /**
  * Returns true if the body is at rest.
  */
-export function isAtRest(body: Readonly<Type>, p: number): boolean {
-  return glMatrix.equals(body.p, p) && glMatrix.equals(body.v, 0)
+export function isAtRest(body: Readonly<Body1d>, p: number): boolean {
+  return equals(body.p, p) && equals(body.v, 0)
 }
 
 /**
@@ -52,9 +54,9 @@ export function isAtRest(body: Readonly<Type>, p: number): boolean {
  * @returns The receiving body with the spring force applied over the elapsed time.
  */
 export function spring(
-  out: Type,
-  start: Readonly<Type>,
-  end: Readonly<Type>,
+  out: Body1d,
+  start: Readonly<Body1d>,
+  end: Readonly<Body1d>,
   halflife: number,
   dampingRatio: number,
   dt: number,

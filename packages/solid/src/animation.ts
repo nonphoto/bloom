@@ -1,9 +1,15 @@
 import { Accessor, batch, createEffect, createMemo, createSignal, on } from 'solid-js'
 import { createRAF } from '@solid-primitives/raf'
 import { createMousePosition as createMousePositionStore } from '@solid-primitives/mouse'
-import { maybe, safeWindow } from './utils'
-import { vec2 } from 'gl-matrix'
-import { Body2d } from '@chloranthy/core'
+import { maybe, safeWindow } from './utils.js'
+import type { vec2 } from 'gl-matrix'
+import { set as vec2Set, create as vec2Create } from 'gl-matrix/esm/vec2.js'
+import {
+  Body2d,
+  create as body2dCreate,
+  isAtRest as body2dIsAtRest,
+  simpleSpring as body2dSimpleSpring,
+} from '@chloranthy/core/body2d'
 
 /**
  * A callback for an animation frame.
@@ -73,8 +79,8 @@ export function createMousePosition(): Accessor<vec2> {
 
   return createMemo<vec2>(
     out =>
-      vec2.set(out, store.x - (safeWindow()?.scrollX ?? 0), store.y - (safeWindow()?.scrollY ?? 0)),
-    vec2.create(),
+      vec2Set(out, store.x - (safeWindow()?.scrollX ?? 0), store.y - (safeWindow()?.scrollY ?? 0)),
+    vec2Create(),
     { equals: false },
   )
 }
@@ -88,16 +94,16 @@ export function createMousePosition(): Accessor<vec2> {
 export function createTransition(
   target: Accessor<vec2 | undefined>,
   halflife: number,
-): Accessor<Body2d.Type> {
-  const [value, setValue] = createSignal<Body2d.Type>(new Body2d.Instance(), { equals: false })
+): Accessor<Body2d> {
+  const [value, setValue] = createSignal<Body2d>(body2dCreate(), { equals: false })
 
-  const isRunning = createMemo(() => maybe(Body2d.isAtRest, value, target) === false)
+  const isRunning = createMemo(() => maybe(body2dIsAtRest, value, target) === false)
 
   createEffect(
     on(isRunning, isRunning => {
       if (isRunning) {
         createTimeCallback((_, deltaTime) => {
-          setValue(out => maybe(Body2d.simpleSpring, out, out, target, halflife, deltaTime) ?? out)
+          setValue(out => maybe(body2dSimpleSpring, out, out, target, halflife, deltaTime) ?? out)
         })
       }
     }),

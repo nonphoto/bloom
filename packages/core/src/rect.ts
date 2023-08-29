@@ -1,10 +1,11 @@
-import { mat2d, vec2 } from 'gl-matrix'
-import * as common from './common'
+import type { mat2d, vec2 } from 'gl-matrix'
+import { set as vec2Set } from 'gl-matrix/esm/vec2.js'
+import { fit as commonFit, setAspectRatio as commonSetAspectRatio } from './common.js'
 
 /**
- * A rectangle in 2-dimensional space. The rectangle cannot rotate and thus its edges are always axis-aligned. A Rect is a subtype of DOMRect.
+ * A rectangle in 2-dimensional space. The rectangle cannot rotate and thus its edges are always axis-aligned. A Rect is a subRect of DOMRect.
  */
-export interface Type {
+export interface Rect {
   /**
    * The x position of the top left corner.
    */
@@ -29,60 +30,55 @@ export interface Type {
 /**
  * Creates a new Rect.
  */
-export class Instance implements Type {
-  x = 0
-  y = 0
-  width = 0
-  height = 0
-}
-
-/**
- * Creates a new Rect.
- */
-export function create(): Instance {
-  return new Instance()
+export function create(): Rect {
+  return {
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+  }
 }
 
 /**
  * Returns the x position of the rectangle's center point.
  */
-export function cx(rect: Readonly<Type>): number {
+export function cx(rect: Readonly<Rect>): number {
   return rect.x + rect.width / 2
 }
 
 /**
  * Returns the y position of the rectangle's center point.
  */
-export function cy(rect: Readonly<Type>): number {
+export function cy(rect: Readonly<Rect>): number {
   return rect.y + rect.height / 2
 }
 
 /**
  * Moves the rectangle so that the center point's x position is cx.
  */
-export function setcx(rect: Type, cx: number) {
+export function setcx(rect: Rect, cx: number) {
   rect.x = cx - rect.width / 2
 }
 
 /**
  * Moves the rectangle so that the center point's y position is cy.
  */
-export function setcy(rect: Type, cy: number) {
+export function setcy(rect: Rect, cy: number) {
   rect.y = cy - rect.height / 2
 }
 
 /**
  * Returns the center point of the rectangle as a vector.
  */
-export function position(out: vec2, rect: Type): vec2 {
-  return vec2.set(out, cx(rect), cy(rect))
+export function position(out: vec2, rect: Rect): vec2 {
+  return vec2Set(out, cx(rect), cy(rect))
 }
 
 /**
  * Returns the width and height of the rectangle as a vector.
  */
-export function size(out: vec2, rect: Type): vec2 {
-  return vec2.set(out, rect.width, rect.height)
+export function size(out: vec2, rect: Rect): vec2 {
+  return vec2Set(out, rect.width, rect.height)
 }
 
 /**
@@ -94,12 +90,12 @@ export function size(out: vec2, rect: Type): vec2 {
  * @returns The receiving rectangle with the position of the source rectangle, and a set aspect ratio.
  */
 export function setAspectRatio(
-  out: Type,
-  source: Readonly<Type>,
+  out: Rect,
+  source: Readonly<Rect>,
   aspectRatio: number,
   compare: (a: number, b: number) => number,
-): Type {
-  common.setAspectRatio(out, 'width', 'height', source.width, source.height, aspectRatio, compare)
+): Rect {
+  commonSetAspectRatio(out, 'width', 'height', source.width, source.height, aspectRatio, compare)
   setcx(out, cx(source))
   setcy(out, cy(source))
   return out
@@ -114,12 +110,12 @@ export function setAspectRatio(
  * @returns The receiving rectangle with the position and size of the target rectangle, and the aspect ratio of the source rectangle.
  */
 export function fit(
-  out: Type,
-  source: Readonly<Type>,
-  target: Readonly<Type>,
+  out: Rect,
+  source: Readonly<Rect>,
+  target: Readonly<Rect>,
   compare: (a: number, b: number) => number,
-): Type {
-  common.fit(
+): Rect {
+  commonFit(
     out,
     'width',
     'height',
@@ -134,11 +130,11 @@ export function fit(
   return out
 }
 
-export function contain(out: Type, source: Readonly<Type>, target: Readonly<Type>): Type {
+export function contain(out: Rect, source: Readonly<Rect>, target: Readonly<Rect>): Rect {
   return fit(out, source, target, Math.min)
 }
 
-export function cover(out: Type, source: Readonly<Type>, target: Readonly<Type>): Type {
+export function cover(out: Rect, source: Readonly<Rect>, target: Readonly<Rect>): Rect {
   return fit(out, source, target, Math.max)
 }
 
@@ -152,7 +148,7 @@ export function cover(out: Type, source: Readonly<Type>, target: Readonly<Type>)
  * @param target - The target rectangle.
  * @returns The receiving matrix that represents a transformation from the source rectangle to the target rectangle.
  */
-export function untransformMat2d(out: mat2d, source: Type, target: Type) {
+export function untransformMat2d(out: mat2d, source: Rect, target: Rect) {
   out[0] = target.width / source.width
   out[1] = 0
   out[2] = 0

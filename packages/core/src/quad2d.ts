@@ -1,11 +1,18 @@
-import { mat2, mat2d, vec2 } from 'gl-matrix'
-import * as Rect from './rect'
-import * as common from './common'
+import type { mat2, mat2d, vec2 } from 'gl-matrix'
+import {
+  create as mat2Create,
+  multiply as mat2Multiply,
+  invert as mat2Invert,
+  equals as mat2Equals,
+} from 'gl-matrix/esm/mat2.js'
+import { create as vec2Create, copy as vec2Copy, equals as vec2Equals } from 'gl-matrix/esm/vec2.js'
+import { Rect } from './rect.js'
+import { fit as commonFit, setAspectRatio as commonSetAspectRatio } from './common.js'
 
 /**
  * A quad in 2-dimensional space. A quad is a four-sided shape that can be freely transformed by a transformation matrix. Unlike {@link Rect}, its edges are not necessarily axis-aligned.
  */
-export type Type = {
+export type Quad2d = {
   /**
    * The scaling and shearing component of the quad.
    */
@@ -17,19 +24,17 @@ export type Type = {
   k: vec2
 }
 
-export class Instance implements Type {
-  ij = mat2.create()
-  k = vec2.create()
-}
-
-export function create(): Instance {
-  return new Instance()
+export function create(): Quad2d {
+  return {
+    ij: mat2Create(),
+    k: vec2Create(),
+  }
 }
 
 /**
  * Create a new quad from a rectangle. The quad will have a translation and scaling that matches the rectangle's position and size.
  */
-export function fromRect(out: Type, rect: Readonly<Rect.Type>): Type {
+export function fromRect(out: Quad2d, rect: Readonly<Rect>): Quad2d {
   const w = rect.width / 2,
     h = rect.height / 2
   out.ij[0] = w
@@ -44,7 +49,7 @@ export function fromRect(out: Type, rect: Readonly<Rect.Type>): Type {
 /**
  * Create a new quad from a given position and size.
  */
-export function fromPositionSize(out: Type, position: Readonly<vec2>, size: Readonly<vec2>) {
+export function fromPositionSize(out: Quad2d, position: Readonly<vec2>, size: Readonly<vec2>) {
   const w = size[0] / 2,
     h = size[1] / 2
   out.ij[0] = w
@@ -60,8 +65,12 @@ export function fromPositionSize(out: Type, position: Readonly<vec2>, size: Read
  * Transform a quad by the given transformation matrix.
  * @remarks This is equivalent to premultiplying the quad by the matrix.
  */
-export function transformMat2d(out: Type, quad: Readonly<Type>, matrix: Readonly<mat2d>): Type {
-  mat2.multiply(out.ij, quad.ij, matrix as mat2)
+export function transformMat2d(
+  out: Quad2d,
+  quad: Readonly<Quad2d>,
+  matrix: Readonly<mat2d>,
+): Quad2d {
+  mat2Multiply(out.ij, quad.ij, matrix as mat2)
   out.k[0] = quad.k[0] + matrix[4]
   out.k[1] = quad.k[1] + matrix[5]
   return out
@@ -73,11 +82,11 @@ export function transformMat2d(out: Type, quad: Readonly<Type>, matrix: Readonly
  */
 export function untransformMat2d(
   out: mat2d,
-  source: Readonly<Type>,
-  target: Readonly<Type>,
+  source: Readonly<Quad2d>,
+  target: Readonly<Quad2d>,
 ): mat2d {
-  mat2.invert(out as mat2, source.ij)
-  mat2.multiply(out as mat2, target.ij, out as mat2)
+  mat2Invert(out as mat2, source.ij)
+  mat2Multiply(out as mat2, target.ij, out as mat2)
   out[4] = target.k[0] - source.k[0]
   out[5] = target.k[1] - source.k[1]
   return out
@@ -92,13 +101,13 @@ export function untransformMat2d(
  * @returns The receiving quad with the position of the source quad, and a set aspect ratio.
  */
 export function setAspectRatio(
-  out: Type,
-  source: Readonly<Type>,
+  out: Quad2d,
+  source: Readonly<Quad2d>,
   aspectRatio: number,
   compare: (a: number, b: number) => number,
 ) {
-  common.setAspectRatio(out.ij, 0, 3, source.ij[0], source.ij[3], aspectRatio, compare)
-  vec2.copy(out.k, source.k)
+  commonSetAspectRatio(out.ij, 0, 3, source.ij[0], source.ij[3], aspectRatio, compare)
+  vec2Copy(out.k, source.k)
 }
 
 /**
@@ -110,27 +119,27 @@ export function setAspectRatio(
  * @returns The receiving quad with the position and size of the target quad, and the aspect ratio of the source quad.
  */
 export function fit(
-  out: Type,
-  source: Readonly<Type>,
-  target: Readonly<Type>,
+  out: Quad2d,
+  source: Readonly<Quad2d>,
+  target: Readonly<Quad2d>,
   compare: (a: number, b: number) => number,
-): Type {
-  common.fit(out.ij, 0, 3, source.ij[0], source.ij[3], target.ij[0], target.ij[3], compare)
-  vec2.copy(out.k, target.k)
+): Quad2d {
+  commonFit(out.ij, 0, 3, source.ij[0], source.ij[3], target.ij[0], target.ij[3], compare)
+  vec2Copy(out.k, target.k)
   return out
 }
 
 /**
  * @see {@link fit}
  */
-export function contain(out: Type, source: Readonly<Type>, target: Readonly<Type>): Type {
+export function contain(out: Quad2d, source: Readonly<Quad2d>, target: Readonly<Quad2d>): Quad2d {
   return fit(out, source, target, Math.min)
 }
 
 /**
  * @see {@link fit}
  */
-export function cover(out: Type, source: Readonly<Type>, target: Readonly<Type>): Type {
+export function cover(out: Quad2d, source: Readonly<Quad2d>, target: Readonly<Quad2d>): Quad2d {
   return fit(out, source, target, Math.max)
 }
 
@@ -140,6 +149,6 @@ export function cover(out: Type, source: Readonly<Type>, target: Readonly<Type>)
  * @param b - The second quad.
  * @returns True if `a` and `b` are approximately equal, false otherwise.
  */
-export function equals(a: Readonly<Type>, b: Readonly<Type>) {
-  return mat2.equals(a.ij, b.ij) && vec2.equals(a.k, b.k)
+export function equals(a: Readonly<Quad2d>, b: Readonly<Quad2d>) {
+  return mat2Equals(a.ij, b.ij) && vec2Equals(a.k, b.k)
 }
