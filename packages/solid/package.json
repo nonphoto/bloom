@@ -44,9 +44,6 @@
     "test:ssr": "pnpm run test:client --mode ssr",
     "typecheck": "tsc --noEmit"
   },
-  "peerDependencies": {
-    "solid-js": "^1.7.11"
-  },
   "dependencies": {
     "@chloranthy/core": "workspace:*",
     "@chloranthy/layout-model": "workspace:*",
@@ -55,7 +52,8 @@
     "@solid-primitives/resize-observer": "2.0.21",
     "@solid-primitives/rootless": "1.4.2",
     "@solid-primitives/utils": "6.2.1",
-    "gl-matrix": "3.4.3"
+    "gl-matrix": "3.4.3",
+    "solid-js": "^1.7.11"
   },
   "main": "./dist/index.js"
 }
