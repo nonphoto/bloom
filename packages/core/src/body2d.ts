@@ -1,6 +1,5 @@
-import { equals } from 'gl-matrix/esm/common.js'
-import type { vec2 } from 'gl-matrix'
-import { create as vec2Create } from 'gl-matrix/esm/vec2.js'
+import { equals } from '@chloranthy/gl-matrix/common'
+import { Vec2, create as vec2Create } from '@chloranthy/gl-matrix/vec2'
 import { Body } from './body.js'
 import { Body1d, create as body1dCreate } from './body1d.js'
 import { spring as coreSpring, simpleSpring as coreSimpleSpring } from '@nonphoto/spring'
@@ -8,7 +7,7 @@ import { spring as coreSpring, simpleSpring as coreSimpleSpring } from '@nonphot
 /**
  * A 2-dimensional physics body
  */
-export interface Body2d extends Body<vec2> {
+export interface Body2d extends Body<Vec2> {
   x: Body1d
   y: Body1d
 }
@@ -65,7 +64,7 @@ export function create(): Body2d {
 /**
  * Returns true if the body is at rest.
  */
-export function isAtRest(body: Readonly<Body2d>, p: vec2): boolean {
+export function isAtRest(body: Readonly<Body2d>, p: Vec2): boolean {
   return (
     equals(body.p[0], p[0]) &&
     equals(body.p[1], p[1]) &&
@@ -137,7 +136,7 @@ export function spring(
 export function simpleSpring(
   out: Body2d,
   start: Readonly<Body2d>,
-  end: Readonly<vec2>,
+  end: Readonly<Vec2>,
   halflife: number,
   dt: number,
 ) {

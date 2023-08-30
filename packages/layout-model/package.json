@@ -43,13 +43,13 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@chloranthy/gl-matrix": "workspace:*",
     "@solid-primitives/map": "^0.4.7",
     "@solid-primitives/mutation-observer": "1.1.14",
     "@solid-primitives/raf": "2.1.13",
     "@solid-primitives/resize-observer": "2.0.21",
     "@solid-primitives/rootless": "1.4.2",
     "@solid-primitives/utils": "6.2.1",
-    "gl-matrix": "^3.4.3",
     "solid-js": "^1.7.11"
   }
 }

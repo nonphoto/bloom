@@ -1,0 +1,55 @@
+{
+  "name": "@chloranthy/gl-matrix",
+  "version": "0.0.1",
+  "description": "",
+  "license": "MIT",
+  "author": "Jonas Luebbers",
+  "contributors": [],
+  "homepage": "https://github.com/nonphoto/chloranthy#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nonphoto/chloranthy.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nonphoto/chloranthy/issues"
+  },
+  "keywords": [
+    "solid"
+  ],
+  "private": true,
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "src"
+  ],
+  "type": "module",
+  "module": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    },
+    "./common": {
+      "types": "./src/common.d.ts",
+      "default": "./src/common.js"
+    },
+    "./vec2": {
+      "types": "./src/vec2.d.ts",
+      "default": "./src/vec2.js"
+    },
+    "./mat2": {
+      "types": "./src/mat2.d.ts",
+      "default": "./src/mat2.js"
+    },
+    "./mat2d": {
+      "types": "./src/mat2d.d.ts",
+      "default": "./src/mat2d.js"
+    }
+  },
+  "dependencies": {
+    "gl-matrix": "3.4.0"
+  }
+}

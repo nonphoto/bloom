@@ -1,5 +1,5 @@
-import type { mat2d, vec2 } from 'gl-matrix'
-import { set as vec2Set } from 'gl-matrix/esm/vec2.js'
+import { Vec2, set as vec2Set } from '@chloranthy/gl-matrix/vec2'
+import type { Mat2d } from '@chloranthy/gl-matrix/mat2d'
 import { fit as commonFit, setAspectRatio as commonSetAspectRatio } from './common.js'
 
 /**
@@ -39,6 +39,12 @@ export function create(): Rect {
   }
 }
 
+export function fromPositionSize(out: Rect, position: Readonly<Vec2>, size: Readonly<Vec2>): Rect {
+  setPosition(out, position)
+  setSize(out, size)
+  return out
+}
+
 /**
  * Returns the x position of the rectangle's center point.
  */
@@ -70,15 +76,30 @@ export function setcy(rect: Rect, cy: number) {
 /**
  * Returns the center point of the rectangle as a vector.
  */
-export function position(out: vec2, rect: Rect): vec2 {
+export function position(out: Vec2, rect: Readonly<Rect>): Vec2 {
   return vec2Set(out, cx(rect), cy(rect))
 }
 
 /**
  * Returns the width and height of the rectangle as a vector.
  */
-export function size(out: vec2, rect: Rect): vec2 {
+export function size(out: Vec2, rect: Readonly<Rect>): Vec2 {
   return vec2Set(out, rect.width, rect.height)
+}
+
+/**
+ * Sets the center point of the rectangle to a vector.
+ */
+export function setPosition(out: Rect, position: Readonly<Vec2>): Rect {
+  setcx(out, position[0])
+  setcy(out, position[1])
+  return out
+}
+
+export function setSize(out: Rect, size: Readonly<Vec2>): Rect {
+  out.width = size[0]
+  out.height = size[1]
+  return out
 }
 
 /**
@@ -148,7 +169,7 @@ export function cover(out: Rect, source: Readonly<Rect>, target: Readonly<Rect>)
  * @param target - The target rectangle.
  * @returns The receiving matrix that represents a transformation from the source rectangle to the target rectangle.
  */
-export function untransformMat2d(out: mat2d, source: Rect, target: Rect) {
+export function untransformMat2d(out: Mat2d, source: Rect, target: Rect) {
   out[0] = target.width / source.width
   out[1] = 0
   out[2] = 0

@@ -61,8 +61,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@nonphoto/spring": "0.0.5",
-    "gl-matrix": "3.4.3"
+    "@chloranthy/gl-matrix": "workspace:*",
+    "@nonphoto/spring": "0.0.5"
   },
   "devDependencies": {
     "typedoc": "0.25.0"

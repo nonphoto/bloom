@@ -1,6 +1,6 @@
 import { MaybeAccessor, access } from '@solid-primitives/utils'
-import type { mat2d, vec2 } from 'gl-matrix'
-import { set as vec2Set } from 'gl-matrix/esm/vec2.js'
+import { Vec2, set as vec2Set } from '@chloranthy/gl-matrix/vec2'
+import { Mat2d } from '@chloranthy/gl-matrix/mat2d'
 import { createEffect, createRoot } from 'solid-js'
 
 export type MapMaybeAccessor<T> = T extends any[]
@@ -19,7 +19,7 @@ const willChangeValues = [
   'isolation',
 ]
 
-export function borderRadius(radius: number, size: vec2, transform: mat2d) {
+export function borderRadius(radius: number, size: Vec2, transform: Mat2d) {
   const x = (radius / (size[0] * transform[0])) * 100
   const y = (radius / (size[1] * transform[3])) * 100
   return `${x}% / ${y}%`
@@ -32,7 +32,7 @@ export function boxShadow(
   blurRadius: number,
   spreadRadius: number,
   color: string,
-  transform: mat2d,
+  transform: Mat2d,
 ) {
   const meanScale = (transform[0] + transform[3]) / 2
   return `${inset ? 'inset ' : ''}${offsetX / transform[0]}px ${offsetY / transform[3]}px ${
@@ -40,7 +40,7 @@ export function boxShadow(
   }px ${spreadRadius / meanScale}px ${color}`
 }
 
-export function getScaling(out: vec2, a: mat2d) {
+export function getScaling(out: Vec2, a: Mat2d) {
   let m11 = a[0]
   let m12 = a[1]
   let m21 = a[2]
@@ -50,11 +50,11 @@ export function getScaling(out: vec2, a: mat2d) {
   return out
 }
 
-export function center(out: vec2, rect: DOMRect) {
+export function center(out: Vec2, rect: DOMRect) {
   return vec2Set(out, rect.x + rect.width / 2, rect.y + rect.height / 2)
 }
 
-export function mat2dFromNegativeTranslation(out: mat2d, a: vec2) {
+export function mat2dFromNegativeTranslation(out: Mat2d, a: Vec2) {
   out[0] = 1
   out[1] = 0
   out[2] = 0
@@ -116,7 +116,7 @@ export function getScrollEmitter(element: HTMLElement): HTMLElement | Document {
   return element === document.documentElement ? document : element
 }
 
-export function styleTransform(transform: mat2d): string {
+export function styleTransform(transform: Mat2d): string {
   return `matrix(${transform.join(',')})`
 }
 

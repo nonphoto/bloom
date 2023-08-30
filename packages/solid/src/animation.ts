@@ -2,8 +2,7 @@ import { Accessor, batch, createEffect, createMemo, createSignal, on } from 'sol
 import { createRAF } from '@solid-primitives/raf'
 import { createMousePosition as createMousePositionStore } from '@solid-primitives/mouse'
 import { maybe, safeWindow } from './utils.js'
-import type { vec2 } from 'gl-matrix'
-import { set as vec2Set, create as vec2Create } from 'gl-matrix/esm/vec2.js'
+import { Vec2, set as vec2Set, create as vec2Create } from '@chloranthy/gl-matrix/vec2'
 import {
   Body2d,
   create as body2dCreate,
@@ -74,10 +73,10 @@ export function createTime(): CreateTimeReturn {
  * Creates a signal for the position of the mouse on screen.
  * @returns An accessor that returns the screen-relative mouse position as a 2d vector.
  */
-export function createMousePosition(): Accessor<vec2> {
+export function createMousePosition(): Accessor<Vec2> {
   const store = createMousePositionStore()
 
-  return createMemo<vec2>(
+  return createMemo<Vec2>(
     out =>
       vec2Set(out, store.x - (safeWindow()?.scrollX ?? 0), store.y - (safeWindow()?.scrollY ?? 0)),
     vec2Create(),
@@ -92,7 +91,7 @@ export function createMousePosition(): Accessor<vec2> {
  * @returns A 2d body representing the current position and velocity of the spring.
  */
 export function createTransition(
-  target: Accessor<vec2 | undefined>,
+  target: Accessor<Vec2 | undefined>,
   halflife: number,
 ): Accessor<Body2d> {
   const [value, setValue] = createSignal<Body2d>(body2dCreate(), { equals: false })

@@ -1,14 +1,17 @@
-import type { mat2d, vec2 } from 'gl-matrix'
-import { set as vec2Set, create as vec2Create, sub as vec2Sub } from 'gl-matrix/esm/vec2.js'
 import {
-  identity as mat2dIdentity,
-  create as mat2dCreate,
-  copy as mat2dCopy,
-  clone as mat2dClone,
-  translate as mat2dTranslate,
-  multiply as mat2dMultiply,
-  fromTranslation as mat2dFromTranslation,
-} from 'gl-matrix/esm/mat2d.js'
+  Vec2,
+  vec2Set,
+  vec2Create,
+  vec2Sub,
+  Mat2d,
+  mat2dIdentity,
+  mat2dCreate,
+  mat2dCopy,
+  mat2dClone,
+  mat2dTranslate,
+  mat2dMultiply,
+  mat2dFromTranslation,
+} from '@chloranthy/gl-matrix'
 import {
   Accessor,
   createEffect,
@@ -48,7 +51,7 @@ type RectRoot = {
 }
 
 type ScrollRoot = {
-  scrollTranslation: Accessor<vec2>
+  scrollTranslation: Accessor<Vec2>
   invalidate(): void
 }
 
@@ -58,9 +61,9 @@ type ParentRoot = {
 }
 
 type MatrixRoot = {
-  matrix: Accessor<mat2d | undefined>
-  intermediateMatrix: Accessor<mat2d | undefined>
-  rectPosition: Accessor<vec2 | undefined>
+  matrix: Accessor<Mat2d | undefined>
+  intermediateMatrix: Accessor<Mat2d | undefined>
+  rectPosition: Accessor<Vec2 | undefined>
 }
 
 export type { Accessor }
@@ -74,7 +77,7 @@ export type LayoutModelReturn = {
    * @param element - The element to set the transform of.
    * @param transform - The transform to set on the element.
    */
-  setTransform(element: HTMLElement, transform: mat2d | undefined): void
+  setTransform(element: HTMLElement, transform: Mat2d | undefined): void
 
   /**
    * Returns an accessor for the layout rect of an element.
@@ -91,14 +94,14 @@ export type LayoutModelReturn = {
    * @param element - The element to get the view matrix accessor of.
    * @returns An accessor that returns the view matrix of the element.
    */
-  useMatrix(element: MaybeAccessor<HTMLElement | null | undefined>): Accessor<mat2d | undefined>
+  useMatrix(element: MaybeAccessor<HTMLElement | null | undefined>): Accessor<Mat2d | undefined>
 
   /**
    * Returns an accessor for transformation matrix of an element, as set by `setTransform`.
    * @param element - The element to get the transform property accessor of.
    * @returns An accessor that returns the transformation matrix of the element.
    */
-  useTransform(element: MaybeAccessor<HTMLElement | null | undefined>): Accessor<mat2d | undefined>
+  useTransform(element: MaybeAccessor<HTMLElement | null | undefined>): Accessor<Mat2d | undefined>
 
   /**
    * Invalidate the measured layout rect of the element, causing the layout model to remeasure it. This can sometimes be necessary if it's position in the layout changed without its width or height changing.
@@ -142,7 +145,7 @@ const identity = mat2dIdentity(mat2dCreate())
  * @param root - The root element of the document.
  */
 export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
-  const transformMap = new ReactiveMap<HTMLElement, mat2d>()
+  const transformMap = new ReactiveMap<HTMLElement, Mat2d>()
 
   createResizeObserver(
     () => Array.from(rectRoots.keys()),
@@ -261,7 +264,7 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
       }
     })
 
-    const rectPosition = createMemo<vec2 | undefined>(
+    const rectPosition = createMemo<Vec2 | undefined>(
       prev => {
         const rectValue = rectRoot.rect()
         if (rectValue) {
@@ -272,7 +275,7 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
       { equals: false },
     )
 
-    const layoutDelta = createMemo<vec2 | undefined>(
+    const layoutDelta = createMemo<Vec2 | undefined>(
       prev => {
         const parentRectPositionValue = parentMatrixRoot()?.rectPosition()
         const rectPositionValue = rectPosition()
@@ -288,7 +291,7 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
       { equals: false },
     )
 
-    const layoutMatrix = createMemo<mat2d | undefined>(
+    const layoutMatrix = createMemo<Mat2d | undefined>(
       prev => {
         const parentIntermediateMatrixValue = parentMatrixRoot()?.intermediateMatrix()
         const layoutDeltaValue = layoutDelta()
@@ -308,7 +311,7 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
       { equals: false },
     )
 
-    const intermediateMatrix = createMemo<mat2d | undefined>(
+    const intermediateMatrix = createMemo<Mat2d | undefined>(
       prev => {
         const layoutMatrixValue = layoutMatrix()
         if (layoutMatrixValue) {
@@ -325,7 +328,7 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
       { equals: false },
     )
 
-    const matrix = createMemo<mat2d | undefined>(
+    const matrix = createMemo<Mat2d | undefined>(
       prev => {
         const rectPositionValue = rectPosition()
         const layoutMatrixValue = layoutMatrix()
@@ -342,7 +345,7 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
     return { rectPosition, intermediateMatrix, matrix }
   })
 
-  function setTransform(element: HTMLElement, transform: mat2d | undefined) {
+  function setTransform(element: HTMLElement, transform: Mat2d | undefined) {
     if (transform) {
       element.style.transform = styleTransform(transform)
       return transformMap.set(element, mat2dClone(transform))
@@ -428,7 +431,7 @@ export class LayoutModel {
    * @param element - The element to set the transform of.
    * @param transform - The transform to set on the element.
    */
-  setTransform(element: HTMLElement, transform: mat2d): void {
+  setTransform(element: HTMLElement, transform: Mat2d): void {
     this.#observer.setTransform(element, transform)
   }
 
@@ -442,7 +445,7 @@ export class LayoutModel {
   /**
    * @returns A disposing function. Calling the function disposes the reactive graph for the callback.
    */
-  useMatrix(element: HTMLElement, callback: (rect: mat2d | undefined) => void): () => void {
+  useMatrix(element: HTMLElement, callback: (rect: Mat2d | undefined) => void): () => void {
     return createDisposableEffect(() => this.#observer.useMatrix(element), callback)
   }
 

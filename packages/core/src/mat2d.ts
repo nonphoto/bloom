@@ -1,10 +1,11 @@
-import type { vec2, mat2d } from 'gl-matrix'
+import type { Vec2 } from '@chloranthy/gl-matrix/vec2'
+import type { Mat2d } from '@chloranthy/gl-matrix/mat2d'
 
 export function decompose(
-  outTranslation: vec2,
-  outScaling: vec2,
-  outShearing: vec2,
-  mat: mat2d,
+  outTranslation: Vec2,
+  outScaling: Vec2,
+  outShearing: Vec2,
+  mat: Mat2d,
 ): number | null {
   const a = mat[0]
   const b = mat[1]

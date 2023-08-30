@@ -1,11 +1,17 @@
-import type { mat2, mat2d, vec2 } from 'gl-matrix'
 import {
+  Mat2,
   create as mat2Create,
   multiply as mat2Multiply,
   invert as mat2Invert,
   equals as mat2Equals,
-} from 'gl-matrix/esm/mat2.js'
-import { create as vec2Create, copy as vec2Copy, equals as vec2Equals } from 'gl-matrix/esm/vec2.js'
+} from '@chloranthy/gl-matrix/mat2'
+import {
+  Vec2,
+  create as vec2Create,
+  copy as vec2Copy,
+  equals as vec2Equals,
+} from '@chloranthy/gl-matrix/vec2'
+import { Mat2d } from '@chloranthy/gl-matrix/mat2d'
 import { Rect } from './rect.js'
 import { fit as commonFit, setAspectRatio as commonSetAspectRatio } from './common.js'
 
@@ -16,12 +22,12 @@ export type Quad2d = {
   /**
    * The scaling and shearing component of the quad.
    */
-  ij: mat2
+  ij: Mat2
 
   /**
    * The translation component of the quad.
    */
-  k: vec2
+  k: Vec2
 }
 
 export function create(): Quad2d {
@@ -49,7 +55,7 @@ export function fromRect(out: Quad2d, rect: Readonly<Rect>): Quad2d {
 /**
  * Create a new quad from a given position and size.
  */
-export function fromPositionSize(out: Quad2d, position: Readonly<vec2>, size: Readonly<vec2>) {
+export function fromPositionSize(out: Quad2d, position: Readonly<Vec2>, size: Readonly<Vec2>) {
   const w = size[0] / 2,
     h = size[1] / 2
   out.ij[0] = w
@@ -68,9 +74,9 @@ export function fromPositionSize(out: Quad2d, position: Readonly<vec2>, size: Re
 export function transformMat2d(
   out: Quad2d,
   quad: Readonly<Quad2d>,
-  matrix: Readonly<mat2d>,
+  matrix: Readonly<Mat2d>,
 ): Quad2d {
-  mat2Multiply(out.ij, quad.ij, matrix as mat2)
+  mat2Multiply(out.ij, quad.ij, matrix as Mat2)
   out.k[0] = quad.k[0] + matrix[4]
   out.k[1] = quad.k[1] + matrix[5]
   return out
@@ -81,12 +87,12 @@ export function transformMat2d(
  * @remarks This is equivalent to premultiplying the target quad by the inverse of the source quad.
  */
 export function untransformMat2d(
-  out: mat2d,
+  out: Mat2d,
   source: Readonly<Quad2d>,
   target: Readonly<Quad2d>,
-): mat2d {
-  mat2Invert(out as mat2, source.ij)
-  mat2Multiply(out as mat2, target.ij, out as mat2)
+): Mat2d {
+  mat2Invert(out as Mat2, source.ij)
+  mat2Multiply(out as Mat2, target.ij, out as Mat2)
   out[4] = target.k[0] - source.k[0]
   out[5] = target.k[1] - source.k[1]
   return out

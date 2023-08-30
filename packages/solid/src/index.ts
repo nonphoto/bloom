@@ -1,3 +1,5 @@
 export * from './animation.js'
 export * from './directives.js'
+export * from './layoutModel.js'
+export * from './style.js'
 export * from './utils.js'

@@ -50,19 +50,28 @@ importers:
 
   packages/core:
     dependencies:
+      '@chloranthy/gl-matrix':
+        specifier: workspace:*
+        version: link:../gl-matrix
       '@nonphoto/spring':
         specifier: 0.0.5
         version: 0.0.5
-      gl-matrix:
-        specifier: 3.4.3
-        version: 3.4.3
     devDependencies:
       typedoc:
         specifier: 0.25.0
         version: 0.25.0(typescript@5.2.2)
 
+  packages/gl-matrix:
+    dependencies:
+      gl-matrix:
+        specifier: 3.4.0
+        version: 3.4.0
+
   packages/layout-model:
     dependencies:
+      '@chloranthy/gl-matrix':
+        specifier: workspace:*
+        version: link:../gl-matrix
       '@solid-primitives/map':
         specifier: ^0.4.7
         version: 0.4.7(solid-js@1.7.11)
@@ -81,9 +90,6 @@ importers:
       '@solid-primitives/utils':
         specifier: 6.2.1
         version: 6.2.1(solid-js@1.7.11)
-      gl-matrix:
-        specifier: ^3.4.3
-        version: 3.4.3
       solid-js:
         specifier: ^1.7.11
         version: 1.7.11
@@ -93,6 +99,9 @@ importers:
       '@chloranthy/core':
         specifier: workspace:*
         version: link:../core
+      '@chloranthy/gl-matrix':
+        specifier: workspace:*
+        version: link:../gl-matrix
       '@chloranthy/layout-model':
         specifier: workspace:*
         version: link:../layout-model
@@ -111,9 +120,6 @@ importers:
       '@solid-primitives/utils':
         specifier: 6.2.1
         version: 6.2.1(solid-js@1.7.11)
-      gl-matrix:
-        specifier: 3.4.3
-        version: 3.4.3
       solid-js:
         specifier: ^1.7.11
         version: 1.7.11
@@ -4210,6 +4216,11 @@ packages:
       call-bind: 1.0.2
       get-intrinsic: 1.2.1
     dev: true
+
+  /gl-matrix@3.4.0:
+    resolution: {integrity: sha512-n7fF4meQ6jbBSw91jGmP83I/wkQud5kIRSW/dr5z+9YJdQz61GWpgmRK9k7c4O/1QsXaIXu9o2vf/q2Gu3Ybow==}
+    deprecated: Broke various systems. Will investigate and likely republish as a new major version
+    dev: false
 
   /gl-matrix@3.4.3:
     resolution: {integrity: sha512-wcCp8vu8FT22BnvKVPjXa/ICBWRq/zjFfdofZy1WSpQZpphblv12/bOQLBC1rMM7SGOFS9ltVmKOHil5+Ml7gA==}
