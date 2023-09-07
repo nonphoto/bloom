@@ -1,17 +1,15 @@
 import {
-  Mat2,
-  create as mat2Create,
-  multiply as mat2Multiply,
-  invert as mat2Invert,
-  equals as mat2Equals,
-} from '@chloranthy/gl-matrix/mat2'
-import {
   Vec2,
-  create as vec2Create,
-  copy as vec2Copy,
-  equals as vec2Equals,
-} from '@chloranthy/gl-matrix/vec2'
-import { Mat2d } from '@chloranthy/gl-matrix/mat2d'
+  vec2Create,
+  vec2Copy,
+  vec2Equals,
+  Mat2,
+  mat2Create,
+  mat2Multiply,
+  mat2Invert,
+  mat2Equals,
+  Mat2d,
+} from '@chloranthy/gl-matrix'
 import { Rect } from './rect.js'
 import { fit as commonFit, setAspectRatio as commonSetAspectRatio } from './common.js'
 

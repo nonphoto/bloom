@@ -1,5 +1,4 @@
-import type { Vec2 } from '@chloranthy/gl-matrix/vec2'
-import type { Mat2d } from '@chloranthy/gl-matrix/mat2d'
+import type { Vec2, Mat2d } from '@chloranthy/gl-matrix'
 
 export function decompose(
   outTranslation: Vec2,

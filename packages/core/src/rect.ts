@@ -1,5 +1,4 @@
-import { Vec2, set as vec2Set } from '@chloranthy/gl-matrix/vec2'
-import type { Mat2d } from '@chloranthy/gl-matrix/mat2d'
+import { Vec2, Mat2d, vec2Set } from '@chloranthy/gl-matrix'
 import { fit as commonFit, setAspectRatio as commonSetAspectRatio } from './common.js'
 
 /**
@@ -40,8 +39,10 @@ export function create(): Rect {
 }
 
 export function fromPositionSize(out: Rect, position: Readonly<Vec2>, size: Readonly<Vec2>): Rect {
-  setPosition(out, position)
-  setSize(out, size)
+  out.width = size[0]
+  out.height = size[1]
+  out.x = position[0] - size[0] / 2
+  out.y = position[1] - size[1] / 2
   return out
 }
 
@@ -62,15 +63,17 @@ export function cy(rect: Readonly<Rect>): number {
 /**
  * Moves the rectangle so that the center point's x position is cx.
  */
-export function setcx(rect: Rect, cx: number) {
-  rect.x = cx - rect.width / 2
+export function setCx(out: Rect, rect: Readonly<Rect>, cx: number): Rect {
+  out.x = cx - rect.width / 2
+  return out
 }
 
 /**
  * Moves the rectangle so that the center point's y position is cy.
  */
-export function setcy(rect: Rect, cy: number) {
-  rect.y = cy - rect.height / 2
+export function setCy(out: Rect, rect: Readonly<Rect>, cy: number): Rect {
+  out.y = cy - rect.height / 2
+  return out
 }
 
 /**
@@ -88,21 +91,6 @@ export function size(out: Vec2, rect: Readonly<Rect>): Vec2 {
 }
 
 /**
- * Sets the center point of the rectangle to a vector.
- */
-export function setPosition(out: Rect, position: Readonly<Vec2>): Rect {
-  setcx(out, position[0])
-  setcy(out, position[1])
-  return out
-}
-
-export function setSize(out: Rect, size: Readonly<Vec2>): Rect {
-  out.width = size[0]
-  out.height = size[1]
-  return out
-}
-
-/**
  * Sets the width and height of a rectangle to match that of a source rectangle while maintaining an aspect ratio.
  * @param out - The receiving rectangle.
  * @param source - The source rectangle.
@@ -117,8 +105,8 @@ export function setAspectRatio(
   compare: (a: number, b: number) => number,
 ): Rect {
   commonSetAspectRatio(out, 'width', 'height', source.width, source.height, aspectRatio, compare)
-  setcx(out, cx(source))
-  setcy(out, cy(source))
+  setCx(out, out, cx(source))
+  setCy(out, out, cy(source))
   return out
 }
 
@@ -146,8 +134,8 @@ export function fit(
     target.height,
     compare,
   )
-  setcx(out, cx(target))
-  setcy(out, cy(target))
+  setCx(out, out, cx(target))
+  setCy(out, out, cy(target))
   return out
 }
 

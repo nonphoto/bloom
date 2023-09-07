@@ -1,5 +1,4 @@
-import { equals } from '@chloranthy/gl-matrix/common'
-import { Vec2, create as vec2Create } from '@chloranthy/gl-matrix/vec2'
+import { equals, Vec2, vec2Create } from '@chloranthy/gl-matrix'
 import { Body } from './body.js'
 import { Body1d, create as body1dCreate } from './body1d.js'
 import { spring as coreSpring, simpleSpring as coreSimpleSpring } from '@nonphoto/spring'
