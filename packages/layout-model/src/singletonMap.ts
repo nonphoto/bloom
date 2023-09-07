@@ -2,7 +2,7 @@ import { ReactiveMap } from '@solid-primitives/map'
 import { createSingletonRoot } from '@solid-primitives/rootless'
 import { Owner, createRoot, getOwner, onCleanup, untrack } from 'solid-js'
 
-export class SingletonMap<T extends object, U> {
+export class SingletonMap<T, U> {
   #map = new ReactiveMap<T, () => U>()
   #factory: (key: T) => U
   #owner: Owner | null

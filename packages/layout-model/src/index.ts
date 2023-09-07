@@ -473,3 +473,5 @@ export class LayoutModel {
     this.#observer.invalidateParent(element)
   }
 }
+
+export { SingletonMap }
