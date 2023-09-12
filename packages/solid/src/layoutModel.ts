@@ -1,5 +1,5 @@
 import { useLayoutModel } from '@chloranthy/layout-model'
-import { withAccess, type MaybeAccessor, access } from '@solid-primitives/utils'
+import { type MaybeAccessor, access } from '@solid-primitives/utils'
 import { createEffect } from 'solid-js'
 import { Mat2d, mat2dCreate, mat2dInvert, mat2dMultiply } from '@chloranthy/gl-matrix'
 import { createMaybeMemo } from './utils.js'
@@ -19,9 +19,10 @@ export function createSetTransform(
   const layout = useLayoutModel()
 
   createEffect(() => {
-    withAccess(element, elementValue => {
+    const elementValue = access(element)
+    if (elementValue) {
       layout.setTransform(elementValue, access(value))
-    })
+    }
   })
 }
 

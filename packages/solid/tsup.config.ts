@@ -3,7 +3,6 @@ import * as preset from 'tsup-preset-solid'
 
 const presetOptions: preset.PresetOptions = {
   entries: { entry: './src/index.ts' },
-  drop_console: true,
   cjs: false,
 }
 

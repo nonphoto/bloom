@@ -1,5 +1,5 @@
 import { useLayoutModel } from '@chloranthy/layout-model'
-import { MaybeAccessor, withAccess } from '@solid-primitives/utils'
+import { MaybeAccessor, access } from '@solid-primitives/utils'
 import { createMaybeMemo, maybe, styleBorderRadius } from './utils.js'
 import { mat2dCreate, mat2dMultiply } from '@chloranthy/gl-matrix'
 import { createEffect } from 'solid-js'
@@ -16,8 +16,9 @@ export function createSetBorderRadius(
   const totalTransform = createMaybeMemo(mat2dMultiply, mat2dCreate(), matrix, transform)
 
   createEffect(() => {
-    withAccess(element, elementValue => {
+    const elementValue = access(element)
+    if (elementValue) {
       elementValue.style.borderRadius = maybe(styleBorderRadius, value, rect, totalTransform) ?? ''
-    })
+    }
   })
 }
