@@ -1,4 +1,4 @@
-import { Accessor, batch, createEffect, createMemo, createSignal, on } from 'solid-js'
+import { Accessor, Setter, batch, createEffect, createMemo, createSignal, on } from 'solid-js'
 import { createRAF } from '@solid-primitives/raf'
 import { createMousePosition as createMousePositionStore } from '@solid-primitives/mouse'
 import { maybe, safeWindow } from './utils.js'
@@ -85,7 +85,8 @@ export function createMousePosition(): Accessor<Vec2> {
  * @param halflife - The halflife of the transition spring.
  * @returns A 2d body representing the current position and velocity of the spring.
  */
-export function createTransition(
+
+export function createSpringBody(
   target: Accessor<Vec2 | undefined>,
   halflife: number,
 ): Accessor<Body2d> {
@@ -104,4 +105,23 @@ export function createTransition(
   )
 
   return value
+}
+
+export function createSpring(
+  target: Accessor<Vec2 | undefined>,
+  body: Accessor<Body2d | undefined>,
+  setBody: Setter<Body2d>,
+  halflife: number,
+) {
+  const isRunning = createMemo(() => maybe(body2dIsAtRest, body, target) === false)
+
+  createEffect(
+    on(isRunning, isRunning => {
+      if (isRunning) {
+        createTimeCallback((_, deltaTime) => {
+          setBody(out => maybe(body2dSimpleSpring, out, out, target, halflife, deltaTime) ?? out)
+        })
+      }
+    }),
+  )
 }

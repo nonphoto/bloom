@@ -129,6 +129,9 @@ importers:
       '@chloranthy/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@chloranthy/gl-matrix':
+        specifier: workspace:*
+        version: link:../../packages/gl-matrix
       '@chloranthy/layout-model':
         specifier: workspace:*
         version: link:../../packages/layout-model

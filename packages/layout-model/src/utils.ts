@@ -1,6 +1,5 @@
 import { MaybeAccessor, access } from '@solid-primitives/utils'
-import { Vec2, set as vec2Set } from '@chloranthy/gl-matrix/vec2'
-import { Mat2d } from '@chloranthy/gl-matrix/mat2d'
+import { Mat2d, Vec2, vec2Set } from '@chloranthy/gl-matrix'
 import { createEffect, createRoot } from 'solid-js'
 
 export type MapMaybeAccessor<T> = T extends any[]
@@ -117,7 +116,14 @@ export function getScrollEmitter(element: HTMLElement): HTMLElement | Document {
 }
 
 export function styleTransform(transform: Mat2d): string {
-  return `matrix(${transform.join(',')})`
+  let result = 'matrix('
+  for (let i = 0; i < transform.length; i++) {
+    result += String(transform[i])
+    if (i !== transform.length - 1) {
+      result += ','
+    }
+  }
+  return result + ')'
 }
 
 export function walkParents(element: HTMLElement, callback: (element: HTMLElement) => void) {

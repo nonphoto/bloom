@@ -4,16 +4,26 @@ import { A } from 'solid-start'
 import { imageOptions } from '~/data/images'
 import { projects } from '~/data/projects'
 import {
+  TransitionCallback,
   createMaybeMemo,
   quad,
   borderRadius,
   createMousePosition,
-  createTransition,
+  createSpringBody,
+  createListTransition,
 } from '@chloranthy/solid'
-import { Quad2d, Rect } from '@chloranthy/core'
-import { vec2 } from 'gl-matrix'
+import {
+  Quad2d,
+  quad2dFromRect,
+  quad2dCreate,
+  quad2dCover,
+  quad2dFromPositionSize,
+  rectSetAspectRatio,
+  rectCreate,
+  rectSize,
+} from '@chloranthy/core'
+import { vec2Create } from '@chloranthy/gl-matrix'
 import { useLayoutModel } from '@chloranthy/layout-model'
-import { TransitionCallback, createListTransition } from '~/lib/transition-group'
 
 quad
 borderRadius
@@ -26,16 +36,16 @@ function Image(props: {
   src: string
   naturalWidth: number
   naturalHeight: number
-  parentQuad: Quad2d.Type | undefined
+  parentQuad: Quad2d | undefined
   useExit: (callback: TransitionCallback) => void
 }) {
   const [element, setElement] = createSignal<HTMLDivElement>()
   const layoutModel = useLayoutModel()
   const rect = layoutModel.useRect(element)
 
-  const childQuad = createMaybeMemo(Quad2d.fromRect, Quad2d.create(), rect)
+  const childQuad = createMaybeMemo(quad2dFromRect, quad2dCreate, rect)
 
-  const fitQuad = createMaybeMemo(Quad2d.cover, Quad2d.create(), childQuad, () => props.parentQuad)
+  const fitQuad = createMaybeMemo(quad2dCover, quad2dCreate, childQuad, () => props.parentQuad)
 
   createEffect(() => {
     props.useExit(() => () => {
@@ -67,20 +77,20 @@ export default function ProjectListIndex() {
   const layoutModel = useLayoutModel()
   const imageContainerRect = layoutModel.useRect(imageContainerElement)
   const imageContainerFitRect = createMaybeMemo(
-    Rect.setAspectRatio,
-    Rect.create(),
+    rectSetAspectRatio,
+    rectCreate,
     imageContainerRect,
     9 / 16,
     () => (a: number, b: number) => (a + b) / 2,
   )
 
-  const size = createMaybeMemo(Rect.size, vec2.create(), imageContainerFitRect)
+  const size = createMaybeMemo(rectSize, vec2Create(), imageContainerFitRect)
 
-  const transitionSize = createTransition(size, 200)
+  const transitionSize = createSpringBody(size, 150)
 
   const imageContainerQuad = createMaybeMemo(
-    Quad2d.fromPositionSize,
-    Quad2d.create(),
+    quad2dFromPositionSize,
+    quad2dCreate(),
     mousePosition,
     () => transitionSize().p,
   )

@@ -1,164 +1,6 @@
-import {
-  Accessor,
-  batch,
-  createSignal,
-  untrack,
-  $TRACK,
-  createComputed,
-  useTransition,
-} from 'solid-js'
+import { $TRACK, Accessor, createComputed, createSignal, untrack, useTransition } from 'solid-js'
 import { isServer } from 'solid-js/web'
-import { arrayEquals, makeSetItem, trackTransitionPending } from './utils'
-
-const noop = () => {}
-const noopAsync = async () => {}
-const noopTransition = (el: any, done: () => void) => done()
-
-export type TransitionMode = 'out-in' | 'in-out' | 'parallel'
-
-export type OnTransition<T> = (el: T, done: () => void) => void
-
-export type SwitchTransitionOptions<T> = {
-  /**
-   * a function to be called when a new element is entering. {@link OnTransition}
-   *
-   * It receives the element and a callback to be called when the transition is done.
-   */
-  onEnter?: OnTransition<T>
-  /**
-   * a function to be called when an exiting element is leaving. {@link OnTransition}
-   *
-   * It receives the element and a callback to be called when the transition is done.
-   * The element is kept in the DOM until the done() callback is called.
-   */
-  onExit?: OnTransition<T>
-  /**
-   * transition mode. {@link TransitionMode}
-   *
-   * Defaults to `"parallel"`. Other options are `"out-in"` and `"in-out"`.
-   */
-  mode?: TransitionMode
-  /** whether to run the transition on the initial elements. Defaults to `false` */
-  appear?: boolean
-}
-
-/**
- * Create an element transition interface for switching between single elements.
- * It can be used to implement own transition effect, or a custom `<Transition>`-like component.
- *
- * It will observe {@link source} and return a signal with array of elements to be rendered (current one and exiting ones).
- *
- * @param source a signal with the current element. Any nullish value will mean there is no element.
- * Any object can used as the source, but most likely you will want to use a `HTMLElement` or `SVGElement`.
- * @param options transition options {@link SwitchTransitionOptions}
- * @returns a signal with an array of the current element and exiting previous elements.
- *
- * @see https://github.com/solidjs-community/solid-primitives/tree/main/packages/transition-group#createSwitchTransition
- *
- * @example
- * const [el, setEl] = createSignal<HTMLDivElement>();
- *
- * const rendered = createSwitchTransition(el, {
- *   onEnter(el, done) {
- *     // the enter callback is called before the element is inserted into the DOM
- *     // so run the animation in the next animation frame / microtask
- *     queueMicrotask(() => { ... })
- *   },
- *   onExit(el, done) {
- *     // the exitting element is kept in the DOM until the done() callback is called
- *   },
- * })
- *
- * // change the source to trigger the transition
- * setEl(refToHtmlElement);
- */
-export function createSwitchTransition<T>(
-  source: Accessor<T>,
-  options: SwitchTransitionOptions<NonNullable<T>>,
-): Accessor<NonNullable<T>[]> {
-  const initSource = untrack(source)
-  const initReturned = initSource ? [initSource] : []
-
-  if (isServer) {
-    return () => initReturned
-  }
-
-  const { onEnter = noopTransition, onExit = noopTransition } = options
-
-  const [returned, setReturned] = createSignal<NonNullable<T>[]>(options.appear ? [] : initReturned)
-  const [isTransitionPending] = useTransition()
-
-  let next: T | undefined
-  let isExiting = false
-
-  function exitTransition(el: T | undefined, after?: () => void) {
-    if (!el) return after && after()
-    isExiting = true
-    onExit(el, () => {
-      batch(() => {
-        isExiting = false
-        setReturned(p => p.filter(e => e !== el))
-        after && after()
-      })
-    })
-  }
-
-  function enterTransition(after?: () => void) {
-    const el = next
-    if (!el) return after && after()
-    next = undefined
-    setReturned(p => [el, ...p])
-    onEnter(el, after ?? noop)
-  }
-
-  const triggerTransitions: (prev: T | undefined) => void =
-    options.mode === 'out-in'
-      ? // exit -> enter
-        prev => isExiting || exitTransition(prev, enterTransition)
-      : options.mode === 'in-out'
-      ? // enter -> exit
-        prev => enterTransition(() => exitTransition(prev))
-      : // exit & enter
-        prev => {
-          enterTransition()
-          exitTransition(prev)
-        }
-
-  createComputed(
-    (prev: T | undefined) => {
-      const el = source()
-
-      if (untrack(isTransitionPending)) {
-        // wait for pending transition to end before animating
-        isTransitionPending()
-        return prev
-      }
-
-      if (el !== prev) {
-        next = el
-        batch(() => untrack(() => triggerTransitions(prev)))
-      }
-
-      return el
-    },
-    options.appear ? undefined : initSource,
-  )
-
-  return returned
-}
-
-export type OnListChange<T> = (payload: {
-  /** full list of elements to be rendered */
-  list: T[]
-  /** list of elements that were added since the last change */
-  added: T[]
-  /** list of elements that were removed since the last change */
-  removed: T[]
-  /** list of elements that were already added before, and are not currently exiting */
-  unchanged: T[]
-  /** Callback for finishing the transition of exiting elements - removes them from rendered array */
-  finishRemoved: (els: T[]) => void
-}) => void
+import { arrayEquals, makeSetItem, noop, noopAsync } from './utils'
 
 export type ExitMethod = 'remove' | 'move-to-end' | 'keep-index'
 
@@ -187,8 +29,6 @@ export type TransitionItemState = 'initial' | 'entering' | 'entered' | 'exiting'
 
 export type TransitionCallback = () => () => Promise<unknown>
 
-export type TransitionControl = () => () => Promise<void>
-
 export type TransitionItemContext = {
   state: Accessor<TransitionItemState>
   useEnter(callback: TransitionCallback): void
@@ -196,7 +36,9 @@ export type TransitionItemContext = {
   useRemain(callback: TransitionCallback): void
 }
 
-export type TransitionItemControls = {
+type TransitionControl = () => () => Promise<void>
+
+type TransitionItemControls = {
   enter: TransitionControl
   exit: TransitionControl
   remain: TransitionControl
@@ -218,34 +60,14 @@ function createTransitionItem<T>(el: T, options: ListTransitionOptions): Transit
   const enterCallbacks = new Set<TransitionCallback>()
   const exitCallbacks = new Set<TransitionCallback>()
   const remainCallbacks = new Set<TransitionCallback>()
-  let controlIsRunning: boolean = false
 
   const makeTransitionControl: (
     callbackSet: Set<TransitionCallback>,
     startState: TransitionItemState,
     endState: TransitionItemState,
   ) => TransitionControl =
-    options.interruptMethod === 'none'
+    options.interruptMethod === 'cancel'
       ? (callbackSet, startState, endState) => () => {
-          if (controlIsRunning) {
-            return noopAsync
-          }
-
-          controlIsRunning = true
-
-          const callbacks = Array.from(callbackSet).map(callback => callback())
-          setState(startState)
-
-          return () =>
-            Promise.all(callbacks.map(callback => callback()))
-              .then(() => {
-                setState(endState)
-              })
-              .finally(() => {
-                controlIsRunning = false
-              })
-        }
-      : (callbackSet, startState, endState) => () => {
           for (const cancel of cancelSet) {
             cancel()
           }
@@ -272,6 +94,7 @@ function createTransitionItem<T>(el: T, options: ListTransitionOptions): Transit
                 cancelSet.delete(cancel)
               })
         }
+      : () => () => noopAsync
 
   return [
     el,
@@ -307,25 +130,6 @@ function createTransitionItem<T>(el: T, options: ListTransitionOptions): Transit
  * @param source a signal with the current list of elements.
  * Any object can used as the element, but most likely you will want to use a `HTMLElement` or `SVGElement`.
  * @param options transition options {@link ListTransitionOptions}
- *
- * @see https://github.com/solidjs-community/solid-primitives/tree/main/packages/transition-group#createListTransition
- *
- * @example
- * const [els, setEls] = createSignal<HTMLElement[]>([]);
- *
- * const rendered = createListTransition(els, {
- *   onChange({ list, added, removed, unchanged, finishRemoved }) {
- *     // the callback is called before the added elements are inserted into the DOM
- *     // so run the animation in the next animation frame / microtask
- *     queueMicrotask(() => { ... })
- *
- *     // the removed elements are kept in the DOM until the finishRemoved() callback is called
- *     finishRemoved(removed);
- *   }
- * })
- *
- * // change the source to trigger the transition
- * setEls([...refsToHTMLElements]);
  */
 export function createListTransition<T extends object>(
   source: Accessor<readonly T[]>,
@@ -357,7 +161,7 @@ export function createListTransition<T extends object>(
 
   const [toRemove, setToRemove] = createSignal<T[]>([], { equals: false })
 
-  const [isTransitionPending] = useTransition()
+  const [isPending] = useTransition()
 
   const finishRemoved: (el: T) => void =
     options.exitMethod === 'remove'
@@ -379,13 +183,17 @@ export function createListTransition<T extends object>(
     const elsToRemove = toRemove()
     ;(sourceList as any)[$TRACK] // top level store tracking
 
-    trackTransitionPending(isTransitionPending, () => {
+    if (untrack(isPending)) {
+      isPending()
+      return
+    } else {
       untrack(() => {
-        const prev = result()
+        const resultValue = result()
+        const resultSet = new Set(resultValue.map(([el]) => el))
 
         if (elsToRemove.length) {
           console.log('elsToRemove', elsToRemove)
-          const next = prev.filter(([el]) => !elsToRemove.includes(el))
+          const next = resultValue.filter(([el]) => !elsToRemove.includes(el))
           elsToRemove.length = 0
           setResult(next)
           return
@@ -400,9 +208,13 @@ export function createListTransition<T extends object>(
         for (let i = 0; i < sourceList.length; i++) {
           const el = sourceList[i]!
           if (prevSet.has(el)) {
-            const item = prev.find(([prevEl]) => prevEl === el)!
+            const item = resultValue.find(([prevEl]) => prevEl === el)!
             next.push(item)
             remaining.push(item)
+          } else if (resultSet.has(el)) {
+            const item = resultValue.find(([prevEl]) => prevEl === el)!
+            next.push(item)
+            entering.push(item)
           } else {
             console.log('add', el)
             const item = createTransitionItem(el, options)
@@ -411,8 +223,8 @@ export function createListTransition<T extends object>(
           }
         }
 
-        for (let i = 0; i < prev.length; i++) {
-          const item = prev[i]!
+        for (let i = 0; i < resultValue.length; i++) {
+          const item = resultValue[i]!
           const [el] = item
           if (!nextSet.has(el)) {
             handleExiting(next, item, i)
@@ -434,6 +246,7 @@ export function createListTransition<T extends object>(
             const callback = controls.exit()
             callbacks.push(() =>
               callback().then(() => {
+                console.log('finishRemoved')
                 finishRemoved(el)
               }),
             )
@@ -454,7 +267,7 @@ export function createListTransition<T extends object>(
           }
         })
       })
-    })
+    }
   })
 
   return result as unknown as Accessor<[T, TransitionItemContext][]>

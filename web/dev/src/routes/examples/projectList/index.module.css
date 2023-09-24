@@ -31,7 +31,7 @@
   pointer-events: none;
   position: absolute;
   inset: 0 auto auto 0;
-  width: 60vw;
+  width: 60vmin;
   overflow: hidden;
 }
 

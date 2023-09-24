@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@chloranthy/core": "workspace:*",
+    "@chloranthy/gl-matrix": "workspace:*",
     "@chloranthy/layout-model": "workspace:*",
     "@chloranthy/solid": "workspace:*",
     "@nonphoto/css": "1.0.4",

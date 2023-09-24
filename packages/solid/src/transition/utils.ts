@@ -1,4 +1,8 @@
-import { Accessor, onCleanup, untrack } from 'solid-js'
+import { onCleanup } from 'solid-js'
+
+export const noop = () => {}
+export const noopAsync = async () => {}
+export const noopTransition = (_: any, done: () => void) => done()
 
 export function makeSetItem<T>(set: Set<T>, item: T) {
   set.add(item)
@@ -13,13 +17,4 @@ export function arrayEquals<T extends Array<unknown>>(a: T, b: T): boolean {
     if (a[i] !== b[i]) return false
   }
   return true
-}
-
-export function trackTransitionPending(isPending: Accessor<boolean>, callback: () => void): void {
-  if (untrack(isPending)) {
-    isPending()
-    return
-  } else {
-    callback()
-  }
 }
