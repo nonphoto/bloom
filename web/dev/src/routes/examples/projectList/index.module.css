@@ -36,17 +36,13 @@
 }
 
 .img {
+  position: relative;
   width: 100%;
 }
 
-.img:global(.s-enter-active) {
-  position: relative;
-}
-
-.img:global(.s-exit-active) {
+.img.isExiting {
   position: absolute;
   inset: 0 0 auto 0;
-  animation: fade-out 0.5s ease-in-out;
 }
 
 .ul {

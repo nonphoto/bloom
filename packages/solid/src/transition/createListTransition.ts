@@ -2,27 +2,27 @@ import { $TRACK, Accessor, createComputed, createSignal, untrack, useTransition 
 import { isServer } from 'solid-js/web'
 import { arrayEquals, makeSetItem, noop, noopAsync } from './utils'
 
-export type ExitMethod = 'remove' | 'move-to-end' | 'keep-index'
+export type ExitMode = 'remove' | 'move-to-end' | 'keep-index'
 
-export type InterruptMethod = 'cancel' | 'wait' | 'none'
+export type InterruptMode = 'cancel' | 'wait' | 'none'
 
 export type ListTransitionOptions = {
   /** whether to run the transition on the initial elements. Defaults to `false` */
   appear?: boolean
   /**
-   * This controls what happens when a transition is interrupted. This can happen when an element exits before an enter transition has completed, or vice versa. {@link InterruptMethod}
+   * This controls what happens when a transition is interrupted. This can happen when an element exits before an enter transition has completed, or vice versa. {@link InterruptMode}
    * - `"cancel"` (default) abandons the current transition and starts the interrupting one as soon as it happens.
    * - `"wait"` waits for the current transition to complete before starting the most recently interrupting transition.
    * - `"none"` ignores the interrupting transition entirely
    */
-  interruptMethod?: InterruptMethod
+  interruptMode?: InterruptMode
   /**
-   * This controls how the elements exit. {@link ExitMethod}
+   * This controls how the elements exit. {@link ExitMode}
    * - `"remove"` removes the element immediately.
    * - `"move-to-end"` (default) will move elements which have exited to the end of the array.
    * - `"keep-index"` will splice them in at their previous index.
    */
-  exitMethod?: ExitMethod
+  exitMode?: ExitMode
 }
 
 export type TransitionItemState = 'initial' | 'entering' | 'entered' | 'exiting' | 'exited'
@@ -66,7 +66,7 @@ function createTransitionItem<T>(el: T, options: ListTransitionOptions): Transit
     startState: TransitionItemState,
     endState: TransitionItemState,
   ) => TransitionControl =
-    options.interruptMethod === 'cancel'
+    options.interruptMode === 'cancel' || options.interruptMode == null
       ? (callbackSet, startState, endState) => () => {
           for (const cancel of cancelSet) {
             cancel()
@@ -133,7 +133,7 @@ function createTransitionItem<T>(el: T, options: ListTransitionOptions): Transit
  */
 export function createListTransition<T extends object>(
   source: Accessor<readonly T[]>,
-  options: ListTransitionOptions,
+  options: ListTransitionOptions = {},
 ): Accessor<[T, TransitionItemContext][]> {
   const initSource = untrack(source)
 
@@ -164,21 +164,20 @@ export function createListTransition<T extends object>(
   const [isPending] = useTransition()
 
   const finishRemoved: (el: T) => void =
-    options.exitMethod === 'remove'
+    options.exitMode === 'remove'
       ? noop
       : el => {
           setToRemove(p => [...p, el])
         }
 
   const handleExiting: (items: TransitionItem<T>[], item: TransitionItem<T>, i: number) => void =
-    options.exitMethod === 'remove'
+    options.exitMode === 'remove'
       ? noop
-      : options.exitMethod === 'keep-index'
+      : options.exitMode === 'keep-index'
       ? (items, item, i) => items.splice(i, 0, item)
       : (items, item) => items.push(item)
 
   createComputed(() => {
-    console.log('computed')
     const sourceList = source()
     const elsToRemove = toRemove()
     ;(sourceList as any)[$TRACK] // top level store tracking
@@ -192,7 +191,6 @@ export function createListTransition<T extends object>(
         const resultSet = new Set(resultValue.map(([el]) => el))
 
         if (elsToRemove.length) {
-          console.log('elsToRemove', elsToRemove)
           const next = resultValue.filter(([el]) => !elsToRemove.includes(el))
           elsToRemove.length = 0
           setResult(next)
@@ -216,7 +214,6 @@ export function createListTransition<T extends object>(
             next.push(item)
             entering.push(item)
           } else {
-            console.log('add', el)
             const item = createTransitionItem(el, options)
             next.push(item)
             entering.push(item)
@@ -229,7 +226,6 @@ export function createListTransition<T extends object>(
           if (!nextSet.has(el)) {
             handleExiting(next, item, i)
             if (prevSet.has(el)) {
-              console.log('remove', el)
               exiting.push(item)
             }
           }
@@ -246,7 +242,6 @@ export function createListTransition<T extends object>(
             const callback = controls.exit()
             callbacks.push(() =>
               callback().then(() => {
-                console.log('finishRemoved')
                 finishRemoved(el)
               }),
             )

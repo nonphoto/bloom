@@ -1,5 +1,5 @@
 import classes from './index.module.css'
-import { For, createEffect, createSignal } from 'solid-js'
+import { For, createComputed, createSignal } from 'solid-js'
 import { A } from 'solid-start'
 import { imageOptions } from '~/data/images'
 import { projects } from '~/data/projects'
@@ -37,7 +37,9 @@ function Image(props: {
   naturalWidth: number
   naturalHeight: number
   parentQuad: Quad2d | undefined
+  useEnter: (callback: TransitionCallback) => void
   useExit: (callback: TransitionCallback) => void
+  isExiting: boolean
 }) {
   const [element, setElement] = createSignal<HTMLDivElement>()
   const layoutModel = useLayoutModel()
@@ -47,11 +49,27 @@ function Image(props: {
 
   const fitQuad = createMaybeMemo(quad2dCover, quad2dCreate, childQuad, () => props.parentQuad)
 
-  createEffect(() => {
-    props.useExit(() => () => {
-      return (
-        element()?.animate({ opacity: [1, 0] }, { duration: 500 })?.finished ?? Promise.resolve()
-      )
+  createComputed(() => {
+    props.useEnter(() => {
+      const animations = element()?.getAnimations() ?? []
+      for (const animation of animations) {
+        animation.cancel()
+      }
+
+      return () => Promise.resolve()
+    })
+    props.useExit(() => {
+      const elementValue = element()
+      if (elementValue) {
+        return () => {
+          return (
+            elementValue.animate({ opacity: [1, 0] }, { duration: 500 })?.finished ??
+            Promise.resolve()
+          )
+        }
+      } else {
+        return () => Promise.resolve()
+      }
     })
   })
 
@@ -60,7 +78,12 @@ function Image(props: {
       ref={setElement}
       src={imageOptions(props.src, { w: 500 })}
       class={classes.img}
-      style={{ 'aspect-ratio': styleAspectRatio(props) }}
+      classList={{
+        [classes.isExiting]: props.isExiting,
+      }}
+      style={{
+        'aspect-ratio': styleAspectRatio(props),
+      }}
       use:quad={fitQuad()}
     />
   )
@@ -97,7 +120,7 @@ export default function ProjectListIndex() {
 
   const visibleProjects = createListTransition(
     () => (hoveredProject() ? [hoveredProject()!] : []),
-    { exitMethod: 'move-to-end' },
+    { exitMode: 'move-to-end' },
   )
 
   return (
@@ -113,8 +136,16 @@ export default function ProjectListIndex() {
         use:borderRadius={50}
       >
         <For each={visibleProjects()}>
-          {([project, { useExit }]) => {
-            return <Image {...project.image} parentQuad={imageContainerQuad()} useExit={useExit} />
+          {([project, { useExit, useEnter, state }]) => {
+            return (
+              <Image
+                {...project.image}
+                parentQuad={imageContainerQuad()}
+                useExit={useExit}
+                useEnter={useEnter}
+                isExiting={state() === 'exiting'}
+              />
+            )
           }}
         </For>
       </div>
