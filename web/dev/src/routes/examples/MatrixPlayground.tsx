@@ -3,7 +3,13 @@ import classes from './MatrixPlayground.module.css'
 import { createEffect } from 'solid-js'
 import { maybe } from '@chloranthy/solid'
 import { mat2d } from 'gl-matrix'
-import { Quad2d } from '@chloranthy/core'
+import {
+  quad2dFromRect,
+  quad2dCreate,
+  quad2dUntransformMat2d,
+  quad2dTransformMat2d,
+  quad2dEquals,
+} from '@chloranthy/core'
 
 export default function MatrixPlayground() {
   const sourceElement = (<div class={classes.source} />) as HTMLElement
@@ -16,15 +22,15 @@ export default function MatrixPlayground() {
   createEffect(() => {
     maybe(
       (sourceRect, targetRect) => {
-        const sourceQuad = Quad2d.fromRect(new Quad2d.Instance(), sourceRect)
-        const targetQuad = Quad2d.fromRect(new Quad2d.Instance(), targetRect)
-        const transformationMatrix = Quad2d.untransformMat2d(mat2d.create(), sourceQuad, targetQuad)
-        const transformedSourceQuad = Quad2d.transformMat2d(
-          new Quad2d.Instance(),
+        const sourceQuad = quad2dFromRect(quad2dCreate(), sourceRect)
+        const targetQuad = quad2dFromRect(quad2dCreate(), targetRect)
+        const transformationMatrix = quad2dUntransformMat2d(mat2d.create(), sourceQuad, targetQuad)
+        const transformedSourceQuad = quad2dTransformMat2d(
+          quad2dCreate(),
           sourceQuad,
           transformationMatrix,
         )
-        console.log(Quad2d.equals(transformedSourceQuad, targetQuad))
+        console.log(quad2dEquals(transformedSourceQuad, targetQuad))
         layoutModel.setTransform(sourceElement, transformationMatrix)
       },
       sourceRect,

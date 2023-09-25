@@ -1,23 +1,23 @@
 import classes from './ScrollingLayout.module.css'
-import { transform } from '@chloranthy/solid'
-import { Rect } from '@chloranthy/core'
+import { setTransform } from '@chloranthy/solid'
+import { rectUntransformMat2d } from '@chloranthy/core'
 import { createRAF } from '@solid-primitives/raf'
-import { mat2d } from 'gl-matrix'
+import { Mat2d, mat2dMultiply, mat2dCreate, mat2dFromRotation } from '@chloranthy/gl-matrix'
 import { createEffect, createMemo, createSignal } from 'solid-js'
 import { useLayoutModel } from '@chloranthy/layout-model'
 
-transform
+setTransform
 
 declare module 'solid-js' {
   namespace JSX {
     interface Directives {
-      transform: mat2d | undefined
+      setTransform: Mat2d | undefined
     }
   }
 }
 
 export default function ScrollingLayout() {
-  const [parentTransform, setParentTransform] = createSignal<mat2d>(mat2d.create(), {
+  const [parentTransform, setParentTransform] = createSignal<Mat2d>(mat2dCreate(), {
     equals: false,
   })
 
@@ -25,7 +25,7 @@ export default function ScrollingLayout() {
   const [fixedElement, setFixedElement] = createSignal<HTMLElement>()
 
   const [, start] = createRAF(function raf(t) {
-    setParentTransform(prev => mat2d.fromRotation(prev, t * 0.001))
+    setParentTransform(prev => mat2dFromRotation(prev, t * 0.001))
   })
 
   createEffect(() => {
@@ -37,18 +37,18 @@ export default function ScrollingLayout() {
   const innerMatrix = layout.useMatrix(innerElement)
   const shadowRect = layout.useRect(fixedElement)
 
-  const shadowTransform = createMemo<mat2d>(
+  const shadowTransform = createMemo<Mat2d>(
     prev => {
       const innerRectValue = innerRect()
       const innerMatrixValue = innerMatrix()
       const shadowRectValue = shadowRect()
       if (innerRectValue && innerMatrixValue && shadowRectValue) {
-        Rect.divide(prev, innerRectValue, shadowRectValue)
-        mat2d.multiply(prev, prev, innerMatrixValue)
+        rectUntransformMat2d(prev, innerRectValue, shadowRectValue)
+        mat2dMultiply(prev, prev, innerMatrixValue)
       }
       return prev
     },
-    mat2d.create(),
+    mat2dCreate(),
     { equals: false },
   )
 
@@ -57,14 +57,14 @@ export default function ScrollingLayout() {
       <div
         id="test"
         class={`${classes.container} ${classes.outer}`}
-        use:transform={parentTransform()}
+        use:setTransform={parentTransform()}
       >
         <div class={classes.container}>
           <div class={classes.sticky}></div>
           <div class={classes.absolute} ref={setInnerElement}></div>
         </div>
       </div>
-      <div class={classes.shadow} ref={setFixedElement} use:transform={shadowTransform()} />
+      <div class={classes.shadow} ref={setFixedElement} use:setTransform={shadowTransform()} />
     </>
   )
 }

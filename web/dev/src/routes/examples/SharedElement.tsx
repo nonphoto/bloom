@@ -1,10 +1,19 @@
 import classes from './SharedElement.module.css'
 import { createSignal } from 'solid-js'
 import { xprod } from 'ramda'
-import { quad, borderRadius, createMaybeMemo, createTransition } from '@chloranthy/solid'
-import { Quad2d, Rect } from '@chloranthy/core'
+import { quad, borderRadius, createMaybeMemo, createSpringBody } from '@chloranthy/solid'
+import {
+  Quad2d,
+  rectPosition,
+  rectSize,
+  quad2dCreate,
+  quad2dCover,
+  quad2dFromPositionSize,
+  quad2dTransformMat2d,
+  quad2dFromRect,
+} from '@chloranthy/core'
+import { Mat2d, Vec2, vec2Create } from '@chloranthy/gl-matrix'
 import { useLayoutModel } from '@chloranthy/layout-model'
-import { mat2d, vec2 } from 'gl-matrix'
 
 quad
 borderRadius
@@ -21,29 +30,29 @@ export default function SharedElement() {
   const outerTargetRect = layoutModel.useRect(outerElement)
   const innerTargetRect = layoutModel.useRect(innerElement)
 
-  const targetPosition = createMaybeMemo(Rect.position, vec2.create(), outerTargetRect)
-  const targetSize = createMaybeMemo(Rect.size, vec2.create(), outerTargetRect)
+  const targetPosition = createMaybeMemo(rectPosition, vec2Create(), outerTargetRect)
+  const targetSize = createMaybeMemo(rectSize, vec2Create(), outerTargetRect)
 
-  const position = createTransition(targetPosition, 150)
-  const size = createTransition(targetSize, 300)
+  const position = createSpringBody(targetPosition, 150)
+  const size = createSpringBody(targetSize, 300)
 
   const outerMatrix = layoutModel.useMatrix(outerElement)
 
   const outerQuad = createMaybeMemo(
-    (out: Quad2d.Type, position: vec2, size: vec2, matrix: mat2d) => {
-      Quad2d.fromPositionSize(out, position, size)
-      Quad2d.transformMat2d(out, out, matrix)
+    (out: Quad2d, position: Vec2, size: Vec2, matrix: Mat2d) => {
+      quad2dFromPositionSize(out, position, size)
+      quad2dTransformMat2d(out, out, matrix)
       return out
     },
-    Quad2d.create(),
+    quad2dCreate,
     () => position().p,
     () => size().p,
     outerMatrix,
   )
 
-  const innerTargetQuad = createMaybeMemo(Quad2d.fromRect, Quad2d.create(), innerTargetRect)
+  const innerTargetQuad = createMaybeMemo(quad2dFromRect, quad2dCreate, innerTargetRect)
 
-  const innerQuad = createMaybeMemo(Quad2d.cover, Quad2d.create(), innerTargetQuad, outerQuad)
+  const innerQuad = createMaybeMemo(quad2dCover, quad2dCreate, innerTargetQuad, outerQuad)
 
   return (
     <>
