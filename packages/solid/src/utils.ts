@@ -44,10 +44,14 @@ export function createMaybeMemo<F extends (...args: any[]) => any>(
 /**
  * @private
  */
-export function styleBorderRadius(radius: number, rect: DOMRect, transform: Mat2d) {
-  const x = (radius / (rect.width * transform[0])) * 100
-  const y = (radius / (rect.height * transform[3])) * 100
-  return `${x}% / ${y}%`
+export function styleBorderRadius(radius: number, rect?: DOMRect, transform?: Mat2d) {
+  if (rect) {
+    const x = (radius / (rect.width * (transform?.[0] ?? 1))) * 100
+    const y = (radius / (rect.height * (transform?.[3] ?? 1))) * 100
+    return `${x}% / ${y}%`
+  } else {
+    return `${radius}px`
+  }
 }
 
 /**

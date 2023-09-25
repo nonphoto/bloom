@@ -1,0 +1,20 @@
+.root {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  padding-top: 3rem;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.active > * {
+  background-color: #4c625b55;
+  color: #4c625b;
+  font-size: 2rem;
+  padding: 1rem 2rem;
+  border-radius: 20px;
+}
