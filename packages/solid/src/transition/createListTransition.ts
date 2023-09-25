@@ -27,7 +27,7 @@ export type ListTransitionOptions = {
 
 export type TransitionItemState = 'initial' | 'entering' | 'entered' | 'exiting' | 'exited'
 
-export type TransitionCallback = () => () => Promise<unknown>
+export type TransitionCallback = () => void | (() => void | Promise<unknown>)
 
 export type TransitionItemContext = {
   state: Accessor<TransitionItemState>
@@ -86,7 +86,7 @@ function createTransitionItem<T>(el: T, options: ListTransitionOptions): Transit
           setState(startState)
 
           return () =>
-            Promise.race([Promise.all(callbacks.map(callback => callback())), cancelPromise])
+            Promise.race([Promise.all(callbacks.map(callback => callback?.())), cancelPromise])
               .then(() => {
                 setState(endState)
               })
@@ -115,7 +115,7 @@ function createTransitionItem<T>(el: T, options: ListTransitionOptions): Transit
       exit: makeTransitionControl(exitCallbacks, 'exiting', 'exited'),
       remain() {
         return () =>
-          Promise.all(Array.from(remainCallbacks).map(callback => callback()())).then(noop)
+          Promise.all(Array.from(remainCallbacks).map(callback => callback()?.())).then(noop)
       },
     },
   ]

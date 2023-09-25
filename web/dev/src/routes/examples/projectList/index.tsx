@@ -1,5 +1,5 @@
 import classes from './index.module.css'
-import { For, createComputed, createSignal } from 'solid-js'
+import { For, createComputed, createEffect, createSignal, onCleanup } from 'solid-js'
 import { A } from 'solid-start'
 import { imageOptions } from '~/data/images'
 import { projects } from '~/data/projects'
@@ -24,6 +24,7 @@ import {
 } from '@chloranthy/core'
 import { vec2Create } from '@chloranthy/gl-matrix'
 import { useLayoutModel } from '@chloranthy/layout-model'
+import { animate } from 'motion'
 
 quad
 borderRadius
@@ -51,24 +52,15 @@ function Image(props: {
 
   createComputed(() => {
     props.useEnter(() => {
-      const animations = element()?.getAnimations() ?? []
-      for (const animation of animations) {
-        animation.cancel()
+      const elementValue = element()
+      if (elementValue) {
+        return () => animate(elementValue, { opacity: [0, 1] }, { duration: 0 }).finished
       }
-
-      return () => Promise.resolve()
     })
     props.useExit(() => {
       const elementValue = element()
       if (elementValue) {
-        return () => {
-          return (
-            elementValue.animate({ opacity: [1, 0] }, { duration: 500 })?.finished ??
-            Promise.resolve()
-          )
-        }
-      } else {
-        return () => Promise.resolve()
+        return () => animate(elementValue, { opacity: [1, 0] }, { duration: 0.5 }).finished
       }
     })
   })
@@ -119,9 +111,13 @@ export default function ProjectListIndex() {
   )
 
   const visibleProjects = createListTransition(
-    () => (hoveredProject() ? [hoveredProject()!] : []),
+    () => (hoveredProject() ? [{ ...hoveredProject()! }] : []),
     { exitMode: 'move-to-end' },
   )
+
+  createEffect(() => {
+    console.log(visibleProjects())
+  })
 
   return (
     <section class={classes.section}>
@@ -149,7 +145,7 @@ export default function ProjectListIndex() {
           }}
         </For>
       </div>
-      <ul class={classes.ul}>
+      <ul class={classes.ul} onMouseLeave={[setHoveredIndex, null]}>
         <For each={projects}>
           {(project, index) => (
             <li class={classes.li} onMouseEnter={[setHoveredIndex, index()]}>

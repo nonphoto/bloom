@@ -33,6 +33,7 @@
     "@solidjs/meta": "^0.28.2",
     "@solidjs/router": "^0.8.2",
     "gl-matrix": "3.4.3",
+    "motion": "10.16.4",
     "ramda": "0.29.0",
     "solid-js": "^1.7.2",
     "solid-start": "^0.2.26",
