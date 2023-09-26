@@ -18,7 +18,6 @@ export function createSetBorderRadius(
   createEffect(() => {
     const elementValue = access(element)
     if (elementValue) {
-      console.log(access(value), rect())
       elementValue.style.borderRadius =
         maybe(styleBorderRadius, value, rect, totalTransform) ??
         maybe(styleBorderRadius, value) ??

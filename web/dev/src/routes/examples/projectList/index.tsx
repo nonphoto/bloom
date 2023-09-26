@@ -115,10 +115,6 @@ export default function ProjectListIndex() {
     { exitMode: 'move-to-end' },
   )
 
-  createEffect(() => {
-    console.log(visibleProjects())
-  })
-
   return (
     <section class={classes.section}>
       <h1 class={classes.h1}>Projects</h1>

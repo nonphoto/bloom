@@ -30,7 +30,6 @@ export default function MatrixPlayground() {
           sourceQuad,
           transformationMatrix,
         )
-        console.log(quad2dEquals(transformedSourceQuad, targetQuad))
         layoutModel.setTransform(sourceElement, transformationMatrix)
       },
       sourceRect,

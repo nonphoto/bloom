@@ -1,7 +1,9 @@
-export class Listeners<T extends object, U> {
-  #map = new WeakMap<T, Set<(value: U) => void>>()
+export type Listener<U> = (value: U) => void
 
-  add(key: T, listener: (value: U) => void) {
+export class Listeners<T extends WeakKey, U> {
+  #map = new WeakMap<T, Set<Listener<U>>>()
+
+  add(key: T, listener: Listener<U>) {
     const listeners = this.#map.get(key)
     if (listeners) {
       listeners.add(listener)
@@ -10,7 +12,7 @@ export class Listeners<T extends object, U> {
     }
   }
 
-  remove(key: T, listener: (value: U) => void) {
+  remove(key: T, listener: Listener<U>) {
     const listeners = this.#map.get(key)
     if (listeners) {
       if (listeners.size <= 1) {
