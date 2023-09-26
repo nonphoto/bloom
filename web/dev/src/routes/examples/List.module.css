@@ -11,6 +11,12 @@
   gap: 0.5rem;
 }
 
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 .active > * {
   background-color: #4c625b55;
   color: #4c625b;
