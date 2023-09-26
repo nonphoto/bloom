@@ -1,5 +1,5 @@
 import classes from './List.module.css'
-import { For, createComputed, createSignal, onCleanup } from 'solid-js'
+import { For, createComputed, createSignal, on, onCleanup, untrack } from 'solid-js'
 import clsx from 'clsx'
 import { borderRadius } from '@chloranthy/solid'
 import { Directive, access } from '@solid-primitives/utils'
@@ -25,6 +25,35 @@ const [ViewTransitionContextProvider, useViewTransitionContext] = createContextP
 type ViewTransitionKey = string | symbol
 type ViewTransitionConfig = { key: ViewTransitionKey }
 
+function createMatchAttempt<T, U>(
+  key: T,
+  value: U,
+  self: ReactiveMap<T, U>,
+  other: ReactiveMap<T, U>,
+  onSuccess: () => void,
+  onFailure: () => void,
+) {
+  createSubRoot(dispose => {
+    let disposed = false
+    self.set(key, value)
+    createComputed(() => {
+      if (other.has(key)) {
+        onSuccess()
+        other.delete(key)
+        dispose()
+        disposed = true
+      }
+    })
+    queueMicrotask(() => {
+      if (!disposed) {
+        onFailure()
+        self.delete(key)
+        dispose()
+      }
+    })
+  })
+}
+
 const viewTransition: Directive<ViewTransitionConfig> = (target, config) => {
   const context = useViewTransitionContext()
   const configValue = access(config)
@@ -32,34 +61,32 @@ const viewTransition: Directive<ViewTransitionConfig> = (target, config) => {
     const { key } = configValue
     const { exiting, entering } = context
 
-    createSubRoot(dispose => {
-      entering.set(key, target as HTMLElement)
-      createComputed(() => {
-        if (exiting.has(key)) {
-          console.log('enter match', key)
-          exiting.delete(key)
-        }
-      })
-      onCleanup(() => {
-        entering.delete(key)
-      })
-      queueMicrotask(dispose)
-    })
+    createMatchAttempt(
+      key,
+      target,
+      entering,
+      exiting,
+      () => {
+        console.log('transition enter', key, target)
+      },
+      () => {
+        console.log('enter', key, target)
+      },
+    )
 
     onCleanup(() => {
-      createSubRoot(dispose => {
-        exiting.set(key, target as HTMLElement)
-        createComputed(() => {
-          if (entering.has(key)) {
-            console.log('exit match', key)
-            entering.delete(key)
-          }
-        })
-        onCleanup(() => {
-          exiting.delete(key)
-        })
-        queueMicrotask(dispose)
-      })
+      createMatchAttempt(
+        key,
+        target,
+        exiting,
+        entering,
+        () => {
+          console.log('transition exit', key, target)
+        },
+        () => {
+          console.log('exit', key, target)
+        },
+      )
     })
   }
 }
