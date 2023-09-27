@@ -1,6 +1,11 @@
 import { batch } from 'solid-js'
 
+function microtask(): Promise<void> {
+  return new Promise(resolve => queueMicrotask(() => resolve()))
+}
+
 export class Batcher {
+  #microtask: Promise<void> = Promise.resolve()
   #callbacks: Array<() => void> = []
   #onPreRun?: () => void
   #onPostRun?: () => void
@@ -23,11 +28,11 @@ export class Batcher {
     this.#onPostRun?.()
   }
 
-  enqueue(callback: () => void) {
+  enqueue(callback: () => void): Promise<void> {
     if (this.#callbacks.length === 0) {
-      queueMicrotask(() => this.#run())
+      this.#microtask = microtask().then(() => this.#run())
     }
-
     this.#callbacks.push(callback)
+    return this.#microtask
   }
 }

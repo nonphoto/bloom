@@ -1,12 +1,14 @@
 import classes from './List.module.css'
-import { For, createComputed, createSignal, on, onCleanup, untrack } from 'solid-js'
+import { For, createComputed, createRoot, createSignal, onCleanup } from 'solid-js'
 import clsx from 'clsx'
 import { borderRadius } from '@chloranthy/solid'
 import { Directive, access } from '@solid-primitives/utils'
 import { createContextProvider } from '@solid-primitives/context'
 import { ReactiveMap } from '@solid-primitives/map'
 import { createSubRoot } from '@solid-primitives/rootless'
-import { take } from 'ramda'
+import { useLayoutModel } from '@chloranthy/layout-model'
+import { vec2Create, vec2Div, vec2Sub } from '@chloranthy/gl-matrix'
+import { rectPosition, rectSize } from '@chloranthy/core'
 
 borderRadius
 
@@ -25,12 +27,12 @@ const [ViewTransitionContextProvider, useViewTransitionContext] = createContextP
 type ViewTransitionKey = string | symbol
 type ViewTransitionConfig = { key: ViewTransitionKey }
 
-function createMatchAttempt<T, U>(
+function createMatchAttempt<T, U, V>(
   key: T,
   value: U,
   self: ReactiveMap<T, U>,
-  other: ReactiveMap<T, U>,
-  onSuccess: () => void,
+  other: ReactiveMap<T, V>,
+  onSuccess: (value: V) => void,
   onFailure: () => void,
 ) {
   createSubRoot(dispose => {
@@ -38,7 +40,7 @@ function createMatchAttempt<T, U>(
     self.set(key, value)
     createComputed(() => {
       if (other.has(key)) {
-        onSuccess()
+        onSuccess(other.get(key)!)
         other.delete(key)
         dispose()
         disposed = true
@@ -54,6 +56,21 @@ function createMatchAttempt<T, U>(
   })
 }
 
+function getRect(element: HTMLElement): Promise<DOMRect> {
+  return createRoot(dispose => {
+    return new Promise<DOMRect>((resolve, reject) => {
+      const layoutModel = useLayoutModel()
+      const rect = layoutModel.useRect(element)
+      createComputed(() => {
+        if (rect()) {
+          resolve(rect()!)
+        }
+      })
+      layoutModel.invalidateRect(element).then(reject)
+    }).finally(dispose)
+  })
+}
+
 const viewTransition: Directive<ViewTransitionConfig> = (target, config) => {
   const context = useViewTransitionContext()
   const configValue = access(config)
@@ -66,25 +83,57 @@ const viewTransition: Directive<ViewTransitionConfig> = (target, config) => {
       target,
       entering,
       exiting,
-      () => {
-        console.log('transition enter', key, target)
+      async from => {
+        console.log('transition enter', from)
+        const [targetRect, fromRect] = await Promise.all([getRect(target), getRect(from)])
+        const deltaPosition = vec2Sub(
+          vec2Create(),
+          rectPosition(vec2Create(), fromRect),
+          rectPosition(vec2Create(), targetRect),
+        )
+        const deltaSize = vec2Div(
+          vec2Create(),
+          rectSize(vec2Create(), fromRect),
+          rectSize(vec2Create(), targetRect),
+        )
+        target.animate(
+          {
+            transform: [
+              `translate(${deltaPosition[0]}px, ${deltaPosition[1]}px) scale(${deltaSize[0]}, ${deltaSize[1]})`,
+              `translate(0px, 0px) scale(1, 1)`,
+            ],
+          },
+          { duration: 1000 },
+        )
       },
       () => {
-        console.log('enter', key, target)
+        console.log('enter')
       },
     )
 
     onCleanup(() => {
+      const clone = target.cloneNode(true) as HTMLElement
+      target.parentElement?.insertBefore(clone, target)
+      clone.style.opacity = '0.5'
+
+      function complete() {
+        clone.parentElement?.removeChild(clone)
+      }
+
       createMatchAttempt(
         key,
-        target,
+        clone,
         exiting,
         entering,
-        () => {
-          console.log('transition exit', key, target)
+        async value => {
+          console.log('transition exit', value)
+          setTimeout(() => {
+            complete()
+          }, 1000)
         },
         () => {
-          console.log('exit', key, target)
+          console.log('exit')
+          complete()
         },
       )
     })

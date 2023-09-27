@@ -47,7 +47,7 @@ import { createSingletonRoot } from '@solid-primitives/rootless'
 
 type RectRoot = {
   rect: Accessor<DOMRect | undefined>
-  invalidate(): void
+  invalidate(): Promise<void>
 }
 
 type ScrollRoot = {
@@ -107,7 +107,7 @@ export type LayoutModelReturn = {
    * Invalidate the measured layout rect of the element, causing the layout model to remeasure it. This can sometimes be necessary if it's position in the layout changed without its width or height changing.
    * @param element - The element to invalidate.
    */
-  invalidateRect(element: HTMLElement): void
+  invalidateRect(element: HTMLElement): Promise<void>
 
   /**
    * Invalidate the measured overflow property of the element, causing the layout model to rebind scroll event listeners. This can sometimes be necessary if the element's `overflow` style property changed from `auto` or `scroll` to `hidden`, or vice versa.
@@ -133,7 +133,7 @@ const layoutModelStub: LayoutModelReturn = {
   useTransform() {
     return () => undefined
   },
-  invalidateRect() {},
+  async invalidateRect() {},
   invalidateScroll() {},
   invalidateParent() {},
 }
@@ -184,7 +184,7 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
     const [rect, setRect] = createSignal<DOMRect | undefined>(undefined, { equals: false })
 
     const invalidate = () => {
-      layoutBatcher.enqueue(() => {
+      return layoutBatcher.enqueue(() => {
         const rect = element.getBoundingClientRect()
         walkParents(element, parent => {
           rect.x += parent.scrollLeft
@@ -374,8 +374,8 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
     useTransform(element: MaybeAccessor<HTMLElement | null | undefined>) {
       return () => maybe(element => transformMap.get(element), element)
     },
-    invalidateRect(element: HTMLElement) {
-      rectRoots.get(element)?.invalidate()
+    async invalidateRect(element: HTMLElement) {
+      return rectRoots.get(element)?.invalidate()
     },
     invalidateScroll(element: HTMLElement) {
       scrollRoots.get(element)?.invalidate()

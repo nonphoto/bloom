@@ -17,7 +17,7 @@
   gap: 0.5rem;
 }
 
-.active > * {
+.active button {
   background-color: #4c625b55;
   color: #4c625b;
   font-size: 2rem;
