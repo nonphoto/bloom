@@ -2,8 +2,9 @@ import { Accessor, Setter, batch, createEffect, createMemo, createSignal, on } f
 import { createRAF } from '@solid-primitives/raf'
 import { createMousePosition as createMousePositionStore } from '@solid-primitives/mouse'
 import { maybe, safeWindow } from './utils.js'
-import { Vec2, vec2Set, vec2Create } from '@chloranthy/gl-matrix'
+import { Vec2, vec2Set, vec2Create, vec2Copy } from '@chloranthy/gl-matrix'
 import { Body2d, body2dCreate, body2dIsAtRest, body2dSimpleSpring } from '@chloranthy/core'
+import { MaybeAccessor, access } from '@solid-primitives/utils'
 
 /**
  * A callback for an animation frame.
@@ -89,8 +90,16 @@ export function createMousePosition(): Accessor<Vec2> {
 export function createSpringBody(
   target: Accessor<Vec2 | undefined>,
   halflife: number,
-): Accessor<Body2d> {
+  from?: MaybeAccessor<Vec2 | undefined>,
+): [Accessor<Body2d>, Accessor<boolean>] {
   const [value, setValue] = createSignal<Body2d>(body2dCreate(), { equals: false })
+
+  if (from) {
+    const fromValue = access(from)
+    if (fromValue) {
+      vec2Copy(value().p, fromValue)
+    }
+  }
 
   const isRunning = createMemo(() => maybe(body2dIsAtRest, value, target) === false)
 
@@ -104,7 +113,7 @@ export function createSpringBody(
     }),
   )
 
-  return value
+  return [value, isRunning]
 }
 
 export function createSpring(
@@ -124,4 +133,6 @@ export function createSpring(
       }
     }),
   )
+
+  return isRunning
 }

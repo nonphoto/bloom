@@ -1,14 +1,29 @@
 import classes from './List.module.css'
-import { For, createComputed, createRoot, createSignal, onCleanup } from 'solid-js'
+import {
+  For,
+  createComputed,
+  createEffect,
+  createRoot,
+  createSignal,
+  on,
+  onCleanup,
+} from 'solid-js'
 import clsx from 'clsx'
-import { borderRadius } from '@chloranthy/solid'
+import { borderRadius, createMaybeMemo, createSetQuad, createSpringBody } from '@chloranthy/solid'
 import { Directive, access } from '@solid-primitives/utils'
 import { createContextProvider } from '@solid-primitives/context'
 import { ReactiveMap } from '@solid-primitives/map'
 import { createSubRoot } from '@solid-primitives/rootless'
 import { useLayoutModel } from '@chloranthy/layout-model'
-import { vec2Create, vec2Div, vec2Sub } from '@chloranthy/gl-matrix'
-import { rectPosition, rectSize } from '@chloranthy/core'
+import { Mat2d, Vec2, vec2Create } from '@chloranthy/gl-matrix'
+import {
+  Quad2d,
+  quad2dCreate,
+  quad2dFromPositionSize,
+  quad2dTransformMat2d,
+  rectPosition,
+  rectSize,
+} from '@chloranthy/core'
 
 borderRadius
 
@@ -16,7 +31,7 @@ const items = ['Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot', 'Golf', 
 
 const [ViewTransitionContextProvider, useViewTransitionContext] = createContextProvider(() => {
   const exiting = new ReactiveMap<ViewTransitionKey, HTMLElement>()
-  const entering = new ReactiveMap<ViewTransitionKey, HTMLElement>()
+  const entering = new ReactiveMap<ViewTransitionKey, Promise<void>>()
 
   return {
     exiting,
@@ -71,52 +86,82 @@ function getRect(element: HTMLElement): Promise<DOMRect> {
   })
 }
 
+function createSpringViewTransition(from: HTMLElement, to: HTMLElement, onComplete: () => void) {
+  const layoutModel = useLayoutModel()
+  const fromRect = layoutModel.useRect(from)
+  const toRect = layoutModel.useRect(to)
+  const outerMatrix = layoutModel.useMatrix(to)
+  const fromPosition = createMaybeMemo(rectPosition, vec2Create, fromRect)
+  const fromSize = createMaybeMemo(rectSize, vec2Create, fromRect)
+  const toPosition = createMaybeMemo(rectPosition, vec2Create, toRect)
+  const toSize = createMaybeMemo(rectSize, vec2Create, toRect)
+
+  createEffect(
+    on(
+      () => [fromPosition(), fromSize()],
+      ([fromPosition, fromSize]) => {
+        if (!fromSize || !fromPosition) return
+        const [positionSpring, positionSpringRunning] = createSpringBody(
+          toPosition,
+          150,
+          fromPosition,
+        )
+        const [sizeSpring, sizeSpringRunning] = createSpringBody(toSize, 300, fromSize)
+        const quad = createMaybeMemo(
+          (out: Quad2d, position: Vec2, size: Vec2, matrix: Mat2d) => {
+            quad2dFromPositionSize(out, position, size)
+            quad2dTransformMat2d(out, out, matrix)
+            return out
+          },
+          quad2dCreate,
+          () => positionSpring().p,
+          () => sizeSpring().p,
+          outerMatrix,
+        )
+        createSetQuad(from, quad)
+        createSetQuad(to, quad)
+        createEffect(() => {
+          if (fromRect() && toRect() && !positionSpringRunning() && !sizeSpringRunning()) {
+            onComplete()
+          }
+        })
+      },
+    ),
+  )
+}
+
 const viewTransition: Directive<ViewTransitionConfig> = (target, config) => {
   const context = useViewTransitionContext()
   const configValue = access(config)
   if (context && target instanceof HTMLElement && configValue) {
     const { key } = configValue
     const { exiting, entering } = context
+    const [from, setFrom] = createSignal<HTMLElement>()
 
-    createMatchAttempt(
-      key,
-      target,
-      entering,
-      exiting,
-      async from => {
-        console.log('transition enter', from)
-        const [targetRect, fromRect] = await Promise.all([getRect(target), getRect(from)])
-        const deltaPosition = vec2Sub(
-          vec2Create(),
-          rectPosition(vec2Create(), fromRect),
-          rectPosition(vec2Create(), targetRect),
-        )
-        const deltaSize = vec2Div(
-          vec2Create(),
-          rectSize(vec2Create(), fromRect),
-          rectSize(vec2Create(), targetRect),
-        )
-        target.animate(
-          {
-            transform: [
-              `translate(${deltaPosition[0]}px, ${deltaPosition[1]}px) scale(${deltaSize[0]}, ${deltaSize[1]})`,
-              `translate(0px, 0px) scale(1, 1)`,
-            ],
-          },
-          { duration: 1000 },
-        )
-      },
-      () => {
-        console.log('enter')
-      },
-    )
+    const complete = new Promise<void>(resolve => {
+      createEffect(() => {
+        const fromValue = from()
+        if (fromValue) {
+          createRoot(dispose => {
+            createSpringViewTransition(fromValue, target, () => {
+              dispose()
+              resolve()
+            })
+          })
+        }
+      })
+    })
+
+    createMatchAttempt(key, complete, entering, exiting, setFrom, () => {
+      console.log('enter')
+    })
 
     onCleanup(() => {
       const clone = target.cloneNode(true) as HTMLElement
       target.parentElement?.insertBefore(clone, target)
       clone.style.opacity = '0.5'
 
-      function complete() {
+      function removeClone() {
         clone.parentElement?.removeChild(clone)
       }
 
@@ -125,15 +170,13 @@ const viewTransition: Directive<ViewTransitionConfig> = (target, config) => {
         clone,
         exiting,
         entering,
-        async value => {
-          console.log('transition exit', value)
-          setTimeout(() => {
-            complete()
-          }, 1000)
+        async complete => {
+          await complete
+          removeClone()
         },
         () => {
           console.log('exit')
-          complete()
+          removeClone()
         },
       )
     })
@@ -157,7 +200,7 @@ function* cycle<T>(n: number, array: T[]) {
 }
 
 export default function () {
-  const [count, setCount] = createSignal(5)
+  const [count, setCount] = createSignal(10)
   const [activeItems, setActiveItems] = createSignal(['Delta', 'Echo'])
   const cycledItems = () => [...cycle(count(), items)]
 
