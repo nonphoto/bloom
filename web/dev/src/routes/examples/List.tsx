@@ -71,7 +71,7 @@ function createMatchAttempt<T, U, V>(
   })
 }
 
-function getRect(element: HTMLElement): Promise<DOMRect> {
+export function getRect(element: HTMLElement): Promise<DOMRect> {
   return createRoot(dispose => {
     return new Promise<DOMRect>((resolve, reject) => {
       const layoutModel = useLayoutModel()
@@ -101,12 +101,8 @@ function createSpringViewTransition(from: HTMLElement, to: HTMLElement, onComple
       () => [fromPosition(), fromSize()],
       ([fromPosition, fromSize]) => {
         if (!fromSize || !fromPosition) return
-        const [positionSpring, positionSpringRunning] = createSpringBody(
-          toPosition,
-          150,
-          fromPosition,
-        )
-        const [sizeSpring, sizeSpringRunning] = createSpringBody(toSize, 300, fromSize)
+        const [positionSpring, positionSpringRunning] = createSpringBody(toPosition, 150)
+        const [sizeSpring, sizeSpringRunning] = createSpringBody(toSize, 300)
         const quad = createMaybeMemo(
           (out: Quad2d, position: Vec2, size: Vec2, matrix: Mat2d) => {
             quad2dFromPositionSize(out, position, size)

@@ -30,23 +30,28 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "default": "./dist/index.js",
+      "dev": "./src/index.ts"
     },
     "./body1d": {
       "types": "./dist/body1d.d.ts",
-      "default": "./dist/body1d.js"
+      "default": "./dist/body1d.js",
+      "dev": "./src/body1d.ts"
     },
     "./body2d": {
       "types": "./dist/body2d.d.ts",
-      "default": "./dist/body2d.js"
+      "default": "./dist/body2d.js",
+      "dev": "./src/body2d.ts"
     },
     "./quad2d": {
       "types": "./dist/quad2d.d.ts",
-      "default": "./dist/quad2d.js"
+      "default": "./dist/quad2d.js",
+      "dev": "./src/quad2d.ts"
     },
     "./rect": {
       "types": "./dist/rect.d.ts",
-      "default": "./dist/rect.js"
+      "default": "./dist/rect.js",
+      "dev": "./src/rect.ts"
     }
   },
   "browser": {},
