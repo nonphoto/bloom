@@ -4,6 +4,7 @@ import { createMousePosition as createMousePositionStore } from '@solid-primitiv
 import { maybe, safeWindow } from './utils.js'
 import { Vec2, vec2Set, vec2Create } from '@chloranthy/gl-matrix'
 import { Body2d, body2dCreate, body2dIsAtRest, body2dSimpleSpring } from '@chloranthy/core'
+import { MaybeAccessor } from '@solid-primitives/utils'
 
 /**
  * A callback for an animation frame.
@@ -108,8 +109,8 @@ export function createSpringBody(
 }
 
 export function createSpring(
-  target: Accessor<Vec2 | undefined>,
-  body: Accessor<Body2d | undefined>,
+  target: MaybeAccessor<Vec2 | undefined>,
+  body: MaybeAccessor<Body2d | undefined>,
   setBody: Setter<Body2d>,
   halflife: number,
 ) {
