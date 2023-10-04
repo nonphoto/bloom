@@ -10,7 +10,6 @@ import {
   getOwner,
   onCleanup,
   runWithOwner,
-  untrack,
 } from 'solid-js'
 import clsx from 'clsx'
 import { borderRadius, createMaybeMemo, createSetQuad, createSpringQuad2d } from '@chloranthy/solid'
@@ -36,7 +35,7 @@ type AnimationState = {
 }
 
 const [ViewTransitionContextProvider, useViewTransitionContext] = createContextProvider(() => {
-  const exiting = new ReactiveMap<ViewTransitionKey, () => AnimationState>()
+  const exiting = new ReactiveMap<ViewTransitionKey, Accessor<AnimationState>>()
   const entering = new ReactiveMap<ViewTransitionKey, Accessor<AnimationState | undefined>>()
 
   return {
@@ -106,10 +105,10 @@ const viewTransition: Directive<ViewTransitionConfig> = (target, config) => {
       state,
       entering,
       exiting,
-      getState => {
+      exitingState => {
         const {
           body: [body, setBody],
-        } = getState()
+        } = exitingState()
         const layoutModel = useLayoutModel()
         const targetRect = layoutModel.useRect(target)
         const targetQuad = createMaybeMemo(quad2dFromRect, quad2dCreate, targetRect)
@@ -140,36 +139,35 @@ const viewTransition: Directive<ViewTransitionConfig> = (target, config) => {
 
       createMatchAttempt(
         key,
-        () =>
-          untrack(() => {
-            if (state()) {
-              return state()!
-            } else {
-              const [body, setBody] = createSignal<BodyQuad2d | undefined>(undefined, {
-                equals: false,
-              })
-              getRect(target).then(rect => {
-                setBody(bodyQuad2dFromRect(bodyQuad2dCreate(), rect))
-              })
-              return {
-                isRunning: () => false,
-                body: [body, setBody],
-              }
+        () => {
+          const stateValue = state()
+          if (stateValue) {
+            return stateValue
+          } else {
+            const [body, setBody] = createSignal<BodyQuad2d | undefined>(undefined, {
+              equals: false,
+            })
+            getRect(target).then(rect => {
+              setBody(bodyQuad2dFromRect(bodyQuad2dCreate(), rect))
+            })
+            return {
+              isRunning: () => false,
+              body: [body, setBody],
             }
-          }),
+          }
+        },
         exiting,
         entering,
-        async state => {
+        async enteringState => {
           createRoot(dispose => {
             createComputed(() => {
-              const stateValue = state()
-              if (stateValue) {
-                console.log(stateValue)
-                setState(stateValue)
+              const enteringStateValue = enteringState()
+              if (enteringStateValue) {
+                setState(enteringStateValue)
                 const {
                   isRunning,
                   body: [body],
-                } = stateValue
+                } = enteringStateValue
                 createSetQuad(clone, () => body().p)
                 createEffect(() => {
                   if (!isRunning()) {
