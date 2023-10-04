@@ -3,8 +3,17 @@ import { createRAF } from '@solid-primitives/raf'
 import { createMousePosition as createMousePositionStore } from '@solid-primitives/mouse'
 import { maybe, safeWindow } from './utils.js'
 import { Vec2, vec2Set, vec2Create } from '@chloranthy/gl-matrix'
-import { Body2d, body2dCreate, body2dIsAtRest, body2dSimpleSpring } from '@chloranthy/core'
-import { MaybeAccessor } from '@solid-primitives/utils'
+import {
+  Body2d,
+  BodyQuad2d,
+  body2dCreate,
+  body2dIsAtRest,
+  body2dSimpleSpring,
+} from '@chloranthy/core'
+import { MaybeAccessor, access } from '@solid-primitives/utils'
+import { Quad2d } from '@chloranthy/core'
+import { bodyQuad2dIsAtRest } from '@chloranthy/core'
+import { bodyQuad2dSimpleSpring } from '@chloranthy/core'
 
 /**
  * A callback for an animation frame.
@@ -113,7 +122,7 @@ export function createSpring(
   body: MaybeAccessor<Body2d | undefined>,
   setBody: Setter<Body2d>,
   halflife: number,
-) {
+): Accessor<boolean> {
   const isRunning = createMemo(() => maybe(body2dIsAtRest, body, target) === false)
 
   createEffect(
@@ -121,6 +130,29 @@ export function createSpring(
       if (isRunning) {
         createTimeCallback((_, deltaTime) => {
           setBody(out => maybe(body2dSimpleSpring, out, out, target, halflife, deltaTime) ?? out)
+        })
+      }
+    }),
+  )
+
+  return isRunning
+}
+
+export function createSpringQuad2d(
+  target: MaybeAccessor<Quad2d | undefined>,
+  body: MaybeAccessor<BodyQuad2d | undefined>,
+  setBody: Setter<BodyQuad2d>,
+  halflife: number,
+): Accessor<boolean> {
+  const isRunning = createMemo(() => maybe(bodyQuad2dIsAtRest, body, target) === false)
+
+  createEffect(
+    on(isRunning, isRunning => {
+      if (isRunning) {
+        createTimeCallback((_, deltaTime) => {
+          setBody(
+            out => maybe(bodyQuad2dSimpleSpring, out, out, target, halflife, deltaTime) ?? out,
+          )
         })
       }
     }),

@@ -103,4 +103,5 @@ export {
   equals as mat2dEquals,
   mul as mat2dMul,
   sub as mat2dSub,
+  zero as mat2dZero,
 } from './mat2d'

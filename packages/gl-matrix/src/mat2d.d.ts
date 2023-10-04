@@ -45,5 +45,6 @@ export function exactEquals(a: ReadonlyMat2d, b: ReadonlyMat2d): boolean
 export function equals(a: ReadonlyMat2d, b: ReadonlyMat2d): boolean
 export function mul(out: Mat2d, a: ReadonlyMat2d, b: ReadonlyMat2d): Mat2d
 export function sub(out: Mat2d, a: ReadonlyMat2d, b: ReadonlyMat2d): Mat2d
+export function zero(out: Mat2d): Mat2d
 
 export { Mat2d, ReadonlyMat2d }

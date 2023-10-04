@@ -19,6 +19,15 @@ export {
   simpleSpring as body2dSimpleSpring,
 } from './body2d.js'
 
+export type { BodyQuad2d } from './bodyQuad2d.js'
+
+export {
+  create as bodyQuad2dCreate,
+  fromRect as bodyQuad2dFromRect,
+  isAtRest as bodyQuad2dIsAtRest,
+  simpleSpring as bodyQuad2dSimpleSpring,
+} from './bodyQuad2d.js'
+
 export type { Quad2d } from './quad2d.js'
 
 export {
@@ -32,6 +41,7 @@ export {
   contain as quad2dContain,
   cover as quad2dCover,
   equals as quad2dEquals,
+  zero as quad2dZero,
 } from './quad2d.js'
 
 export type { Rect } from './rect.js'

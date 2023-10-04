@@ -43,6 +43,11 @@
       "default": "./dist/body2d.js",
       "dev": "./src/body2d.ts"
     },
+    "./bodyQuad2d": {
+      "types": "./dist/bodyQuad2d.d.ts",
+      "default": "./dist/bodyQuad2d.js",
+      "dev": "./src/bodyQuad2d.ts"
+    },
     "./quad2d": {
       "types": "./dist/quad2d.d.ts",
       "default": "./dist/quad2d.js",

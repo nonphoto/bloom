@@ -9,6 +9,8 @@ import {
   mat2Invert,
   mat2Equals,
   Mat2d,
+  vec2Zero,
+  mat2dZero,
 } from '@chloranthy/gl-matrix'
 import { Rect } from './rect.js'
 import { fit as commonFit, setAspectRatio as commonSetAspectRatio } from './common.js'
@@ -33,6 +35,12 @@ export function create(): Quad2d {
     ij: mat2Create(),
     k: vec2Create(),
   }
+}
+
+export function zero(out: Quad2d): Quad2d {
+  mat2dZero(out.ij)
+  vec2Zero(out.k)
+  return out
 }
 
 /**
