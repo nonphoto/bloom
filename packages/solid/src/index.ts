@@ -1,6 +1,8 @@
 export * from './animation.js'
-export * from './directives.js'
-export * from './layoutModel.js'
-export * from './style.js'
+export * from './borderRadius.js'
+export * from './quad.js'
+export * from './rect.js'
+export * from './transform.js'
 export * from './utils.js'
+
 export * from './transition'

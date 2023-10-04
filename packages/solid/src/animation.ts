@@ -10,7 +10,7 @@ import {
   body2dIsAtRest,
   body2dSimpleSpring,
 } from '@chloranthy/core'
-import { MaybeAccessor, access } from '@solid-primitives/utils'
+import { MaybeAccessor } from '@solid-primitives/utils'
 import { Quad2d } from '@chloranthy/core'
 import { bodyQuad2dIsAtRest } from '@chloranthy/core'
 import { bodyQuad2dSimpleSpring } from '@chloranthy/core'
