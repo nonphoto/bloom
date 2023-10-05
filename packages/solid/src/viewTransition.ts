@@ -4,6 +4,7 @@ import {
   bodyQuad2dFromRect,
   quad2dCreate,
   quad2dFromRect,
+  quad2dTransformMat2d,
 } from '@chloranthy/core'
 import { createContextProvider } from '@solid-primitives/context'
 import { ReactiveMap } from '@solid-primitives/map'
@@ -69,11 +70,18 @@ export function createViewTransition(
           } = exitingState()
           const layoutModel = useLayoutModel()
           const targetRect = layoutModel.useRect(elementValue)
+          const targetMatrix = layoutModel.useMatrix(elementValue)
           const targetQuad = createMaybeMemo(quad2dFromRect, quad2dCreate, targetRect)
           createComputed(() => {
             if (targetQuad()) {
               const isRunning = createSpringQuad2d(targetQuad, body, setBody, 150)
-              createSetQuad(elementValue, () => body().p)
+              const quad = createMaybeMemo(
+                quad2dTransformMat2d,
+                quad2dCreate,
+                () => body().p,
+                targetMatrix,
+              )
+              createSetQuad(elementValue, quad)
               setState({
                 body: [body, setBody],
                 isRunning,
