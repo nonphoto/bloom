@@ -1,6 +1,6 @@
-import { equals } from '@chloranthy/gl-matrix'
 import { Rect, quad2dCreate, quad2dFromRect, quad2dZero } from '.'
 import { Body } from './body'
+import { equals } from './common'
 import { Quad2d } from './quad2d'
 import { simpleSpring as coreSimpleSpring } from '@nonphoto/spring'
 

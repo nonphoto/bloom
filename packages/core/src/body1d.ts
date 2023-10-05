@@ -1,6 +1,6 @@
 import { Body } from './body.js'
 import { spring as coreSpring } from '@nonphoto/spring'
-import { equals } from '@chloranthy/gl-matrix'
+import { equals } from './common.js'
 
 /**
  * A 1-dimensional physics body

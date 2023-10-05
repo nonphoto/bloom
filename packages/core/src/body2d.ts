@@ -1,7 +1,8 @@
-import { equals, Vec2, vec2Create } from '@chloranthy/gl-matrix'
+import { Vec2, vec2Create } from '@chloranthy/gl-matrix'
 import { Body } from './body.js'
 import { Body1d, create as body1dCreate } from './body1d.js'
 import { spring as coreSpring, simpleSpring as coreSimpleSpring } from '@nonphoto/spring'
+import { equals } from './common.js'
 
 /**
  * A 2-dimensional physics body

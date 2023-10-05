@@ -1,5 +1,5 @@
 import { MaybeAccessor as SolidMaybeAccessor, access } from '@solid-primitives/utils'
-import { Accessor, createMemo } from 'solid-js'
+import { Accessor, Owner, createMemo, getOwner, runWithOwner } from 'solid-js'
 
 /**
  * @private
@@ -45,4 +45,27 @@ export function createMaybeMemo<F extends (...args: any[]) => any>(
  */
 export function safeWindow() {
   return typeof window !== 'undefined' ? window : undefined
+}
+
+/**
+ * @private
+ */
+export function awaitWithOwner<T>(
+  promise: Promise<T>,
+  onFulfilled: (value: T) => void,
+  onRejected?: () => void,
+  owner: Owner | null = getOwner(),
+): Promise<void> {
+  return promise.then(
+    value => {
+      runWithOwner(owner, () => {
+        onFulfilled(value)
+      })
+    },
+    onRejected
+      ? () => {
+          runWithOwner(owner, onRejected)
+        }
+      : undefined,
+  )
 }

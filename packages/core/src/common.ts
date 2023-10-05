@@ -33,3 +33,7 @@ export function setAspectRatio<T>(
   out[outWKey] = (sourceW * s) as never
   out[outHKey] = (sourceH * s) as never
 }
+
+export function equals(a: number, b: number) {
+  return Math.abs(a - b) <= 0.1
+}

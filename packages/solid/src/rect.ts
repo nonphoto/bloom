@@ -1,5 +1,5 @@
 import { Rect, rectUntransformMat2d } from '@chloranthy/core'
-import { useLayoutModel } from '@chloranthy/layout-model'
+import { LayoutModelReturn, useLayoutModel } from '@chloranthy/layout-model'
 import { Directive, MaybeAccessor } from '@solid-primitives/utils'
 import { createMaybeMemo } from './utils'
 import { Mat2d, mat2dCreate, mat2dInvert, mat2dMultiply } from '@chloranthy/gl-matrix'
@@ -30,10 +30,9 @@ export function createSetRect(
   createSetTransform(element, targetTransform)
 }
 
-export function getRect(element: HTMLElement): Promise<DOMRect> {
+export function getRect(layoutModel: LayoutModelReturn, element: HTMLElement): Promise<DOMRect> {
   return createRoot(dispose => {
     return new Promise<DOMRect>((resolve, reject) => {
-      const layoutModel = useLayoutModel()
       const rect = layoutModel.useRect(element)
       createComputed(() => {
         const rectValue = rect()
