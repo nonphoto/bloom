@@ -36,8 +36,9 @@ export function getRect(element: HTMLElement): Promise<DOMRect> {
       const layoutModel = useLayoutModel()
       const rect = layoutModel.useRect(element)
       createComputed(() => {
-        if (rect()) {
-          resolve(rect()!)
+        const rectValue = rect()
+        if (rectValue) {
+          resolve(rectValue)
         }
       })
       layoutModel.invalidateRect(element).then(reject)

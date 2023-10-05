@@ -4,7 +4,6 @@ import {
   bodyQuad2dFromRect,
   quad2dCreate,
   quad2dFromRect,
-  quad2dTransformMat2d,
 } from '@chloranthy/core'
 import { createContextProvider } from '@solid-primitives/context'
 import { ReactiveMap } from '@solid-primitives/map'
@@ -16,6 +15,7 @@ import {
   createEffect,
   createRoot,
   createSignal,
+  on,
   onCleanup,
 } from 'solid-js'
 import { createMatchAttempt } from './microtask'
@@ -23,7 +23,6 @@ import { useLayoutModel } from '@chloranthy/layout-model'
 import { createMaybeMemo } from './utils'
 import { createSpringQuad2d } from './animation'
 import { createSetQuad } from './quad'
-import { getRect } from './rect'
 
 export type ViewTransitionKey = string | symbol
 export type ViewTransitionConfig = { key: ViewTransitionKey }
@@ -47,111 +46,136 @@ export function createViewTransitionContext() {
 export const [ViewTransitionContextProvider, useViewTransitionContext] =
   createViewTransitionContext()
 
+function copyNodeStyle(sourceNode: HTMLElement, targetNode: HTMLElement) {
+  const computedStyle = window.getComputedStyle(sourceNode)
+  Array.from(computedStyle).forEach(key =>
+    targetNode.style.setProperty(
+      key,
+      computedStyle.getPropertyValue(key),
+      computedStyle.getPropertyPriority(key),
+    ),
+  )
+}
+
 export function createViewTransition(
   element: MaybeAccessor<HTMLElement | null | undefined>,
   config: Accessor<ViewTransitionConfig>,
 ) {
   const context = useViewTransitionContext()
   const key = access(config)?.key
-  createComputed(() => {
-    const elementValue = access(element)
-    if (context && elementValue && key) {
-      const { exiting, entering } = context
-      const [state, setState] = createSignal<AnimationState>()
-
-      createMatchAttempt(
-        key,
-        state,
-        entering,
-        exiting,
-        exitingState => {
-          const {
-            body: [body, setBody],
-          } = exitingState()
+  createComputed(
+    on(
+      () => access(element),
+      elementValue => {
+        if (context && elementValue && key) {
+          const { exiting, entering } = context
+          const [state, setState] = createSignal<AnimationState>()
           const layoutModel = useLayoutModel()
-          const targetRect = layoutModel.useRect(elementValue)
-          const targetMatrix = layoutModel.useMatrix(elementValue)
-          const targetQuad = createMaybeMemo(quad2dFromRect, quad2dCreate, targetRect)
-          createComputed(() => {
-            if (targetQuad()) {
-              const isRunning = createSpringQuad2d(targetQuad, body, setBody, 150)
-              const quad = createMaybeMemo(
-                quad2dTransformMat2d,
-                quad2dCreate,
-                () => body().p,
-                targetMatrix,
-              )
-              createSetQuad(elementValue, quad)
-              setState({
+          const rect = layoutModel.useRect(elementValue)
+
+          createMatchAttempt(
+            key,
+            state,
+            entering,
+            exiting,
+            exitingState => {
+              const {
                 body: [body, setBody],
-                isRunning,
-              })
-            }
-          })
-        },
-        () => {},
-      )
-
-      onCleanup(() => {
-        const clone = elementValue.cloneNode(true) as HTMLElement
-        elementValue.parentElement?.insertBefore(clone, elementValue)
-        clone.style.transform = ''
-        clone.style.position = 'absolute'
-        clone.style.pointerEvents = 'none'
-
-        function removeClone() {
-          clone.parentElement?.removeChild(clone)
-        }
-
-        createMatchAttempt(
-          key,
-          () => {
-            const stateValue = state()
-            if (stateValue) {
-              return stateValue
-            } else {
-              const [body, setBody] = createSignal<BodyQuad2d | undefined>(undefined, {
-                equals: false,
-              })
-              getRect(elementValue).then(rect => {
-                setBody(bodyQuad2dFromRect(bodyQuad2dCreate(), rect))
-              })
-              return {
-                isRunning: () => false,
-                body: [body, setBody],
-              }
-            }
-          },
-          exiting,
-          entering,
-          async enteringState => {
-            createRoot(dispose => {
+              } = exitingState()
+              elementValue.style.outline = 'solid blue 1px'
+              const layoutModel = useLayoutModel()
+              const targetRect = layoutModel.useRect(elementValue)
+              const targetQuad = createMaybeMemo(quad2dFromRect, quad2dCreate, targetRect)
               createComputed(() => {
-                const enteringStateValue = enteringState()
-                if (enteringStateValue) {
-                  setState(enteringStateValue)
-                  const {
-                    isRunning,
-                    body: [body],
-                  } = enteringStateValue
-                  createSetQuad(clone, () => body().p)
+                if (targetQuad()) {
+                  const isRunning = createSpringQuad2d(targetQuad, body, setBody, 500)
+                  createSetQuad(elementValue, () => body().p)
                   createEffect(() => {
                     if (!isRunning()) {
-                      dispose()
-                      removeClone()
+                      elementValue.style.outline = ''
                     }
+                  })
+                  setState({
+                    body: [body, setBody],
+                    isRunning,
                   })
                 }
               })
-            })
-          },
-          () => {
-            removeClone()
-          },
-        )
-      })
-    }
-  })
+            },
+            () => {},
+          )
+
+          onCleanup(() => {
+            const clone = elementValue.cloneNode(false) as HTMLElement
+            copyNodeStyle(elementValue, clone)
+            const rectValue = rect()
+            if (rectValue) {
+              document.body.appendChild(clone)
+              clone.style.width = rectValue.width + 'px'
+              clone.style.height = rectValue.height + 'px'
+              clone.style.transform = ''
+              clone.style.position = 'absolute'
+              clone.style.pointerEvents = 'none'
+              clone.style.outline = 'solid red 1px'
+            }
+
+            function removeClone() {
+              clone.parentElement?.removeChild(clone)
+            }
+
+            createMatchAttempt(
+              key,
+              () => {
+                const stateValue = state()
+                if (stateValue) {
+                  return stateValue
+                } else {
+                  const [body, setBody] = createSignal<BodyQuad2d | undefined>(undefined, {
+                    equals: false,
+                  })
+                  if (rectValue) {
+                    setBody(bodyQuad2dFromRect(bodyQuad2dCreate(), rectValue))
+                  } else {
+                    setBody(bodyQuad2dCreate())
+                  }
+                  return {
+                    isRunning: () => false,
+                    body: [body, setBody],
+                  }
+                }
+              },
+              exiting,
+              entering,
+              async enteringState => {
+                createRoot(dispose => {
+                  createComputed(() => {
+                    const enteringStateValue = enteringState()
+                    if (enteringStateValue) {
+                      setState(enteringStateValue)
+                      const {
+                        isRunning,
+                        body: [body],
+                      } = enteringStateValue
+                      createSetQuad(clone, () => body().p)
+                      createEffect(() => {
+                        if (!isRunning()) {
+                          dispose()
+                          removeClone()
+                        }
+                      })
+                    }
+                  })
+                })
+              },
+              () => {
+                removeClone()
+              },
+            )
+          })
+        }
+      },
+    ),
+  )
 }
 
 export const viewTransition: Directive<ViewTransitionConfig> = (target, config) => {
