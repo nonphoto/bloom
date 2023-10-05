@@ -50,7 +50,12 @@
     "@solid-primitives/raf": "2.1.13",
     "@solid-primitives/resize-observer": "2.0.21",
     "@solid-primitives/rootless": "1.4.2",
-    "@solid-primitives/utils": "6.2.1",
-    "solid-js": "^1.7.11"
+    "@solid-primitives/utils": "6.2.1"
+  },
+  "devDependencies": {
+    "solid-js": "^1.7.12"
+  },
+  "peerDependencies": {
+    "solid-js": "^1.7.12"
   }
 }

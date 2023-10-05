@@ -4,6 +4,7 @@ import { Directive, MaybeAccessor } from '@solid-primitives/utils'
 import { createMaybeMemo } from './utils'
 import { Mat2d, mat2dCreate, mat2dInvert, mat2dMultiply } from '@chloranthy/gl-matrix'
 import { createSetTransform } from './transform'
+import { createComputed, createRoot } from 'solid-js'
 
 export function createSetRect(
   element: MaybeAccessor<HTMLElement | null | undefined>,
@@ -27,6 +28,21 @@ export function createSetRect(
   )
 
   createSetTransform(element, targetTransform)
+}
+
+export function getRect(element: HTMLElement): Promise<DOMRect> {
+  return createRoot(dispose => {
+    return new Promise<DOMRect>((resolve, reject) => {
+      const layoutModel = useLayoutModel()
+      const rect = layoutModel.useRect(element)
+      createComputed(() => {
+        if (rect()) {
+          resolve(rect()!)
+        }
+      })
+      layoutModel.invalidateRect(element).then(reject)
+    }).finally(dispose)
+  })
 }
 
 /**

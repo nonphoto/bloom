@@ -28,9 +28,10 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    "types": "./dist/index.d.ts",
-    "default": "./dist/index.js",
-    "dev": "./src/index.ts"
+    "import": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   },
   "browser": {},
   "typesVersions": {},
@@ -47,12 +48,19 @@
     "@chloranthy/core": "workspace:*",
     "@chloranthy/gl-matrix": "workspace:*",
     "@chloranthy/layout-model": "workspace:*",
+    "@solid-primitives/context": "0.2.1",
+    "@solid-primitives/map": "^0.4.7",
     "@solid-primitives/mouse": "2.0.16",
     "@solid-primitives/raf": "2.1.13",
     "@solid-primitives/resize-observer": "2.0.21",
     "@solid-primitives/rootless": "1.4.2",
-    "@solid-primitives/utils": "6.2.1",
-    "solid-js": "^1.7.11"
+    "@solid-primitives/utils": "6.2.1"
   },
-  "main": "./dist/index.js"
+  "main": "./dist/index.js",
+  "devDependencies": {
+    "solid-js": "^1.7.12"
+  },
+  "peerDependencies": {
+    "solid-js": "^1.7.12"
+  }
 }
