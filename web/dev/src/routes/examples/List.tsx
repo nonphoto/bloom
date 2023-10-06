@@ -62,8 +62,12 @@ export default function () {
         <ul class={classes.list}>
           <For each={cycledItems().filter(item => !activeItems().includes(item))}>
             {item => (
-              <li use:viewTransition={{ key: item }}>
-                <button use:viewTransition={{ key: `${item}-button` }} onClick={[addItem, item]}>
+              <li data-key={item} use:viewTransition={{ key: item }}>
+                <button
+                  data-key={`${item}-button`}
+                  use:viewTransition={{ key: `${item}-button` }}
+                  onClick={[addItem, item]}
+                >
                   {item}
                 </button>
               </li>
@@ -73,8 +77,12 @@ export default function () {
         <ul class={clsx(classes.list, classes.active)}>
           <For each={activeItems()}>
             {item => (
-              <li use:borderRadius={20} use:viewTransition={{ key: item }}>
-                <button use:viewTransition={{ key: `${item}-button` }} onClick={[removeItem, item]}>
+              <li data-key={item} use:borderRadius={20} use:viewTransition={{ key: item }}>
+                <button
+                  data-key={`${item}-button`}
+                  use:viewTransition={{ key: `${item}-button` }}
+                  onClick={[removeItem, item]}
+                >
                   {item}
                 </button>
               </li>

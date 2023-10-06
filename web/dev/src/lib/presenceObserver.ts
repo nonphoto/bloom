@@ -7,7 +7,6 @@ export class PresenceObserver {
     for (const record of records) {
       for (const node of record.removedNodes) {
         if (node instanceof HTMLElement) {
-          console.log('exit', node)
           this.#exitListeners.notify(node)
         }
       }

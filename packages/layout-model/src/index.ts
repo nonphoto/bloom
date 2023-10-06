@@ -164,7 +164,6 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
 
   const layoutBatcher = new Batcher({
     onPreRun: () => {
-      // console.log('batch pre run')
       walkChildren(root, element => {
         if (untrack(() => transformMap.has(element))) {
           element.style.transform = styleTransform(identity)
@@ -172,7 +171,6 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
       })
     },
     onPostRun: () => {
-      // console.log('batch post run')
       walkChildren(root, element => {
         const transform = untrack(() => transformMap.get(element))
         if (transform) {
