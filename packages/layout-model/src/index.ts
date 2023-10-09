@@ -431,7 +431,7 @@ export class LayoutModel {
    * @param element - The element to set the transform of.
    * @param transform - The transform to set on the element.
    */
-  setTransform(element: HTMLElement, transform: Mat2d): void {
+  setTransform(element: HTMLElement, transform: Mat2d | undefined): void {
     this.#observer.setTransform(element, transform)
   }
 

@@ -24,6 +24,8 @@ export type { BodyQuad2d } from './bodyQuad2d.js'
 export {
   create as bodyQuad2dCreate,
   fromRect as bodyQuad2dFromRect,
+  copy as bodyQuad2dCopy,
+  clone as bodyQuad2dClone,
   isAtRest as bodyQuad2dIsAtRest,
   simpleSpring as bodyQuad2dSimpleSpring,
 } from './bodyQuad2d.js'

@@ -1,5 +1,7 @@
 import {
   BodyQuad2d,
+  body2dCreate,
+  bodyQuad2dClone,
   bodyQuad2dCreate,
   bodyQuad2dFromRect,
   quad2dCreate,
@@ -9,8 +11,9 @@ import { createContextProvider } from '@solid-primitives/context'
 import { Directive, MaybeAccessor, access, isServer } from '@solid-primitives/utils'
 import {
   Accessor,
-  Signal,
+  Setter,
   createEffect,
+  createMemo,
   createRoot,
   createSignal,
   getOwner,
@@ -30,16 +33,17 @@ import { createSubRoot } from '@solid-primitives/rootless'
 export type ViewTransitionKey = string | symbol
 export type ViewTransitionConfig = { key: ViewTransitionKey }
 export type AnimationState = {
-  isRunning: Accessor<boolean>
-  body: Signal<BodyQuad2d>
+  finished: Accessor<boolean>
+  body: Accessor<BodyQuad2d>
+  setBody: Setter<BodyQuad2d>
 }
 
 export function createViewTransitionContext() {
   return createContextProvider(() => {
     const matcher = new MutationMatcher<
       ViewTransitionKey,
-      Accessor<AnimationState | undefined>,
-      () => AnimationState
+      Accessor<AnimationState | null | undefined>,
+      BodyQuad2d
     >()
     const exitListeners = new Listeners<HTMLElement, HTMLElement>()
     createMutationObserver(
@@ -77,6 +81,8 @@ export const [ViewTransitionContextProvider, useViewTransitionContext] =
 function setInert(element: HTMLElement, rect?: DOMRect) {
   element.style.width = (rect?.width ?? element.offsetWidth) + 'px'
   element.style.height = (rect?.height ?? element.offsetHeight) + 'px'
+  element.style.left = (rect?.left ?? element.offsetLeft) + 'px'
+  element.style.top = (rect?.top ?? element.offsetTop) + 'px'
   element.style.position = 'absolute'
   element.style.outline = 'solid red 1px'
   element.inert = true
@@ -105,30 +111,31 @@ export function createViewTransition(
     on(
       () => access(element),
       elementValue => {
-        const owner = getOwner()
         const contextValue = access(context)
-        const key = access(config).key
         if (contextValue && elementValue) {
+          const owner = getOwner()
+          const key = access(config).key
           const elementId = getElementId(elementValue)
           const { matcher } = contextValue
-          const [animation, setAnimation] = createSignal<AnimationState>()
+          const [animation, setAnimation] = createSignal<AnimationState | null | undefined>()
 
           console.log(elementId, 'enter match attempt')
           matcher.attemptEnter(
             key,
             animation,
-            exitingAnimation => {
+            exitingBody => {
               console.log(elementId, 'enter match success')
               createSubRoot(() => {
-                const {
-                  body: [body, setBody],
-                } = exitingAnimation()
+                const [body, setBody] = createSignal<BodyQuad2d>(bodyQuad2dClone(exitingBody), {
+                  equals: false,
+                })
                 const quad = createMaybeMemo(quad2dFromRect, quad2dCreate(), rect)
                 const isRunning = createSpringQuad2d(quad, body, setBody, 500)
                 createSetQuad(elementValue, () => body().p)
                 setAnimation({
-                  body: [body, setBody],
-                  isRunning: () => !quad() || isRunning(),
+                  body,
+                  setBody,
+                  finished: () => quad() != null && !isRunning(),
                 })
               }, owner)
             },
@@ -143,22 +150,13 @@ export function createViewTransition(
             console.log(elementId, 'exit match attempt')
             matcher.attemptExit(
               key,
-              () => {
-                const animationValue = untrack(animation)
-                return (
-                  animationValue ?? {
-                    isRunning: () => false,
-                    body: createSignal<BodyQuad2d>(
-                      rectValue
-                        ? bodyQuad2dFromRect(bodyQuad2dCreate(), rectValue)
-                        : bodyQuad2dCreate(),
-                      {
-                        equals: false,
-                      },
-                    ),
-                  }
-                )
-              },
+              untrack(
+                () =>
+                  animation()?.body() ??
+                  (rectValue
+                    ? bodyQuad2dFromRect(bodyQuad2dCreate(), rectValue)
+                    : bodyQuad2dCreate()),
+              ),
               enteringAnimation => {
                 console.log(elementId, 'exit match success')
                 createRoot(dispose => {
@@ -169,24 +167,22 @@ export function createViewTransition(
                   })
                   createEffect(() => {
                     const enteringAnimationValue = enteringAnimation()
-                    console.log(elementId, 'enteringAnimationValue', enteringAnimationValue)
-                    if (enteringAnimationValue) {
+                    if (enteringAnimationValue != null) {
                       setAnimation(enteringAnimationValue)
-                      const {
-                        isRunning,
-                        body: [body],
-                      } = enteringAnimationValue
-                      createSetQuad(elementValue, () => body().p)
+                      createSetQuad(elementValue, () => enteringAnimationValue.body().p)
                       createEffect(() => {
-                        if (!isRunning()) {
+                        if (enteringAnimationValue.finished()) {
                           dispose()
                         }
                       })
+                    } else if (enteringAnimationValue === null) {
+                      dispose()
                     }
                   })
                 })
               },
               () => {
+                setAnimation(null)
                 console.log(elementId, 'exit match fail')
               },
             )

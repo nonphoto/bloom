@@ -1,4 +1,5 @@
-import { Rect, quad2dCreate, quad2dFromRect, quad2dZero } from '.'
+import { mat2dCopy, vec2Copy } from '@chloranthy/gl-matrix'
+import { Rect, bodyQuad2dCreate, quad2dCreate, quad2dFromRect, quad2dZero } from '.'
 import { Body } from './body'
 import { equals } from './common'
 import { Quad2d } from './quad2d'
@@ -16,6 +17,20 @@ export function create(): BodyQuad2d {
 export function fromRect(out: BodyQuad2d, rect: Readonly<Rect>): BodyQuad2d {
   quad2dFromRect(out.p, rect)
   quad2dZero(out.v)
+  return out
+}
+
+export function copy(out: BodyQuad2d, quad: Readonly<BodyQuad2d>): BodyQuad2d {
+  mat2dCopy(out.p.ij, quad.p.ij)
+  mat2dCopy(out.v.ij, quad.v.ij)
+  vec2Copy(out.p.k, quad.p.k)
+  vec2Copy(out.v.k, quad.v.k)
+  return out
+}
+
+export function clone(quad: Readonly<BodyQuad2d>): BodyQuad2d {
+  const out = bodyQuad2dCreate()
+  copy(out, quad)
   return out
 }
 
