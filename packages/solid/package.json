@@ -51,9 +51,11 @@
     "@solid-primitives/context": "0.2.1",
     "@solid-primitives/map": "^0.4.7",
     "@solid-primitives/mouse": "2.0.16",
+    "@solid-primitives/mutation-observer": "1.1.14",
     "@solid-primitives/raf": "2.1.13",
     "@solid-primitives/resize-observer": "2.0.21",
     "@solid-primitives/rootless": "1.4.2",
+    "@solid-primitives/set": "0.4.8",
     "@solid-primitives/utils": "6.2.1"
   },
   "main": "./dist/index.js",

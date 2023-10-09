@@ -1,5 +1,5 @@
 import classes from './List.module.css'
-import { For, createSignal } from 'solid-js'
+import { For, createSignal, untrack } from 'solid-js'
 import clsx from 'clsx'
 import {
   ViewTransitionConfig,
@@ -31,12 +31,17 @@ export default function () {
   const [count, setCount] = createSignal(10)
   const [activeItems, setActiveItems] = createSignal(['Delta', 'Echo'])
   const cycledItems = () => [...cycle(count(), items)]
+  const [clickCount, setClickCount] = createSignal(0)
 
   function addItem(item: string) {
+    setClickCount(count => count + 1)
+    console.log('addItem', untrack(clickCount))
     setActiveItems(items => [...items, item])
   }
 
   function removeItem(item: string) {
+    setClickCount(count => count + 1)
+    console.log('removeItem', untrack(clickCount))
     setActiveItems(items => items.filter(activeItem => activeItem !== item))
   }
 
@@ -62,10 +67,16 @@ export default function () {
         <ul class={classes.list}>
           <For each={cycledItems().filter(item => !activeItems().includes(item))}>
             {item => (
-              <li data-key={item} use:viewTransition={{ key: item }}>
+              <li
+                data-count={untrack(clickCount)}
+                data-key={item}
+                use:viewTransition={{ key: item }}
+              >
                 <button
-                  data-key={`${item}-button`}
-                  use:viewTransition={{ key: `${item}-button` }}
+                  data-button="true"
+                  data-count={untrack(clickCount)}
+                  data-key={item}
+                  // use:viewTransition={{ key: `${item}-button` }}
                   onClick={[addItem, item]}
                 >
                   {item}
@@ -77,10 +88,19 @@ export default function () {
         <ul class={clsx(classes.list, classes.active)}>
           <For each={activeItems()}>
             {item => (
-              <li data-key={item} use:borderRadius={20} use:viewTransition={{ key: item }}>
+              <li
+                data-active="true"
+                data-count={untrack(clickCount)}
+                data-key={item}
+                use:borderRadius={20}
+                use:viewTransition={{ key: item }}
+              >
                 <button
-                  data-key={`${item}-button`}
-                  use:viewTransition={{ key: `${item}-button` }}
+                  data-active="true"
+                  data-button="true"
+                  data-count={untrack(clickCount)}
+                  data-key={item}
+                  // use:viewTransition={{ key: `${item}-button` }}
                   onClick={[removeItem, item]}
                 >
                   {item}

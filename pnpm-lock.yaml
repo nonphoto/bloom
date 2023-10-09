@@ -115,6 +115,9 @@ importers:
       '@solid-primitives/mouse':
         specifier: 2.0.16
         version: 2.0.16(solid-js@1.7.12)
+      '@solid-primitives/mutation-observer':
+        specifier: 1.1.14
+        version: 1.1.14(solid-js@1.7.12)
       '@solid-primitives/raf':
         specifier: 2.1.13
         version: 2.1.13(solid-js@1.7.12)
@@ -124,6 +127,9 @@ importers:
       '@solid-primitives/rootless':
         specifier: 1.4.2
         version: 1.4.2(solid-js@1.7.12)
+      '@solid-primitives/set':
+        specifier: 0.4.8
+        version: 0.4.8(solid-js@1.7.12)
       '@solid-primitives/utils':
         specifier: 6.2.1
         version: 6.2.1(solid-js@1.7.12)
@@ -2521,6 +2527,15 @@ packages:
     peerDependencies:
       solid-js: ^1.6.12
     dependencies:
+      solid-js: 1.7.12
+    dev: false
+
+  /@solid-primitives/set@0.4.8(solid-js@1.7.12):
+    resolution: {integrity: sha512-kYZ5o4w2oeaDBvQyBeBB7gmGWeR4MWIP36SuMqRwOPzOWyxA2QFlwQr+iL4zo8lNJVssvBhSdm5HwFzWbob/hA==}
+    peerDependencies:
+      solid-js: ^1.6.12
+    dependencies:
+      '@solid-primitives/trigger': 1.0.8(solid-js@1.7.12)
       solid-js: 1.7.12
     dev: false
 

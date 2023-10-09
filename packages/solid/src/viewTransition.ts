@@ -6,24 +6,26 @@ import {
   quad2dFromRect,
 } from '@chloranthy/core'
 import { createContextProvider } from '@solid-primitives/context'
-import { ReactiveMap } from '@solid-primitives/map'
-import { Directive, MaybeAccessor, access, noop } from '@solid-primitives/utils'
+import { Directive, MaybeAccessor, access, isServer } from '@solid-primitives/utils'
 import {
   Accessor,
   Signal,
-  createComputed,
   createEffect,
   createRoot,
   createSignal,
+  getOwner,
   on,
   onCleanup,
   untrack,
 } from 'solid-js'
-import { createMatchAttempt } from './microtask'
+import { MutationMatcher } from './mutationMatcher'
 import { useLayoutModel } from '@chloranthy/layout-model'
 import { createMaybeMemo } from './utils'
 import { createSpringQuad2d } from './animation'
 import { createSetQuad } from './quad'
+import { createMutationObserver } from '@solid-primitives/mutation-observer'
+import { Listeners } from './listeners'
+import { createSubRoot } from '@solid-primitives/rootless'
 
 export type ViewTransitionKey = string | symbol
 export type ViewTransitionConfig = { key: ViewTransitionKey }
@@ -34,12 +36,37 @@ export type AnimationState = {
 
 export function createViewTransitionContext() {
   return createContextProvider(() => {
-    const exiting = new ReactiveMap<ViewTransitionKey, () => AnimationState>()
-    const entering = new ReactiveMap<ViewTransitionKey, Accessor<AnimationState | undefined>>()
+    const matcher = new MutationMatcher<
+      ViewTransitionKey,
+      Accessor<AnimationState | undefined>,
+      () => AnimationState
+    >()
+    const exitListeners = new Listeners<HTMLElement, HTMLElement>()
+    createMutationObserver(
+      isServer ? [] : document.body,
+      { childList: true, subtree: true },
+      records => {
+        for (const record of records) {
+          for (const node of record.removedNodes) {
+            if (node instanceof HTMLElement && record.target instanceof HTMLElement) {
+              exitListeners.notify(node, record.target)
+            }
+          }
+        }
+      },
+    )
+
+    function onExit(element: HTMLElement, callback: (parent: HTMLElement) => void) {
+      const listener = (parent: HTMLElement) => {
+        exitListeners.remove(element, listener)
+        callback(parent)
+      }
+      exitListeners.add(element, listener)
+    }
 
     return {
-      exiting,
-      entering,
+      matcher,
+      onExit,
     }
   })
 }
@@ -47,27 +74,23 @@ export function createViewTransitionContext() {
 export const [ViewTransitionContextProvider, useViewTransitionContext] =
   createViewTransitionContext()
 
-function copyNodeStyle(sourceNode: HTMLElement, targetNode: HTMLElement) {
-  const computedStyle = window.getComputedStyle(sourceNode)
-  Array.from(computedStyle).forEach(key =>
-    targetNode.style.setProperty(
-      key,
-      computedStyle.getPropertyValue(key),
-      computedStyle.getPropertyPriority(key),
-    ),
-  )
+function setInert(element: HTMLElement, rect?: DOMRect) {
+  element.style.width = (rect?.width ?? element.offsetWidth) + 'px'
+  element.style.height = (rect?.height ?? element.offsetHeight) + 'px'
+  element.style.position = 'absolute'
+  element.style.outline = 'solid red 1px'
+  element.inert = true
 }
 
-function cloneInert(element: HTMLElement): HTMLElement {
-  const clone = element.cloneNode(false) as HTMLElement
-  copyNodeStyle(element, clone)
-  clone.style.width = element.offsetWidth + 'px'
-  clone.style.height = element.offsetHeight + 'px'
-  clone.style.transform = ''
-  clone.style.position = 'absolute'
-  clone.style.pointerEvents = 'none'
-  clone.style.outline = 'solid red 1px'
-  return clone
+function getElementId(element: HTMLElement) {
+  return [
+    element.dataset['key'],
+    Boolean(element.dataset['button']) && 'button',
+    Boolean(element.dataset['active']) && 'active',
+    element.dataset['count'],
+  ]
+    .filter(item => Boolean(item))
+    .join('-')
 }
 
 export function createViewTransition(
@@ -78,49 +101,50 @@ export function createViewTransition(
   const layoutModel = useLayoutModel()
   const rect = layoutModel.useRect(element)
 
-  createComputed(
+  createEffect(
     on(
       () => access(element),
       elementValue => {
+        const owner = getOwner()
+        const contextValue = access(context)
         const key = access(config).key
-        if (context && elementValue) {
-          const { exiting, entering } = context
+        if (contextValue && elementValue) {
+          const elementId = getElementId(elementValue)
+          const { matcher } = contextValue
           const [animation, setAnimation] = createSignal<AnimationState>()
 
-          createMatchAttempt<
-            ViewTransitionKey,
-            Accessor<AnimationState | undefined>,
-            () => AnimationState
-          >(
+          console.log(elementId, 'enter match attempt')
+          matcher.attemptEnter(
             key,
             animation,
-            entering,
-            exiting,
             exitingAnimation => {
-              const {
-                body: [body, setBody],
-              } = exitingAnimation()
-              const quad = createMaybeMemo(quad2dFromRect, quad2dCreate(), rect)
-              const isRunning = createSpringQuad2d(quad, body, setBody, 500)
-              createSetQuad(elementValue, () => body().p)
-              setAnimation({
-                body: [body, setBody],
-                isRunning: () => !quad() || isRunning(),
-              })
+              console.log(elementId, 'enter match success')
+              createSubRoot(() => {
+                const {
+                  body: [body, setBody],
+                } = exitingAnimation()
+                const quad = createMaybeMemo(quad2dFromRect, quad2dCreate(), rect)
+                const isRunning = createSpringQuad2d(quad, body, setBody, 500)
+                createSetQuad(elementValue, () => body().p)
+                setAnimation({
+                  body: [body, setBody],
+                  isRunning: () => !quad() || isRunning(),
+                })
+              }, owner)
             },
-            noop,
+            () => {
+              console.log(elementId, 'enter match fail')
+            },
           )
 
           onCleanup(() => {
-            createMatchAttempt<
-              ViewTransitionKey,
-              () => AnimationState,
-              Accessor<AnimationState | undefined>
-            >(
+            const rectValue = untrack(rect)
+            const parent = elementValue.parentElement
+            console.log(elementId, 'exit match attempt')
+            matcher.attemptExit(
               key,
               () => {
                 const animationValue = untrack(animation)
-                const rectValue = untrack(rect)
                 return (
                   animationValue ?? {
                     isRunning: () => false,
@@ -135,24 +159,24 @@ export function createViewTransition(
                   }
                 )
               },
-              exiting,
-              entering,
-              async enteringAnimation => {
+              enteringAnimation => {
+                console.log(elementId, 'exit match success')
                 createRoot(dispose => {
-                  const clone = cloneInert(elementValue)
-                  document.body.appendChild(clone)
+                  setInert(elementValue, rectValue)
+                  parent?.appendChild(elementValue)
                   onCleanup(() => {
-                    clone.parentElement?.removeChild(clone)
+                    elementValue.parentElement?.removeChild(elementValue)
                   })
                   createEffect(() => {
                     const enteringAnimationValue = enteringAnimation()
+                    console.log(elementId, 'enteringAnimationValue', enteringAnimationValue)
                     if (enteringAnimationValue) {
                       setAnimation(enteringAnimationValue)
                       const {
                         isRunning,
                         body: [body],
                       } = enteringAnimationValue
-                      createSetQuad(clone, () => body().p)
+                      createSetQuad(elementValue, () => body().p)
                       createEffect(() => {
                         if (!isRunning()) {
                           dispose()
@@ -162,7 +186,9 @@ export function createViewTransition(
                   })
                 })
               },
-              noop,
+              () => {
+                console.log(elementId, 'exit match fail')
+              },
             )
           })
         }
