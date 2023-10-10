@@ -18,7 +18,8 @@
 }
 
 .active li {
-  background-color: #4c625b55;
+  background-color: #11b681aa;
+  color: white;
   padding: 1rem 2rem;
   border-radius: 20px;
 }

@@ -156,8 +156,13 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
     },
   )
 
-  createMutationObserver(root, { attributes: true, subtree: true }, records => {
+  createMutationObserver(root, { childList: true, subtree: true }, records => {
+    // for (const { target } of records) {
+    //   if (target instanceof HTMLElement) {
+    // 	}
+    // }
     for (const element of mutatedElements(records)) {
+      rectRoots.get(element)?.invalidate()
       parentRoots.get(element)?.invalidate()
     }
   })

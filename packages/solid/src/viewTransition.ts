@@ -1,6 +1,5 @@
 import {
   BodyQuad2d,
-  body2dCreate,
   bodyQuad2dClone,
   bodyQuad2dCreate,
   bodyQuad2dFromRect,
@@ -8,12 +7,11 @@ import {
   quad2dFromRect,
 } from '@chloranthy/core'
 import { createContextProvider } from '@solid-primitives/context'
-import { Directive, MaybeAccessor, access, isServer } from '@solid-primitives/utils'
+import { Directive, MaybeAccessor, access } from '@solid-primitives/utils'
 import {
   Accessor,
   Setter,
   createEffect,
-  createMemo,
   createRoot,
   createSignal,
   getOwner,
@@ -26,8 +24,6 @@ import { useLayoutModel } from '@chloranthy/layout-model'
 import { createMaybeMemo } from './utils'
 import { createSpringQuad2d } from './animation'
 import { createSetQuad } from './quad'
-import { createMutationObserver } from '@solid-primitives/mutation-observer'
-import { Listeners } from './listeners'
 import { createSubRoot } from '@solid-primitives/rootless'
 
 export type ViewTransitionKey = string | symbol
@@ -45,32 +41,9 @@ export function createViewTransitionContext() {
       Accessor<AnimationState | null | undefined>,
       BodyQuad2d
     >()
-    const exitListeners = new Listeners<HTMLElement, HTMLElement>()
-    createMutationObserver(
-      isServer ? [] : document.body,
-      { childList: true, subtree: true },
-      records => {
-        for (const record of records) {
-          for (const node of record.removedNodes) {
-            if (node instanceof HTMLElement && record.target instanceof HTMLElement) {
-              exitListeners.notify(node, record.target)
-            }
-          }
-        }
-      },
-    )
-
-    function onExit(element: HTMLElement, callback: (parent: HTMLElement) => void) {
-      const listener = (parent: HTMLElement) => {
-        exitListeners.remove(element, listener)
-        callback(parent)
-      }
-      exitListeners.add(element, listener)
-    }
 
     return {
       matcher,
-      onExit,
     }
   })
 }
@@ -86,17 +59,6 @@ function setInert(element: HTMLElement, rect?: DOMRect) {
   element.style.position = 'absolute'
   element.style.outline = 'solid red 1px'
   element.inert = true
-}
-
-function getElementId(element: HTMLElement) {
-  return [
-    element.dataset['key'],
-    Boolean(element.dataset['button']) && 'button',
-    Boolean(element.dataset['active']) && 'active',
-    element.dataset['count'],
-  ]
-    .filter(item => Boolean(item))
-    .join('-')
 }
 
 export function createViewTransition(
@@ -115,16 +77,13 @@ export function createViewTransition(
         if (contextValue && elementValue) {
           const owner = getOwner()
           const key = access(config).key
-          const elementId = getElementId(elementValue)
           const { matcher } = contextValue
           const [animation, setAnimation] = createSignal<AnimationState | null | undefined>()
 
-          console.log(elementId, 'enter match attempt')
           matcher.attemptEnter(
             key,
             animation,
             exitingBody => {
-              console.log(elementId, 'enter match success')
               createSubRoot(() => {
                 const [body, setBody] = createSignal<BodyQuad2d>(bodyQuad2dClone(exitingBody), {
                   equals: false,
@@ -139,15 +98,12 @@ export function createViewTransition(
                 })
               }, owner)
             },
-            () => {
-              console.log(elementId, 'enter match fail')
-            },
+            () => {},
           )
 
           onCleanup(() => {
             const rectValue = untrack(rect)
             const parent = elementValue.parentElement
-            console.log(elementId, 'exit match attempt')
             matcher.attemptExit(
               key,
               untrack(
@@ -158,7 +114,6 @@ export function createViewTransition(
                     : bodyQuad2dCreate()),
               ),
               enteringAnimation => {
-                console.log(elementId, 'exit match success')
                 createRoot(dispose => {
                   setInert(elementValue, rectValue)
                   parent?.appendChild(elementValue)
@@ -183,7 +138,6 @@ export function createViewTransition(
               },
               () => {
                 setAnimation(null)
-                console.log(elementId, 'exit match fail')
               },
             )
           })
