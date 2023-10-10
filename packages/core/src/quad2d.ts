@@ -58,6 +58,12 @@ export function fromRect(out: Quad2d, rect: Readonly<Rect>): Quad2d {
   return out
 }
 
+export function fromRectMat2d(out: Quad2d, rect: Readonly<Rect>, matrix: Readonly<Mat2d>): Quad2d {
+  fromRect(out, rect)
+  transformMat2d(out, out, matrix)
+  return out
+}
+
 /**
  * Create a new quad from a given position and size.
  */

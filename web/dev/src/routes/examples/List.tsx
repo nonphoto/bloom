@@ -63,10 +63,7 @@ export default function () {
           <For each={cycledItems().filter(item => !activeItems().includes(item))}>
             {item => (
               <li use:viewTransition={{ key: item }}>
-                <button
-                  // use:viewTransition={{ key: `${item}-button` }}
-                  onClick={[addItem, item]}
-                >
+                <button use:viewTransition={{ key: `${item}-button` }} onClick={[addItem, item]}>
                   {item}
                 </button>
               </li>
@@ -77,10 +74,7 @@ export default function () {
           <For each={activeItems()}>
             {item => (
               <li use:borderRadius={20} use:viewTransition={{ key: item }}>
-                <button
-                  // use:viewTransition={{ key: `${item}-button` }}
-                  onClick={[removeItem, item]}
-                >
+                <button use:viewTransition={{ key: `${item}-button` }} onClick={[removeItem, item]}>
                   {item}
                 </button>
               </li>

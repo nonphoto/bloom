@@ -60,4 +60,5 @@ export {
   contain as rectContain,
   cover as rectCover,
   untransformMat2d as rectUntransformMat2d,
+  mix as rectMix,
 } from './rect.js'

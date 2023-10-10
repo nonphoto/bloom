@@ -37,3 +37,7 @@ export function setAspectRatio<T>(
 export function equals(a: number, b: number) {
   return Math.abs(a - b) <= 0.1
 }
+
+export function mix(a: number, b: number, t: number) {
+  return a + t * (b - a)
+}

@@ -5,6 +5,7 @@ import {
   bodyQuad2dFromRect,
   quad2dCreate,
   quad2dFromRect,
+  quad2dTransformMat2d,
 } from '@chloranthy/core'
 import { createContextProvider } from '@solid-primitives/context'
 import { Directive, MaybeAccessor, access } from '@solid-primitives/utils'
@@ -29,7 +30,7 @@ import { createSubRoot } from '@solid-primitives/rootless'
 export type ViewTransitionKey = string | symbol
 export type ViewTransitionConfig = { key: ViewTransitionKey }
 export type AnimationState = {
-  finished: Accessor<boolean>
+  isFinished: Accessor<boolean>
   body: Accessor<BodyQuad2d>
   setBody: Setter<BodyQuad2d>
 }
@@ -54,8 +55,8 @@ export const [ViewTransitionContextProvider, useViewTransitionContext] =
 function setInert(element: HTMLElement, rect?: DOMRect) {
   element.style.width = (rect?.width ?? element.offsetWidth) + 'px'
   element.style.height = (rect?.height ?? element.offsetHeight) + 'px'
-  element.style.left = (rect?.left ?? element.offsetLeft) + 'px'
-  element.style.top = (rect?.top ?? element.offsetTop) + 'px'
+  // element.style.left = (rect?.left ?? element.offsetLeft) + 'px'
+  // element.style.top = (rect?.top ?? element.offsetTop) + 'px'
   element.style.position = 'absolute'
   element.style.outline = 'solid red 1px'
   element.inert = true
@@ -68,6 +69,7 @@ export function createViewTransition(
   const context = useViewTransitionContext()
   const layoutModel = useLayoutModel()
   const rect = layoutModel.useRect(element)
+  const matrix = layoutModel.useMatrix(element)
 
   createEffect(
     on(
@@ -84,17 +86,29 @@ export function createViewTransition(
             key,
             animation,
             exitingBody => {
-              createSubRoot(() => {
+              createSubRoot(dispose => {
                 const [body, setBody] = createSignal<BodyQuad2d>(bodyQuad2dClone(exitingBody), {
                   equals: false,
                 })
                 const quad = createMaybeMemo(quad2dFromRect, quad2dCreate(), rect)
                 const isRunning = createSpringQuad2d(quad, body, setBody, 500)
-                createSetQuad(elementValue, () => body().p)
+                const isFinished = () => quad() != null && !isRunning()
+                const targetQuad = createMaybeMemo(
+                  quad2dTransformMat2d,
+                  quad2dCreate(),
+                  () => body().p,
+                  matrix,
+                )
+                createSetQuad(elementValue, targetQuad)
                 setAnimation({
                   body,
                   setBody,
-                  finished: () => quad() != null && !isRunning(),
+                  isFinished,
+                })
+                createEffect(() => {
+                  if (isFinished()) {
+                    dispose()
+                  }
                 })
               }, owner)
             },
@@ -117,6 +131,7 @@ export function createViewTransition(
                 createRoot(dispose => {
                   setInert(elementValue, rectValue)
                   parent?.appendChild(elementValue)
+                  layoutModel.invalidateRect(elementValue)
                   onCleanup(() => {
                     elementValue.parentElement?.removeChild(elementValue)
                   })
@@ -126,7 +141,7 @@ export function createViewTransition(
                       setAnimation(enteringAnimationValue)
                       createSetQuad(elementValue, () => enteringAnimationValue.body().p)
                       createEffect(() => {
-                        if (enteringAnimationValue.finished()) {
+                        if (enteringAnimationValue.isFinished()) {
                           dispose()
                         }
                       })

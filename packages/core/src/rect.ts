@@ -1,5 +1,9 @@
 import { Vec2, Mat2d, vec2Set } from '@chloranthy/gl-matrix'
-import { fit as commonFit, setAspectRatio as commonSetAspectRatio } from './common.js'
+import {
+  fit as commonFit,
+  setAspectRatio as commonSetAspectRatio,
+  mix as commonMix,
+} from './common.js'
 
 /**
  * A rectangle in 2-dimensional space. The rectangle cannot rotate and thus its edges are always axis-aligned. A Rect is a subRect of DOMRect.
@@ -145,6 +149,14 @@ export function contain(out: Rect, source: Readonly<Rect>, target: Readonly<Rect
 
 export function cover(out: Rect, source: Readonly<Rect>, target: Readonly<Rect>): Rect {
   return fit(out, source, target, Math.max)
+}
+
+export function mix(out: Rect, source: Readonly<Rect>, target: Readonly<Rect>, t: number): Rect {
+  out.x = commonMix(source.x, target.x, t)
+  out.y = commonMix(source.y, target.y, t)
+  out.width = commonMix(source.width, target.width, t)
+  out.height = commonMix(source.height, target.height, t)
+  return out
 }
 
 /**
