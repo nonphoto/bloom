@@ -5,7 +5,6 @@ import {
   bodyQuad2dFromRect,
   quad2dCreate,
   quad2dFromRect,
-  quad2dTransformMat2d,
 } from '@chloranthy/core'
 import { createContextProvider } from '@solid-primitives/context'
 import { Directive, MaybeAccessor, access } from '@solid-primitives/utils'
@@ -52,11 +51,9 @@ export function createViewTransitionContext() {
 export const [ViewTransitionContextProvider, useViewTransitionContext] =
   createViewTransitionContext()
 
-function setInert(element: HTMLElement, rect?: DOMRect) {
-  element.style.width = (rect?.width ?? element.offsetWidth) + 'px'
-  element.style.height = (rect?.height ?? element.offsetHeight) + 'px'
-  // element.style.left = (rect?.left ?? element.offsetLeft) + 'px'
-  // element.style.top = (rect?.top ?? element.offsetTop) + 'px'
+function setInert(element: HTMLElement, rect: DOMRect) {
+  element.style.width = rect?.width + 'px'
+  element.style.height = rect?.height + 'px'
   element.style.position = 'absolute'
   element.style.outline = 'solid red 1px'
   element.inert = true
@@ -69,7 +66,6 @@ export function createViewTransition(
   const context = useViewTransitionContext()
   const layoutModel = useLayoutModel()
   const rect = layoutModel.useRect(element)
-  const matrix = layoutModel.useMatrix(element)
 
   createEffect(
     on(
@@ -93,13 +89,7 @@ export function createViewTransition(
                 const quad = createMaybeMemo(quad2dFromRect, quad2dCreate(), rect)
                 const isRunning = createSpringQuad2d(quad, body, setBody, 500)
                 const isFinished = () => quad() != null && !isRunning()
-                const targetQuad = createMaybeMemo(
-                  quad2dTransformMat2d,
-                  quad2dCreate(),
-                  () => body().p,
-                  matrix,
-                )
-                createSetQuad(elementValue, targetQuad)
+                createSetQuad(elementValue, () => body().p)
                 setAnimation({
                   body,
                   setBody,
@@ -129,12 +119,14 @@ export function createViewTransition(
               ),
               enteringAnimation => {
                 createRoot(dispose => {
-                  setInert(elementValue, rectValue)
-                  parent?.appendChild(elementValue)
-                  layoutModel.invalidateRect(elementValue)
-                  onCleanup(() => {
-                    elementValue.parentElement?.removeChild(elementValue)
-                  })
+                  if (rectValue) {
+                    setInert(elementValue, rectValue)
+                    parent?.appendChild(elementValue)
+                    layoutModel.invalidateRect(elementValue)
+                    onCleanup(() => {
+                      elementValue.parentElement?.removeChild(elementValue)
+                    })
+                  }
                   createEffect(() => {
                     const enteringAnimationValue = enteringAnimation()
                     if (enteringAnimationValue != null) {
