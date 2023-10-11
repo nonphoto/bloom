@@ -1,7 +1,7 @@
 import { Mat2d } from '@chloranthy/gl-matrix'
 import { useLayoutModel } from '@chloranthy/layout-model'
 import { Directive, MaybeAccessor, access } from '@solid-primitives/utils'
-import { createEffect, onCleanup } from 'solid-js'
+import { createComputed } from 'solid-js'
 
 export function createSetTransform(
   element: MaybeAccessor<HTMLElement | null | undefined>,
@@ -9,14 +9,11 @@ export function createSetTransform(
 ): void {
   const layout = useLayoutModel()
 
-  createEffect(() => {
+  createComputed(() => {
     const elementValue = access(element)
     if (elementValue) {
-      createEffect(() => {
+      createComputed(() => {
         layout.setTransform(elementValue, access(value))
-      })
-      onCleanup(() => {
-        layout.setTransform(elementValue, undefined)
       })
     }
   })

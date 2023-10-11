@@ -1,5 +1,5 @@
 import classes from './List.module.css'
-import { For, createSignal, untrack } from 'solid-js'
+import { For, createSignal } from 'solid-js'
 import clsx from 'clsx'
 import {
   ViewTransitionConfig,

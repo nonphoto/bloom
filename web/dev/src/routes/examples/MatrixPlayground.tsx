@@ -30,9 +30,7 @@ export default function MatrixPlayground() {
   const sourceInnerRect = layoutModel.useRect(sourceInnerElement)
   const sourceInnerMatrix = layoutModel.useMatrix(sourceInnerElement)
   const targetOuterRect = layoutModel.useRect(targetOuterElement)
-  const targetOuterMatrix = layoutModel.useMatrix(targetOuterElement)
   const targetInnerRect = layoutModel.useRect(targetInnerElement)
-  const targetInnerMatrix = layoutModel.useRect(targetInnerElement)
 
   const mixedOuterRect = rectCreate()
   const sourceOuterTransform = createMemo<Mat2d>(

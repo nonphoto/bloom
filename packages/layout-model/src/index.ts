@@ -323,6 +323,7 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
           const next = prev ?? mat2dCreate()
           mat2dCopy(next, layoutMatrixValue)
           const transform = transformMap.get(element)
+
           if (transform) {
             mat2dMultiply(next, next, transform)
           }
