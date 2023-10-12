@@ -14,17 +14,24 @@ import {
 import { MutationMatcher } from './mutationMatcher'
 import { useLayoutModel } from '@chloranthy/layout-model'
 import { createSubRoot } from '@solid-primitives/rootless'
+import { match } from 'assert'
 
 export type ViewTransitionKey = string | symbol
 export type ViewTransitionOptions = {
   key: ViewTransitionKey
-  onEnterMatch?: (element: HTMLElement, match: ViewTransitionMatch) => ReactiveAnimation | undefined
-  onExitMatch?: (element: HTMLElement, match: ViewTransitionMatch) => ReactiveAnimation | undefined
-  onEnter?: (element: HTMLElement) => ReactiveAnimation | undefined
-  onExit?: (element: HTMLElement) => ReactiveAnimation | undefined
+  onEnterMatch?: (
+    element: HTMLElement,
+    match: ViewTransitionMatch,
+  ) => ReactiveAnimation | undefined | void
+  onExitMatch?: (
+    element: HTMLElement,
+    match: ViewTransitionMatch,
+  ) => ReactiveAnimation | undefined | void
+  onEnter?: (element: HTMLElement) => ReactiveAnimation | undefined | void
+  onExit?: (element: HTMLElement) => ReactiveAnimation | undefined | void
 }
 export type ViewTransitionMatch = {
-  animation: ReactiveAnimation | null | undefined
+  animation?: ReactiveAnimation
   rect: DOMRect
 }
 export type ReactiveAnimation = {
@@ -36,7 +43,7 @@ export function createViewTransitionContext() {
   return createContextProvider(() => {
     const matcher = new MutationMatcher<
       ViewTransitionKey,
-      Accessor<ReactiveAnimation | null | undefined>,
+      Accessor<ReactiveAnimation | undefined>,
       ViewTransitionMatch
     >()
 
@@ -73,23 +80,24 @@ export function createViewTransition(
           const owner = getOwner()
           const { key, onEnterMatch, onExitMatch, onEnter, onExit } = access(options)
           const { matcher } = contextValue
-          const [animation, setAnimation] = createSignal<ReactiveAnimation | null | undefined>()
+          const [animation, setAnimation] = createSignal<ReactiveAnimation | undefined>()
+
+          const createOnAnimationFinished = (fn: () => void) => {
+            createEffect(() => {
+              if (animation()?.isFinished() ?? true) {
+                fn()
+              }
+            })
+          }
 
           const onEnterAttempt = (exitingMatch?: ViewTransitionMatch) => {
             createSubRoot(dispose => {
-              const animation = exitingMatch
-                ? onEnterMatch?.(elementValue, exitingMatch)
-                : onEnter?.(elementValue)
-              if (animation) {
-                setAnimation(animation)
-                createEffect(() => {
-                  if (animation.isFinished()) {
-                    dispose()
-                  }
-                })
-              } else {
-                dispose()
-              }
+              setAnimation(
+                (exitingMatch
+                  ? onEnterMatch?.(elementValue, exitingMatch)
+                  : onEnter?.(elementValue)) ?? undefined,
+              )
+              createOnAnimationFinished(dispose)
             }, owner)
           }
 
@@ -100,9 +108,7 @@ export function createViewTransition(
             const parent = elementValue.parentElement
             if (!rectValue) return
 
-            const onExitAttempt = (
-              prevAnimation?: Accessor<ReactiveAnimation | null | undefined>,
-            ) => {
+            const onExitAttempt = (matchAnimation?: Accessor<ReactiveAnimation | undefined>) => {
               createRoot(dispose => {
                 setInert(elementValue, rectValue)
                 parent?.appendChild(elementValue)
@@ -110,29 +116,26 @@ export function createViewTransition(
                 onCleanup(() => {
                   elementValue.parentElement?.removeChild(elementValue)
                 })
-                createEffect(() => {
-                  const prevAnimationValue = prevAnimation?.()
-                  if (prevAnimationValue != null) {
-                    const animation = prevAnimationValue
-                      ? onExitMatch?.(elementValue, {
-                          animation: prevAnimationValue,
-                          rect: rectValue,
-                        })
-                      : onExit?.(elementValue) ?? null
-                    setAnimation(animation)
-                    if (animation) {
-                      createEffect(() => {
-                        if (animation.isFinished()) {
-                          dispose()
-                        }
-                      })
-                    } else {
-                      dispose()
-                    }
-                  } else if (prevAnimationValue === null) {
-                    dispose()
-                  }
-                })
+                if (matchAnimation) {
+                  createEffect(
+                    on(
+                      matchAnimation,
+                      matchAnimationValue => {
+                        setAnimation(
+                          onExitMatch?.(elementValue, {
+                            animation: matchAnimationValue,
+                            rect: rectValue,
+                          }) ?? undefined,
+                        )
+                        createOnAnimationFinished(dispose)
+                      },
+                      { defer: true },
+                    ),
+                  )
+                } else {
+                  setAnimation(onExit?.(elementValue) ?? undefined)
+                  createOnAnimationFinished(dispose)
+                }
               })
             }
 

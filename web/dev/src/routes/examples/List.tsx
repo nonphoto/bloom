@@ -55,7 +55,7 @@ function onEnterMatch(
     },
   )
   const quad = createMaybeMemo(quad2dFromRect, quad2dCreate(), rect)
-  const isRunning = createSpringQuad2d(quad, body, setBody, 500)
+  const isRunning = createSpringQuad2d(quad, body, setBody, 300)
   const isFinished = () => quad() != null && !isRunning()
   createSetQuad(element, () => body().p)
   return {
@@ -110,7 +110,13 @@ export default function () {
         <ul class={classes.list}>
           <For each={cycledItems().filter(item => !activeItems().includes(item))}>
             {item => (
-              <li use:viewTransition={{ key: item, onEnterMatch, onExitMatch }}>
+              <li
+                use:viewTransition={{
+                  key: item,
+                  onEnterMatch,
+                  onExitMatch,
+                }}
+              >
                 <button
                   use:viewTransition={{ key: `${item}-button`, onEnterMatch, onExitMatch }}
                   onClick={[addItem, item]}
