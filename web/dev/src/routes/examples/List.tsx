@@ -1,12 +1,25 @@
 import classes from './List.module.css'
-import { For, createSignal } from 'solid-js'
+import { For, createEffect, createSignal, untrack } from 'solid-js'
 import clsx from 'clsx'
 import {
-  ViewTransitionConfig,
+  ReactiveAnimation,
+  ViewTransitionOptions,
   ViewTransitionContextProvider,
+  ViewTransitionMatch,
   borderRadius,
+  createMaybeMemo,
+  createSetQuad,
+  createSpringQuad2d,
   viewTransition,
 } from '@chloranthy/solid'
+import {
+  BodyQuad2d,
+  bodyQuad2dCreate,
+  bodyQuad2dFromRect,
+  quad2dCreate,
+  quad2dFromRect,
+} from '@chloranthy/core'
+import { useLayoutModel } from '@chloranthy/layout-model'
 
 borderRadius
 viewTransition
@@ -16,7 +29,7 @@ const items = ['Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot', 'Golf', 
 declare module 'solid-js' {
   namespace JSX {
     interface Directives {
-      viewTransition: ViewTransitionConfig
+      viewTransition: ViewTransitionOptions
     }
   }
 }
@@ -24,6 +37,41 @@ declare module 'solid-js' {
 function* cycle<T>(n: number, array: T[]) {
   for (let i = 0; i < n; i++) {
     yield array[i % array.length]!
+  }
+}
+
+function onEnterMatch(
+  element: HTMLElement,
+  match: ViewTransitionMatch,
+): ReactiveAnimation | undefined {
+  const layoutModel = useLayoutModel()
+  const rect = layoutModel.useRect(element)
+  const [body, setBody] = createSignal<BodyQuad2d>(
+    match.animation
+      ? untrack(match.animation.body)
+      : bodyQuad2dFromRect(bodyQuad2dCreate(), match.rect),
+    {
+      equals: false,
+    },
+  )
+  const quad = createMaybeMemo(quad2dFromRect, quad2dCreate(), rect)
+  const isRunning = createSpringQuad2d(quad, body, setBody, 500)
+  const isFinished = () => quad() != null && !isRunning()
+  createSetQuad(element, () => body().p)
+  return {
+    isFinished,
+    body,
+  }
+}
+
+function onExitMatch(
+  element: HTMLElement,
+  match: ViewTransitionMatch,
+): ReactiveAnimation | undefined {
+  if (match.animation) {
+    const body = match.animation.body
+    createSetQuad(element, () => body().p)
+    return match.animation
   }
 }
 
@@ -62,8 +110,11 @@ export default function () {
         <ul class={classes.list}>
           <For each={cycledItems().filter(item => !activeItems().includes(item))}>
             {item => (
-              <li use:viewTransition={{ key: item }}>
-                <button use:viewTransition={{ key: `${item}-button` }} onClick={[addItem, item]}>
+              <li use:viewTransition={{ key: item, onEnterMatch, onExitMatch }}>
+                <button
+                  use:viewTransition={{ key: `${item}-button`, onEnterMatch, onExitMatch }}
+                  onClick={[addItem, item]}
+                >
                   {item}
                 </button>
               </li>
@@ -73,8 +124,14 @@ export default function () {
         <ul class={clsx(classes.list, classes.active)}>
           <For each={activeItems()}>
             {item => (
-              <li use:borderRadius={20} use:viewTransition={{ key: item }}>
-                <button use:viewTransition={{ key: `${item}-button` }} onClick={[removeItem, item]}>
+              <li
+                use:borderRadius={20}
+                use:viewTransition={{ key: item, onEnterMatch, onExitMatch }}
+              >
+                <button
+                  use:viewTransition={{ key: `${item}-button`, onEnterMatch, onExitMatch }}
+                  onClick={[removeItem, item]}
+                >
                   {item}
                 </button>
               </li>

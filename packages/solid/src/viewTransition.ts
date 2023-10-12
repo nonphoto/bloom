@@ -1,16 +1,8 @@
-import {
-  BodyQuad2d,
-  bodyQuad2dClone,
-  bodyQuad2dCreate,
-  bodyQuad2dFromRect,
-  quad2dCreate,
-  quad2dFromRect,
-} from '@chloranthy/core'
+import { BodyQuad2d } from '@chloranthy/core'
 import { createContextProvider } from '@solid-primitives/context'
 import { Directive, MaybeAccessor, access } from '@solid-primitives/utils'
 import {
   Accessor,
-  Setter,
   createEffect,
   createRoot,
   createSignal,
@@ -21,17 +13,23 @@ import {
 } from 'solid-js'
 import { MutationMatcher } from './mutationMatcher'
 import { useLayoutModel } from '@chloranthy/layout-model'
-import { createMaybeMemo } from './utils'
-import { createSpringQuad2d } from './animation'
-import { createSetQuad } from './quad'
 import { createSubRoot } from '@solid-primitives/rootless'
 
 export type ViewTransitionKey = string | symbol
-export type ViewTransitionConfig = { key: ViewTransitionKey }
+export type ViewTransitionOptions = {
+  key: ViewTransitionKey
+  onEnterMatch?: (element: HTMLElement, match: ViewTransitionMatch) => ReactiveAnimation | undefined
+  onExitMatch?: (element: HTMLElement, match: ViewTransitionMatch) => ReactiveAnimation | undefined
+  onEnter?: (element: HTMLElement) => ReactiveAnimation | undefined
+  onExit?: (element: HTMLElement) => ReactiveAnimation | undefined
+}
+export type ViewTransitionMatch = {
+  animation: ReactiveAnimation | null | undefined
+  rect: DOMRect
+}
 export type ReactiveAnimation = {
   isFinished: Accessor<boolean>
   body: Accessor<BodyQuad2d>
-  setBody: Setter<BodyQuad2d>
 }
 
 export function createViewTransitionContext() {
@@ -39,7 +37,7 @@ export function createViewTransitionContext() {
     const matcher = new MutationMatcher<
       ViewTransitionKey,
       Accessor<ReactiveAnimation | null | undefined>,
-      { animation: ReactiveAnimation | null | undefined; rect: DOMRect }
+      ViewTransitionMatch
     >()
 
     return {
@@ -60,7 +58,7 @@ function setInert(element: HTMLElement, rect: DOMRect) {
 
 export function createViewTransition(
   element: MaybeAccessor<HTMLElement | null | undefined>,
-  config: Accessor<ViewTransitionConfig>,
+  options: Accessor<ViewTransitionOptions>,
 ) {
   const context = useViewTransitionContext()
   const layoutModel = useLayoutModel()
@@ -73,76 +71,76 @@ export function createViewTransition(
         const contextValue = access(context)
         if (contextValue && elementValue) {
           const owner = getOwner()
-          const key = access(config).key
+          const { key, onEnterMatch, onExitMatch, onEnter, onExit } = access(options)
           const { matcher } = contextValue
           const [animation, setAnimation] = createSignal<ReactiveAnimation | null | undefined>()
 
-          matcher.attemptEnter(
-            key,
-            animation,
-            exitingMatch => {
-              createSubRoot(dispose => {
-                const [body, setBody] = createSignal<BodyQuad2d>(
-                  exitingMatch.animation
-                    ? untrack(exitingMatch.animation.body)
-                    : bodyQuad2dFromRect(bodyQuad2dCreate(), exitingMatch.rect),
-                  {
-                    equals: false,
-                  },
-                )
-                const quad = createMaybeMemo(quad2dFromRect, quad2dCreate(), rect)
-                const isRunning = createSpringQuad2d(quad, body, setBody, 500)
-                const isFinished = () => quad() != null && !isRunning()
-                createSetQuad(elementValue, () => body().p)
-                setAnimation({
-                  body,
-                  setBody,
-                  isFinished,
-                })
+          const onEnterAttempt = (exitingMatch?: ViewTransitionMatch) => {
+            createSubRoot(dispose => {
+              const animation = exitingMatch
+                ? onEnterMatch?.(elementValue, exitingMatch)
+                : onEnter?.(elementValue)
+              if (animation) {
+                setAnimation(animation)
                 createEffect(() => {
-                  if (isFinished()) {
+                  if (animation.isFinished()) {
                     dispose()
                   }
                 })
-              }, owner)
-            },
-            () => {},
-          )
+              } else {
+                dispose()
+              }
+            }, owner)
+          }
+
+          matcher.attemptEnter(key, animation, onEnterAttempt, onEnterAttempt)
 
           onCleanup(() => {
             const rectValue = untrack(rect)
             const parent = elementValue.parentElement
             if (!rectValue) return
-            matcher.attemptExit(
-              key,
-              { animation: untrack(animation), rect: rectValue },
-              enteringAnimation => {
-                createRoot(dispose => {
-                  setInert(elementValue, rectValue)
-                  parent?.appendChild(elementValue)
-                  layoutModel.invalidateRect(elementValue)
-                  onCleanup(() => {
-                    elementValue.parentElement?.removeChild(elementValue)
-                  })
-                  createEffect(() => {
-                    const enteringAnimationValue = enteringAnimation()
-                    if (enteringAnimationValue != null) {
-                      setAnimation(enteringAnimationValue)
-                      createSetQuad(elementValue, () => enteringAnimationValue.body().p)
+
+            const onExitAttempt = (
+              prevAnimation?: Accessor<ReactiveAnimation | null | undefined>,
+            ) => {
+              createRoot(dispose => {
+                setInert(elementValue, rectValue)
+                parent?.appendChild(elementValue)
+                layoutModel.invalidateRect(elementValue)
+                onCleanup(() => {
+                  elementValue.parentElement?.removeChild(elementValue)
+                })
+                createEffect(() => {
+                  const prevAnimationValue = prevAnimation?.()
+                  if (prevAnimationValue != null) {
+                    const animation = prevAnimationValue
+                      ? onExitMatch?.(elementValue, {
+                          animation: prevAnimationValue,
+                          rect: rectValue,
+                        })
+                      : onExit?.(elementValue) ?? null
+                    setAnimation(animation)
+                    if (animation) {
                       createEffect(() => {
-                        if (enteringAnimationValue.isFinished()) {
+                        if (animation.isFinished()) {
                           dispose()
                         }
                       })
-                    } else if (enteringAnimationValue === null) {
+                    } else {
                       dispose()
                     }
-                  })
+                  } else if (prevAnimationValue === null) {
+                    dispose()
+                  }
                 })
-              },
-              () => {
-                setAnimation(null)
-              },
+              })
+            }
+
+            matcher.attemptExit(
+              key,
+              { animation: untrack(animation), rect: rectValue },
+              onExitAttempt,
+              onExitAttempt,
             )
           })
         }
@@ -151,8 +149,8 @@ export function createViewTransition(
   )
 }
 
-export const viewTransition: Directive<ViewTransitionConfig> = (target, config) => {
+export const viewTransition: Directive<ViewTransitionOptions> = (target, options) => {
   if (target instanceof HTMLElement) {
-    createViewTransition(target, config)
+    createViewTransition(target, options)
   }
 }
