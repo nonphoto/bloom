@@ -14,7 +14,6 @@ import {
 import { MutationMatcher } from './mutationMatcher'
 import { useLayoutModel } from '@chloranthy/layout-model'
 import { createSubRoot } from '@solid-primitives/rootless'
-import { match } from 'assert'
 
 export type ViewTransitionKey = string | symbol
 export type ViewTransitionOptions = {
