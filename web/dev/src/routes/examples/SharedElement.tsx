@@ -18,6 +18,15 @@ import { useLayoutModel } from '@chloranthy/layout-model'
 quad
 borderRadius
 
+declare module 'solid-js' {
+  namespace JSX {
+    interface Directives {
+      quad: Quad2d | undefined
+      borderRadius: number
+    }
+  }
+}
+
 const areas = xprod([1, 2, 3], [1, 2, 3])
 
 export default function SharedElement() {
@@ -33,8 +42,8 @@ export default function SharedElement() {
   const targetPosition = createMaybeMemo(rectPosition, vec2Create(), outerTargetRect)
   const targetSize = createMaybeMemo(rectSize, vec2Create(), outerTargetRect)
 
-  const position = createSpringBody(targetPosition, 150)
-  const size = createSpringBody(targetSize, 300)
+  const [position] = createSpringBody(targetPosition, 150)
+  const [size] = createSpringBody(targetSize, 300)
 
   const outerMatrix = layoutModel.useMatrix(outerElement)
 
