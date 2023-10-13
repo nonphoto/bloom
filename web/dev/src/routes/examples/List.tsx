@@ -1,5 +1,5 @@
 import classes from './List.module.css'
-import { For, createEffect, createSignal, untrack } from 'solid-js'
+import { For, createSignal, untrack } from 'solid-js'
 import clsx from 'clsx'
 import {
   ReactiveAnimation,
@@ -30,6 +30,7 @@ declare module 'solid-js' {
   namespace JSX {
     interface Directives {
       viewTransition: ViewTransitionOptions
+      borderRadius: number
     }
   }
 }

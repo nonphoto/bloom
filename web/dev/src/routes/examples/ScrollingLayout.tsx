@@ -1,17 +1,19 @@
 import classes from './ScrollingLayout.module.css'
-import { setTransform } from '@chloranthy/solid'
-import { rectUntransformMat2d } from '@chloranthy/core'
+import { quad, setTransform } from '@chloranthy/solid'
+import { Quad2d, quad2dCreate, quad2dFromRect, quad2dTransformMat2d } from '@chloranthy/core'
 import { createRAF } from '@solid-primitives/raf'
-import { Mat2d, mat2dMultiply, mat2dCreate, mat2dFromRotation } from '@chloranthy/gl-matrix'
+import { Mat2d, mat2dCreate, mat2dFromRotation } from '@chloranthy/gl-matrix'
 import { createEffect, createMemo, createSignal } from 'solid-js'
 import { useLayoutModel } from '@chloranthy/layout-model'
 
+quad
 setTransform
 
 declare module 'solid-js' {
   namespace JSX {
     interface Directives {
       setTransform: Mat2d | undefined
+      quad: Quad2d | undefined
     }
   }
 }
@@ -22,7 +24,6 @@ export default function ScrollingLayout() {
   })
 
   const [innerElement, setInnerElement] = createSignal<HTMLElement>()
-  const [fixedElement, setFixedElement] = createSignal<HTMLElement>()
 
   const [, start] = createRAF(function raf(t) {
     setParentTransform(prev => mat2dFromRotation(prev, t * 0.001))
@@ -35,20 +36,18 @@ export default function ScrollingLayout() {
   const layout = useLayoutModel()
   const innerRect = layout.useRect(innerElement)
   const innerMatrix = layout.useMatrix(innerElement)
-  const shadowRect = layout.useRect(fixedElement)
 
-  const shadowTransform = createMemo<Mat2d>(
-    prev => {
+  const shadowQuad = createMemo<Quad2d>(
+    out => {
       const innerRectValue = innerRect()
       const innerMatrixValue = innerMatrix()
-      const shadowRectValue = shadowRect()
-      if (innerRectValue && innerMatrixValue && shadowRectValue) {
-        rectUntransformMat2d(prev, innerRectValue, shadowRectValue)
-        mat2dMultiply(prev, prev, innerMatrixValue)
+      if (innerRectValue && innerMatrixValue) {
+        quad2dFromRect(out, innerRectValue)
+        quad2dTransformMat2d(out, out, innerMatrixValue)
       }
-      return prev
+      return out
     },
-    mat2dCreate(),
+    quad2dCreate(),
     { equals: false },
   )
 
@@ -64,7 +63,7 @@ export default function ScrollingLayout() {
           <div class={classes.absolute} ref={setInnerElement}></div>
         </div>
       </div>
-      <div class={classes.shadow} ref={setFixedElement} use:setTransform={shadowTransform()} />
+      <div class={classes.shadow} use:quad={shadowQuad()} />
     </>
   )
 }

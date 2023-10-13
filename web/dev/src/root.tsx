@@ -14,16 +14,6 @@ import {
 import '@nonphoto/css/reset.css'
 import './root.css'
 import Header from './components/Header'
-import { Quad2d } from '@chloranthy/core'
-
-declare module 'solid-js' {
-  namespace JSX {
-    interface Directives {
-      quad: Quad2d.Type | undefined
-      borderRadius: number | undefined
-    }
-  }
-}
 
 export default function Root() {
   return (
