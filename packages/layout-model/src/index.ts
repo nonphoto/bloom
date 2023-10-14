@@ -138,8 +138,6 @@ const layoutModelStub: LayoutModelReturn = {
   invalidateParent() {},
 }
 
-const identity = mat2dIdentity(mat2dCreate())
-
 /**
  * Creates a new layout model from the root element. The layout model will track changes to the layout rects and view matrices of elements in the document.
  * @param root - The root element of the document.
@@ -157,10 +155,6 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
   )
 
   createMutationObserver(root, { childList: true, subtree: true }, records => {
-    // for (const { target } of records) {
-    //   if (target instanceof HTMLElement) {
-    // 	}
-    // }
     for (const element of mutatedElements(records)) {
       rectRoots.get(element)?.invalidate()
       parentRoots.get(element)?.invalidate()
@@ -169,9 +163,10 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
 
   const layoutBatcher = new Batcher({
     onPreRun: () => {
+      console.log('batch')
       walkChildren(root, element => {
         if (untrack(() => transformMap.has(element))) {
-          element.style.transform = styleTransform(identity)
+          element.style.transform = ''
         }
       })
     },

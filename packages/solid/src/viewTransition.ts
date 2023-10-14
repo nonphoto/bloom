@@ -6,6 +6,7 @@ import {
   createEffect,
   createRoot,
   createSignal,
+  createComputed,
   getOwner,
   on,
   onCleanup,
@@ -45,9 +46,10 @@ export function createViewTransitionContext() {
       Accessor<ReactiveAnimation | undefined>,
       ViewTransitionMatch
     >()
-
+    const elements = new Set<HTMLElement>()
     return {
       matcher,
+      elements,
     }
   })
 }
@@ -62,13 +64,23 @@ function setInert(element: HTMLElement, rect: DOMRect) {
   element.inert = true
 }
 
+function createOnce<T>(dep: Accessor<T>, fn: (value: NonNullable<T>) => void) {
+  let done = false
+  createComputed(
+    on(dep, value => {
+      if (!done && value) {
+        done = true
+        fn(value)
+      }
+    }),
+  )
+}
+
 export function createViewTransition(
   element: MaybeAccessor<HTMLElement | null | undefined>,
   options: Accessor<ViewTransitionOptions>,
 ) {
   const context = useViewTransitionContext()
-  const layoutModel = useLayoutModel()
-  const rect = layoutModel.useRect(element)
 
   createEffect(
     on(
@@ -78,8 +90,10 @@ export function createViewTransition(
         if (contextValue && elementValue) {
           const owner = getOwner()
           const { key, onEnterMatch, onExitMatch, onEnter, onExit } = access(options)
-          const { matcher } = contextValue
+          const { matcher, elements } = contextValue
           const [animation, setAnimation] = createSignal<ReactiveAnimation | undefined>()
+
+          elements.add(elementValue)
 
           const createOnAnimationFinished = (fn: () => void) => {
             createEffect(() => {
@@ -103,47 +117,55 @@ export function createViewTransition(
           matcher.attemptEnter(key, animation, onEnterAttempt, onEnterAttempt)
 
           onCleanup(() => {
-            const rectValue = untrack(rect)
             const parent = elementValue.parentElement
-            if (!rectValue) return
 
-            const onExitAttempt = (matchAnimation?: Accessor<ReactiveAnimation | undefined>) => {
-              createRoot(dispose => {
-                setInert(elementValue, rectValue)
-                parent?.appendChild(elementValue)
-                layoutModel.invalidateRect(elementValue)
-                onCleanup(() => {
-                  elementValue.parentElement?.removeChild(elementValue)
-                })
-                if (matchAnimation) {
-                  createEffect(
-                    on(
-                      matchAnimation,
-                      matchAnimationValue => {
-                        setAnimation(
-                          onExitMatch?.(elementValue, {
-                            animation: matchAnimationValue,
-                            rect: rectValue,
-                          }) ?? undefined,
-                        )
-                        createOnAnimationFinished(dispose)
-                      },
-                      { defer: true },
-                    ),
-                  )
-                } else {
-                  setAnimation(onExit?.(elementValue) ?? undefined)
-                  createOnAnimationFinished(dispose)
+            createRoot(dispose => {
+              const layoutModel = useLayoutModel()
+              const rect = layoutModel.useRect(elementValue)
+
+              createOnce(rect, rectValue => {
+                const onExitAttempt = (
+                  matchAnimation?: Accessor<ReactiveAnimation | undefined>,
+                ) => {
+                  setInert(elementValue, rectValue)
+                  parent?.appendChild(elementValue)
+                  layoutModel.invalidateRect(elementValue)
+
+                  onCleanup(() => {
+                    elementValue.parentElement?.removeChild(elementValue)
+                    elements.delete(elementValue)
+                  })
+
+                  if (matchAnimation) {
+                    createEffect(
+                      on(
+                        matchAnimation,
+                        matchAnimationValue => {
+                          setAnimation(
+                            onExitMatch?.(elementValue, {
+                              animation: matchAnimationValue,
+                              rect: rectValue,
+                            }) ?? undefined,
+                          )
+                          createOnAnimationFinished(dispose)
+                        },
+                        { defer: true },
+                      ),
+                    )
+                  } else {
+                    setAnimation(onExit?.(elementValue) ?? undefined)
+                    createOnAnimationFinished(dispose)
+                  }
                 }
-              })
-            }
 
-            matcher.attemptExit(
-              key,
-              { animation: untrack(animation), rect: rectValue },
-              onExitAttempt,
-              onExitAttempt,
-            )
+                matcher.attemptExit(
+                  key,
+                  { animation: untrack(animation), rect: rectValue },
+                  onExitAttempt,
+                  onExitAttempt,
+                )
+              })
+            })
           })
         }
       },
