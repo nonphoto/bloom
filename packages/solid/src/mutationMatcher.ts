@@ -46,10 +46,12 @@ export class MutationMatcher<T, Enter, Exit> {
     onSuccess: (value: Exit) => void,
     onFailure: () => void,
   ): void {
+    console.log('enter', key)
     this.#attempt(key, value, this.#entering, this.#exiting, onSuccess, onFailure)
   }
 
   attemptExit(key: T, value: Exit, onSuccess: (value: Enter) => void, onFailure: () => void): void {
+    console.log('exit', key)
     this.#attempt(key, value, this.#exiting, this.#entering, onSuccess, onFailure)
   }
 }

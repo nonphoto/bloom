@@ -101,7 +101,7 @@ export default function ProjectListIndex() {
 
   const size = createMaybeMemo(rectSize, vec2Create(), imageContainerFitRect)
 
-  const transitionSize = createSpringBody(size, 150)
+  const [transitionSize] = createSpringBody(size, 150)
 
   const imageContainerQuad = createMaybeMemo(
     quad2dFromPositionSize,
