@@ -1,5 +1,5 @@
 import classes from './index.module.css'
-import { For, createComputed, createEffect, createSignal, onCleanup } from 'solid-js'
+import { For, createComputed, createSignal } from 'solid-js'
 import { A } from 'solid-start'
 import { imageOptions } from '~/data/images'
 import { projects } from '~/data/projects'

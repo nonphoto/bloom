@@ -1,20 +1,19 @@
 import { BodyQuad2d } from '@chloranthy/core'
-import { createContextProvider } from '@solid-primitives/context'
 import { Directive, MaybeAccessor, access } from '@solid-primitives/utils'
 import {
   Accessor,
   createEffect,
   createRoot,
   createSignal,
-  createComputed,
   getOwner,
   on,
   onCleanup,
   untrack,
+  runWithOwner,
 } from 'solid-js'
 import { MutationMatcher } from './mutationMatcher'
 import { useLayoutModel } from '@chloranthy/layout-model'
-import { createSubRoot } from '@solid-primitives/rootless'
+import { createSingletonRoot, createSubRoot } from '@solid-primitives/rootless'
 
 export type ViewTransitionKey = string | symbol
 export type ViewTransitionOptions = {
@@ -39,23 +38,18 @@ export type ReactiveAnimation = {
   body: Accessor<BodyQuad2d>
 }
 
-export function createViewTransitionContext() {
-  return createContextProvider(() => {
-    const matcher = new MutationMatcher<
-      ViewTransitionKey,
-      Accessor<ReactiveAnimation | undefined>,
-      ViewTransitionMatch
-    >()
-    const elements = new Set<HTMLElement>()
-    return {
-      matcher,
-      elements,
-    }
-  })
-}
-
-export const [ViewTransitionContextProvider, useViewTransitionContext] =
-  createViewTransitionContext()
+export const useViewTransitionContext = createSingletonRoot(() => {
+  const matcher = new MutationMatcher<
+    ViewTransitionKey,
+    Accessor<ReactiveAnimation | undefined>,
+    ViewTransitionMatch
+  >()
+  const elements = new Set<HTMLElement>()
+  return {
+    matcher,
+    elements,
+  }
+})
 
 function setInert(element: HTMLElement, rect: DOMRect) {
   element.style.width = rect?.width + 'px'
@@ -64,23 +58,13 @@ function setInert(element: HTMLElement, rect: DOMRect) {
   element.inert = true
 }
 
-function createOnce<T>(dep: Accessor<T>, fn: (value: NonNullable<T>) => void) {
-  let done = false
-  createComputed(
-    on(dep, value => {
-      if (!done && value) {
-        done = true
-        fn(value)
-      }
-    }),
-  )
-}
-
 export function createViewTransition(
   element: MaybeAccessor<HTMLElement | null | undefined>,
   options: Accessor<ViewTransitionOptions>,
 ) {
   const context = useViewTransitionContext()
+  const layoutModel = useLayoutModel()
+  const rect = layoutModel.useRect(element)
 
   createEffect(
     on(
@@ -118,44 +102,45 @@ export function createViewTransition(
 
           onCleanup(() => {
             const parent = elementValue.parentElement
+            const rectValue = untrack(rect)
+            if (rectValue) {
+              createRoot(dispose => {
+                const owner = getOwner()
 
-            createRoot(dispose => {
-              const layoutModel = useLayoutModel()
-              const rect = layoutModel.useRect(elementValue)
-
-              createOnce(rect, rectValue => {
                 const onExitAttempt = (
                   matchAnimation?: Accessor<ReactiveAnimation | undefined>,
                 ) => {
-                  setInert(elementValue, rectValue)
-                  parent?.appendChild(elementValue)
-                  layoutModel.invalidateRect(elementValue)
+                  runWithOwner(owner, () => {
+                    setInert(elementValue, rectValue)
+                    parent?.appendChild(elementValue)
+                    layoutModel.invalidateRect(elementValue)
 
-                  onCleanup(() => {
-                    elementValue.parentElement?.removeChild(elementValue)
-                    elements.delete(elementValue)
+                    onCleanup(() => {
+                      elementValue.parentElement?.removeChild(elementValue)
+                      elements.delete(elementValue)
+                    })
+
+                    if (matchAnimation) {
+                      createEffect(
+                        on(
+                          matchAnimation,
+                          matchAnimationValue => {
+                            setAnimation(
+                              onExitMatch?.(elementValue, {
+                                animation: matchAnimationValue,
+                                rect: rectValue,
+                              }) ?? undefined,
+                            )
+                            createOnAnimationFinished(dispose)
+                          },
+                          { defer: true },
+                        ),
+                      )
+                    } else {
+                      setAnimation(onExit?.(elementValue) ?? undefined)
+                      createOnAnimationFinished(dispose)
+                    }
                   })
-
-                  if (matchAnimation) {
-                    createEffect(
-                      on(
-                        matchAnimation,
-                        matchAnimationValue => {
-                          setAnimation(
-                            onExitMatch?.(elementValue, {
-                              animation: matchAnimationValue,
-                              rect: rectValue,
-                            }) ?? undefined,
-                          )
-                          createOnAnimationFinished(dispose)
-                        },
-                        { defer: true },
-                      ),
-                    )
-                  } else {
-                    setAnimation(onExit?.(elementValue) ?? undefined)
-                    createOnAnimationFinished(dispose)
-                  }
                 }
 
                 matcher.attemptExit(
@@ -165,7 +150,7 @@ export function createViewTransition(
                   onExitAttempt,
                 )
               })
-            })
+            }
           })
         }
       },

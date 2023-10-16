@@ -4,7 +4,6 @@ import clsx from 'clsx'
 import {
   ReactiveAnimation,
   ViewTransitionOptions,
-  ViewTransitionContextProvider,
   ViewTransitionMatch,
   borderRadius,
   createMaybeMemo,
@@ -90,62 +89,57 @@ export default function () {
   }
 
   return (
-    <ViewTransitionContextProvider>
-      <div class={classes.root}>
-        <div class={classes.buttons}>
-          <button
-            onClick={() => {
-              setCount(count => Math.max(0, count - 1))
-            }}
-          >
-            Less
-          </button>
-          <button
-            onClick={() => {
-              setCount(count => count + 1)
-            }}
-          >
-            More
-          </button>
-        </div>
-        <ul class={classes.list}>
-          <For each={cycledItems().filter(item => !activeItems().includes(item))}>
-            {item => (
-              <li
-                use:viewTransition={{
-                  key: item,
-                  onEnterMatch,
-                  onExitMatch,
-                }}
-              >
-                <button
-                  use:viewTransition={{ key: `${item}-button`, onEnterMatch, onExitMatch }}
-                  onClick={[addItem, item]}
-                >
-                  {item}
-                </button>
-              </li>
-            )}
-          </For>
-        </ul>
-        <ul class={clsx(classes.list, classes.active)}>
-          <For each={activeItems()}>
-            {item => (
-              <li
-                use:borderRadius={20}
-                use:viewTransition={{ key: item, onEnterMatch, onExitMatch }}
-              >
-                <button
-                  use:viewTransition={{ key: `${item}-button`, onEnterMatch, onExitMatch }}
-                  onClick={[removeItem, item]}
-                >
-                  {item}
-                </button>
-              </li>
-            )}
-          </For>
-        </ul>
+    <div class={classes.root}>
+      <div class={classes.buttons}>
+        <button
+          onClick={() => {
+            setCount(count => Math.max(0, count - 1))
+          }}
+        >
+          Less
+        </button>
+        <button
+          onClick={() => {
+            setCount(count => count + 1)
+          }}
+        >
+          More
+        </button>
       </div>
-    </ViewTransitionContextProvider>
+      <ul class={classes.list}>
+        <For each={cycledItems().filter(item => !activeItems().includes(item))}>
+          {item => (
+            <li
+              use:viewTransition={{
+                key: item,
+                onEnterMatch,
+                onExitMatch,
+              }}
+            >
+              <button
+                use:viewTransition={{ key: `${item}-button`, onEnterMatch, onExitMatch }}
+                onClick={[addItem, item]}
+              >
+                {item}
+              </button>
+            </li>
+          )}
+        </For>
+      </ul>
+      <ul class={clsx(classes.list, classes.active)}>
+        <For each={activeItems()}>
+          {item => (
+            <li use:borderRadius={20} use:viewTransition={{ key: item, onEnterMatch, onExitMatch }}>
+              <button
+                use:viewTransition={{ key: `${item}-button`, onEnterMatch, onExitMatch }}
+                onClick={[removeItem, item]}
+              >
+                {item}
+              </button>
+            </li>
+          )}
+        </For>
+      </ul>
+    </div>
   )
 }

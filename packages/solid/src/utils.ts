@@ -1,5 +1,6 @@
+import { createSubRoot } from '@solid-primitives/rootless'
 import { MaybeAccessor as SolidMaybeAccessor, access } from '@solid-primitives/utils'
-import { Accessor, Owner, createMemo, getOwner, runWithOwner } from 'solid-js'
+import { Accessor, Owner, createComputed, createMemo, getOwner, on, runWithOwner } from 'solid-js'
 
 /**
  * @private
@@ -68,4 +69,20 @@ export function awaitWithOwner<T>(
         }
       : undefined,
   )
+}
+
+export function createOnce<T>(dep: Accessor<T>, fn: (value: NonNullable<T>) => void) {
+  const owner = getOwner()
+  createSubRoot(dispose => {
+    createComputed(
+      on(dep, value => {
+        if (value) {
+          createSubRoot(() => {
+            fn(value)
+          }, owner)
+          dispose()
+        }
+      }),
+    )
+  })
 }

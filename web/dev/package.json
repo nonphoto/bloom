@@ -10,14 +10,14 @@
   },
   "type": "module",
   "devDependencies": {
-    "@types/node": "^20.8.2",
+    "@types/node": "^20.8.6",
     "@types/ramda": "0.29.6",
     "esbuild": "^0.19.4",
     "postcss": "^8.4.31",
     "solid-start-node": "^0.3.6",
     "typescript": "^5.2.2",
-    "typescript-plugin-css-modules": "5.0.1",
-    "vite": "^4.4.10"
+    "typescript-plugin-css-modules": "5.0.2",
+    "vite": "^4.4.11"
   },
   "dependencies": {
     "@chloranthy/core": "workspace:*",
@@ -38,12 +38,12 @@
     "clsx": "2.0.0",
     "gl-matrix": "3.4.3",
     "motion": "10.16.4",
-    "ramda": "0.29.0",
-    "solid-js": "^1.7.12",
+    "ramda": "0.29.1",
+    "solid-js": "^1.8.1",
     "solid-start": "^0.3.6",
     "solid-start-static": "0.3.6",
     "solid-transition-group": "0.2.3",
-    "undici": "^5.25.4"
+    "undici": "^5.26.3"
   },
   "engines": {
     "node": ">=16.8"

@@ -4,7 +4,6 @@ import {
   vec2Create,
   vec2Sub,
   Mat2d,
-  mat2dIdentity,
   mat2dCreate,
   mat2dCopy,
   mat2dClone,
@@ -163,7 +162,6 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
 
   const layoutBatcher = new Batcher({
     onPreRun: () => {
-      console.log('batch')
       walkChildren(root, element => {
         if (untrack(() => transformMap.has(element))) {
           element.style.transform = ''
