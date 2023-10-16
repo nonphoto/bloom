@@ -1,5 +1,4 @@
 import { Batcher } from '@chloranthy/layout-model'
-import { ArrayMap } from './arrayMap'
 
 type Mutation<T, U> = {
   value: T
@@ -8,8 +7,8 @@ type Mutation<T, U> = {
 }
 
 export class MutationMatcher<T, Enter, Exit> {
-  #entering = new ArrayMap<T, Mutation<Enter, Exit>>()
-  #exiting = new ArrayMap<T, Mutation<Exit, Enter>>()
+  #entering = new Map<T, Mutation<Enter, Exit>[]>()
+  #exiting = new Map<T, Mutation<Exit, Enter>[]>()
   #batcher = new Batcher({
     onPreRun: () => {
       const keys = new Set([...this.#entering.keys(), ...this.#exiting.keys()])
@@ -39,20 +38,27 @@ export class MutationMatcher<T, Enter, Exit> {
         }
       }
     },
+    onPostRun: () => {
+      this.#entering = new Map<T, Mutation<Enter, Exit>[]>()
+      this.#exiting = new Map<T, Mutation<Exit, Enter>[]>()
+    },
   })
 
   #attempt<Send, Receive>(
     key: T,
     value: Send,
-    map: ArrayMap<T, Mutation<Send, Receive>>,
+    map: Map<T, Mutation<Send, Receive>[]>,
     onSuccess: (value: Receive) => void,
     onFailure: () => void,
   ): void {
     const mutation = { value, onSuccess, onFailure }
-    map.push(key, mutation)
-    this.#batcher.enqueue(() => {
-      map.delete(key, mutation)
-    })
+    const array = map.get(key)
+    if (array) {
+      array.push(mutation)
+    } else {
+      map.set(key, [mutation])
+    }
+    this.#batcher.enqueue()
   }
 
   attemptEnter(

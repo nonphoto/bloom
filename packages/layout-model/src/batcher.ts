@@ -6,7 +6,7 @@ function microtask(): Promise<void> {
 
 export class Batcher {
   #microtask: Promise<void> = Promise.resolve()
-  #callbacks: Array<() => void> = []
+  #callbacks: Array<(() => void) | undefined> = []
   #onPreRun?: () => void
   #onPostRun?: () => void
 
@@ -18,17 +18,15 @@ export class Batcher {
   #run() {
     this.#onPreRun?.()
     batch(() => {
-      while (this.#callbacks.length > 0) {
-        const callback = this.#callbacks.shift()
-        if (callback) {
-          callback.call(undefined)
-        }
+      for (let i = 0; i < this.#callbacks.length; i++) {
+        this.#callbacks[i]?.call(undefined)
       }
+      this.#callbacks = []
     })
     this.#onPostRun?.()
   }
 
-  enqueue(callback: () => void): Promise<void> {
+  enqueue(callback?: () => void): Promise<void> {
     if (this.#callbacks.length === 0) {
       this.#microtask = microtask().then(() => this.#run())
     }
