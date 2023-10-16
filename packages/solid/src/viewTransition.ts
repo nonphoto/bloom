@@ -101,18 +101,19 @@ function makeViewTransition(element: HTMLElement, options: ViewTransitionOptions
   matcher.attemptEnter(key, animation, onEnterAttempt, onEnterAttempt)
 
   onCleanup(() => {
+    const parent = element.parentElement
     const rectValue = untrack(rect)
-    if (rectValue) {
+    if (rectValue && parent) {
       createRoot(dispose => {
         const owner = getOwner()
 
         const onExitAttempt = (matchAnimation?: Accessor<ReactiveAnimation | undefined>) => {
           runWithOwner(owner, () => {
             const clone = cloneInert(element, rectValue)
-            document.body.appendChild(clone)
+            parent.appendChild(clone)
 
             onCleanup(() => {
-              document.body.removeChild(clone)
+              parent.removeChild(clone)
             })
 
             if (matchAnimation) {
@@ -132,7 +133,6 @@ function makeViewTransition(element: HTMLElement, options: ViewTransitionOptions
                 ),
               )
             } else {
-              console.log('onExit')
               setAnimation(onExit?.(clone) ?? undefined)
               createOnAnimationFinished(dispose)
             }

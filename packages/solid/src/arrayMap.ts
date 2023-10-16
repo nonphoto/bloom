@@ -41,4 +41,12 @@ export class ArrayMap<K, V> {
       return false
     }
   }
+
+  get(key: K): V[] | undefined {
+    return this.#map.get(key)
+  }
+
+  keys() {
+    return this.#map.keys()
+  }
 }

@@ -473,4 +473,4 @@ export class LayoutModel {
   }
 }
 
-export { SingletonMap }
+export { SingletonMap, Batcher }
