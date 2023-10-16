@@ -64,19 +64,17 @@ export const useViewTransitionContext = createSingletonRoot(() => {
   }
 })
 
-function cloneInert(element: HTMLElement, rect: DOMRect): HTMLElement {
-  const clone = element.cloneNode(true) as HTMLElement
-  clone.style.width = rect?.width + 'px'
-  clone.style.height = rect?.height + 'px'
-  clone.style.position = 'absolute'
-  clone.inert = true
-  return clone
+function setInert(element: HTMLElement, rect: DOMRect) {
+  element.style.width = rect?.width + 'px'
+  element.style.height = rect?.height + 'px'
+  element.style.position = 'absolute'
+  element.inert = true
 }
 
 function makeViewTransition(element: HTMLElement, options: ViewTransitionOptions) {
   const owner = getOwner()
   const { key, onEnterMatch, onExitMatch, onEnter, onExit } = options
-  const { matcher } = useViewTransitionContext()
+  const { matcher, useOnExit } = useViewTransitionContext()
   const [animation, setAnimation] = createSignal<ReactiveAnimation | undefined>()
   const layoutModel = useLayoutModel()
   const rect = layoutModel.useRect(element)
@@ -109,11 +107,13 @@ function makeViewTransition(element: HTMLElement, options: ViewTransitionOptions
 
         const onExitAttempt = (matchAnimation?: Accessor<ReactiveAnimation | undefined>) => {
           runWithOwner(owner, () => {
-            const clone = cloneInert(element, rectValue)
-            parent.appendChild(clone)
+            useOnExit(element, () => {
+              setInert(element, rectValue)
+              parent.appendChild(element)
 
-            onCleanup(() => {
-              parent.removeChild(clone)
+              onCleanup(() => {
+                parent.removeChild(element)
+              })
             })
 
             if (matchAnimation) {
@@ -122,7 +122,7 @@ function makeViewTransition(element: HTMLElement, options: ViewTransitionOptions
                   matchAnimation,
                   matchAnimationValue => {
                     setAnimation(
-                      onExitMatch?.(clone, {
+                      onExitMatch?.(element, {
                         animation: matchAnimationValue,
                         rect: rectValue,
                       }) ?? undefined,
@@ -133,7 +133,7 @@ function makeViewTransition(element: HTMLElement, options: ViewTransitionOptions
                 ),
               )
             } else {
-              setAnimation(onExit?.(clone) ?? undefined)
+              setAnimation(onExit?.(element) ?? undefined)
               createOnAnimationFinished(dispose)
             }
           })
