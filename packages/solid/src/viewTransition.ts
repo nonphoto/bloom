@@ -1,5 +1,5 @@
 import { BodyQuad2d } from '@chloranthy/core'
-import { Directive, MaybeAccessor, access } from '@solid-primitives/utils'
+import { Directive, MaybeAccessor, access, isServer } from '@solid-primitives/utils'
 import {
   Accessor,
   createEffect,
@@ -12,11 +12,10 @@ import {
   runWithOwner,
   createComputed,
 } from 'solid-js'
-import { MutationMatcher } from './mutationMatcher'
+import { TransitionMatcher } from './transitionMatcher'
 import { useLayoutModel } from '@chloranthy/layout-model'
 import { createSingletonRoot, createSubRoot } from '@solid-primitives/rootless'
-import { createOnExit } from './mutationObserver'
-import { match } from 'assert'
+import { createMutationObserver } from '@solid-primitives/mutation-observer'
 
 export type ViewTransitionKey = string | symbol
 export type ViewTransitionOptions = {
@@ -41,7 +40,7 @@ export type ReactiveAnimation = {
   body: Accessor<BodyQuad2d>
 }
 export type ViewTransitionContext = {
-  matcher: MutationMatcher<
+  matcher: TransitionMatcher<
     ViewTransitionKey,
     Accessor<ReactiveAnimation | undefined>,
     ViewTransitionMatch
@@ -50,21 +49,46 @@ export type ViewTransitionContext = {
 }
 
 export const useViewTransitionContext = createSingletonRoot(() => {
-  const matcher = new MutationMatcher<
+  const removals = new Set<{ element: HTMLElement; parent: HTMLElement }>()
+
+  let watchRemovals = false
+
+  createMutationObserver(
+    isServer ? [] : document.body,
+    { childList: true, subtree: true },
+    records => {
+      if (watchRemovals) {
+        for (const record of records) {
+          for (const node of record.removedNodes) {
+            if (node instanceof HTMLElement && record.target instanceof HTMLElement) {
+              removals.add({ element: node, parent: record.target })
+            }
+          }
+        }
+      }
+    },
+  )
+
+  const matcher = new TransitionMatcher<
     ViewTransitionKey,
     Accessor<ReactiveAnimation | undefined>,
     ViewTransitionMatch
-  >()
-  const elements = new Set<HTMLElement>()
-  const useOnExit = createOnExit()
+  >({
+    onFirstAttempt: () => {
+      watchRemovals = true
+    },
+    onPostRun: () => {
+      watchRemovals = false
+      removals.clear()
+    },
+  })
+
   return {
     matcher,
-    elements,
-    useOnExit,
   }
 })
 
-function setInert(element: HTMLElement, rect: DOMRect) {
+export function setInert(element: HTMLElement, rect: DOMRect) {
   element.style.width = rect?.width + 'px'
   element.style.height = rect?.height + 'px'
   element.style.position = 'absolute'
@@ -74,7 +98,7 @@ function setInert(element: HTMLElement, rect: DOMRect) {
 function makeViewTransition(element: HTMLElement, options: ViewTransitionOptions) {
   const owner = getOwner()
   const { key, onEnterMatch, onExitMatch, onEnter, onExit } = options
-  const { matcher, useOnExit } = useViewTransitionContext()
+  const { matcher } = useViewTransitionContext()
   const [animation, setAnimation] = createSignal<ReactiveAnimation | undefined>()
   const layoutModel = useLayoutModel()
   const rect = layoutModel.useRect(element)
@@ -107,14 +131,14 @@ function makeViewTransition(element: HTMLElement, options: ViewTransitionOptions
 
         const onExitAttempt = (matchAnimation?: Accessor<ReactiveAnimation | undefined>) => {
           runWithOwner(owner, () => {
-            useOnExit(element, () => {
-              setInert(element, rectValue)
-              parent.appendChild(element)
+            // useOnExit(element, () => {
+            //   setInert(element, rectValue)
+            //   parent.appendChild(element)
 
-              onCleanup(() => {
-                parent.removeChild(element)
-              })
-            })
+            //   onCleanup(() => {
+            //     parent.removeChild(element)
+            //   })
+            // })
 
             if (matchAnimation) {
               createEffect(

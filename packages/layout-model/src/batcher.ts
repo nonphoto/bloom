@@ -9,10 +9,16 @@ export class Batcher {
   #callbacks: Array<(() => void) | undefined> = []
   #onPreRun?: () => void
   #onPostRun?: () => void
+  #onFirstEnqueue?: () => void
 
-  constructor(options?: { onPreRun?: () => void; onPostRun?: () => void }) {
+  constructor(options?: {
+    onPreRun?: () => void
+    onPostRun?: () => void
+    onFirstEnqueue?: () => void
+  }) {
     this.#onPreRun = options?.onPreRun
     this.#onPostRun = options?.onPostRun
+    this.#onFirstEnqueue = options?.onFirstEnqueue
   }
 
   #run() {
@@ -28,6 +34,7 @@ export class Batcher {
 
   enqueue(callback?: () => void): Promise<void> {
     if (this.#callbacks.length === 0) {
+      this.#onFirstEnqueue?.()
       this.#microtask = microtask().then(() => this.#run())
     }
     this.#callbacks.push(callback)

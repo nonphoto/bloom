@@ -49,18 +49,20 @@
     "@chloranthy/gl-matrix": "workspace:*",
     "@chloranthy/layout-model": "workspace:*",
     "@solid-primitives/context": "0.2.1",
-    "@solid-primitives/map": "^0.4.7",
+    "@solid-primitives/event-bus": "1.0.8",
+    "@solid-primitives/jsx-tokenizer": "1.0.7",
+    "@solid-primitives/map": "^0.4.8",
     "@solid-primitives/mouse": "2.0.16",
     "@solid-primitives/mutation-observer": "1.1.14",
     "@solid-primitives/raf": "2.1.13",
-    "@solid-primitives/resize-observer": "2.0.21",
+    "@solid-primitives/resize-observer": "2.0.22",
     "@solid-primitives/rootless": "1.4.2",
     "@solid-primitives/set": "0.4.8",
     "@solid-primitives/utils": "6.2.1"
   },
   "main": "./dist/index.js",
   "devDependencies": {
-    "solid-js": "^1.7.12"
+    "solid-js": "^1.8.3"
   },
   "peerDependencies": {
     "solid-js": "^1.7.12"

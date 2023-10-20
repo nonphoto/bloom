@@ -5,5 +5,5 @@ export * from './rect.js'
 export * from './transform.js'
 export * from './utils.js'
 export * from './viewTransition.js'
-
+export * from './presence.js'
 export * from './transition'

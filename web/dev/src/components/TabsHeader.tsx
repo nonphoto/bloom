@@ -8,7 +8,7 @@ import {
   viewTransition,
 } from '@chloranthy/solid'
 import classes from './TabsHeader.module.css'
-import { For, ParentProps, createComputed, createEffect, createSignal, untrack } from 'solid-js'
+import { For, ParentProps, createComputed, createSignal, untrack } from 'solid-js'
 import { A, useMatch } from 'solid-start'
 import { projects } from '~/data/projects'
 import { useLayoutModel } from '@chloranthy/layout-model'
@@ -79,6 +79,9 @@ export default function TabsHeader() {
   return (
     <nav>
       <ul class={classes.ul}>
+        <li>
+          <A href="/examples/tabs">Home</A>
+        </li>
         <For each={projects}>
           {project => (
             <li>
