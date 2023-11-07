@@ -127,6 +127,9 @@ importers:
       '@solid-primitives/raf':
         specifier: 2.1.13
         version: 2.1.13(solid-js@1.8.3)
+      '@solid-primitives/refs':
+        specifier: ^1.0.5
+        version: 1.0.5(solid-js@1.8.3)
       '@solid-primitives/resize-observer':
         specifier: 2.0.22
         version: 2.0.22(solid-js@1.8.3)
@@ -136,6 +139,12 @@ importers:
       '@solid-primitives/set':
         specifier: 0.4.8
         version: 0.4.8(solid-js@1.8.3)
+      '@solid-primitives/static-store':
+        specifier: ^0.0.5
+        version: 0.0.5(solid-js@1.8.3)
+      '@solid-primitives/transition-group':
+        specifier: ^1.0.3
+        version: 1.0.3(solid-js@1.8.3)
       '@solid-primitives/utils':
         specifier: 6.2.1
         version: 6.2.1(solid-js@1.8.3)
@@ -2945,6 +2954,15 @@ packages:
       solid-js: 1.8.1
     dev: false
 
+  /@solid-primitives/refs@1.0.5(solid-js@1.8.3):
+    resolution: {integrity: sha512-5hmYmYbm6rs43nMHHozyyUngGA7P7q2WtlaCLJEfmlUJf67GWI1PZmqAiol6m9F37XSMZRuvZLoQ7HA/0q3GYg==}
+    peerDependencies:
+      solid-js: ^1.6.12
+    dependencies:
+      '@solid-primitives/utils': 6.2.1(solid-js@1.8.3)
+      solid-js: 1.8.3
+    dev: false
+
   /@solid-primitives/resize-observer@2.0.21(solid-js@1.7.12):
     resolution: {integrity: sha512-73k3hfk6qSW4ok18DSHytHmbXh5vP1SXIBLu8N0lW6khhlHGdWt2q5Zu4iLhVoqO2kQ4zju/hcyDOx7UTablow==}
     peerDependencies:
@@ -3077,6 +3095,14 @@ packages:
       solid-js: ^1.6.12
     dependencies:
       solid-js: 1.8.1
+    dev: false
+
+  /@solid-primitives/transition-group@1.0.3(solid-js@1.8.3):
+    resolution: {integrity: sha512-TnFADZhx9sibdoW5gxkU1QmLabzV2H2OBKYGS2aR5IC61Q/+7v8wlxOJEevxXNbPiRo6qlE3STLU3L9XS8hDbA==}
+    peerDependencies:
+      solid-js: ^1.6.12
+    dependencies:
+      solid-js: 1.8.3
     dev: false
 
   /@solid-primitives/trigger@1.0.8(solid-js@1.7.12):
