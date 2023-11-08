@@ -1,5 +1,3 @@
-import { resolveElements } from '@solid-primitives/refs'
-import { createListTransition } from '@solid-primitives/transition-group'
 import {
   ParentProps,
   Show,
@@ -10,11 +8,10 @@ import {
   createContext,
   Accessor,
   useContext,
-  createMemo,
   JSX,
-  children,
   untrack,
   createUniqueId,
+  onMount,
 } from 'solid-js'
 
 function createRootWithContext<T>(fn: (dispose: () => void) => T) {
@@ -27,28 +24,11 @@ function createRootWithContext<T>(fn: (dispose: () => void) => T) {
     return fn(dispose)
   })
 }
-interface ZombieBoundaryContextValue {}
-
-const ZombieBoundaryContext = createContext<ZombieBoundaryContextValue>()
-
-function ZombieBoundary(props: ParentProps) {
-  const [zombies, setZombies] = createSignal<JSX.ArrayElement>([])
-
-  const context = {
-    useBoundary: () => {},
-  }
-  return (
-    <ZombieBoundaryContext.Provider value={context}>
-      {props.children}
-      {zombies()}
-    </ZombieBoundaryContext.Provider>
-  )
-}
 
 interface ZombieContextValue {
   unmounted: Accessor<boolean>
-  dispose: () => void
-  onChildCleanup(jsx: JSX.Element, dispose: () => void): void
+  addUnmountedChild: (jsx: JSX.Element) => () => void
+  useDisposal: () => () => void
 }
 
 const ZombieContext = createContext<ZombieContextValue>()
@@ -57,32 +37,62 @@ function Zombie(props: ParentProps) {
   const parent = useContext(ZombieContext)
   const [unmounted, setUnmounted] = createSignal(false)
   const [unmountedChildren, setUnmountedChildren] = createSignal<JSX.Element[]>([])
+  const disposalDeps = new Map<string, boolean>()
 
-  const [jsx, dispose] = createRootWithContext(dispose => {
+  let removeUnmountedChild: (() => void) | undefined
+
+  const [jsx, dispose] = createRootWithContext(disposeRoot => {
+    const releaseParentDisposal = parent?.useDisposal()
+
+    const dispose = () => {
+      disposeRoot()
+      removeUnmountedChild?.()
+      releaseParentDisposal?.()
+    }
+
     const context: ZombieContextValue = {
       unmounted: () => unmounted() || (parent?.unmounted() ?? false),
-      dispose: () => {
-        if (untrack(() => parent?.unmounted())) {
-          dispose()
+      addUnmountedChild: jsx => {
+        const object = [jsx]
+        setUnmountedChildren(prev => [...prev, object])
+        return () => {
+          setUnmountedChildren(prev => prev.filter(item => item !== object))
         }
       },
-      onChildCleanup: (jsx, dispose) => {
-        setUnmountedChildren(prev => [...prev, jsx])
+      useDisposal: () => {
+        const id = createUniqueId()
+
+        disposalDeps.set(id, false)
+        onCleanup(() => {
+          disposalDeps.delete(id)
+        })
+
+        return () => {
+          disposalDeps.set(id, true)
+          if (untrack(unmounted) && Array.from(disposalDeps.values()).every(value => value)) {
+            dispose()
+          }
+        }
       },
     }
 
     return [
-      <>
-        <ZombieContext.Provider value={context}>{props.children}</ZombieContext.Provider>
+      <ZombieContext.Provider value={context}>
+        {props.children}
         {unmountedChildren()}
-      </>,
+      </ZombieContext.Provider>,
       dispose,
     ]
   })
 
   onCleanup(() => {
-    parent?.onChildCleanup(jsx, dispose)
+    debugger
     setUnmounted(true)
+    if (disposalDeps.size > 0) {
+      removeUnmountedChild = parent?.addUnmountedChild(jsx)
+    } else {
+      dispose()
+    }
   })
 
   return jsx
@@ -91,29 +101,33 @@ function Zombie(props: ParentProps) {
 function Button(props: ParentProps) {
   const [pressed, setPressed] = createSignal(false)
   return (
-    <ZombieBoundary>
-      <Show when={!pressed()}>
-        <button onClick={[setPressed, true]} style={{ 'align-self': 'start' }}>
-          Close
-        </button>
-        <Zombie>
-          {untrack(() => {
-            const zombie = useContext(ZombieContext)
-            return (
-              <div
-                style={{
-                  padding: '1rem',
-                  border: 'solid gray 1px',
-                  background: zombie?.unmounted() ? 'lightgray' : 'white',
-                }}
-              >
-                {props.children}
-              </div>
-            )
-          })}
-        </Zombie>
-      </Show>
-    </ZombieBoundary>
+    <Show when={!pressed()}>
+      <button onClick={[setPressed, true]} style={{ 'align-self': 'start' }}>
+        Close
+      </button>
+      <Zombie>
+        {untrack(() => {
+          const zombie = useContext(ZombieContext)
+          const release = zombie?.useDisposal()
+          onMount(() => {
+            setTimeout(() => {
+              release?.()
+            }, 1000)
+          })
+          return (
+            <div
+              style={{
+                padding: '1rem',
+                border: 'solid gray 1px',
+                background: zombie?.unmounted() ? 'lightgray' : 'white',
+              }}
+            >
+              {props.children}
+            </div>
+          )
+        })}
+      </Zombie>
+    </Show>
   )
 }
 
