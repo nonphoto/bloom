@@ -1,6 +1,7 @@
 import {
   ReactiveAnimation,
   ViewTransitionMatch,
+  Zombie,
   createMaybeMemo,
   createSetQuad,
   createSpringQuad2d,
@@ -85,7 +86,9 @@ export default function TabsHeader() {
         <For each={projects}>
           {project => (
             <li>
-              <Tab slug={project.slug}>{project.title.text}</Tab>
+              <Zombie>
+                <Tab slug={project.slug}>{project.title.text}</Tab>
+              </Zombie>
             </li>
           )}
         </For>

@@ -21,19 +21,19 @@
     "update-deps": "pnpm up -Lri"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.26.1",
-    "@types/node": "^20.2.5",
-    "concurrently": "^8.1.0",
+    "@changesets/cli": "^2.26.2",
+    "@types/node": "^20.10.0",
+    "concurrently": "^8.2.2",
     "jsdom": "^22.1.0",
-    "prettier": "2.8.8",
+    "prettier": "3.1.0",
     "tsup": "^7.2.0",
-    "tsup-preset-solid": "^2.0.2",
-    "turbo": "^1.10.11",
-    "typedoc": "0.25.0",
-    "typescript": "^5.2.2",
+    "tsup-preset-solid": "^2.1.0",
+    "turbo": "^1.10.16",
+    "typedoc": "0.25.3",
+    "typescript": "5.2.2",
     "vite": "^4.3.9",
-    "vite-plugin-solid": "^2.7.0",
-    "vitest": "^0.31.4"
+    "vite-plugin-solid": "^2.7.2",
+    "vitest": "^0.34.6"
   },
   "packageManager": "pnpm@7.22.0",
   "engines": {

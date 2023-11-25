@@ -5,9 +5,11 @@ import TabsHeader from '~/components/TabsHeader'
 import {
   ReactiveAnimation,
   ViewTransitionMatch,
+  Zombie,
   createMaybeMemo,
   createSetQuad,
   createSpringQuad2d,
+  createViewTransition,
   viewTransition,
 } from '@chloranthy/solid'
 import { useLayoutModel } from '@chloranthy/layout-model'
@@ -62,17 +64,20 @@ export default function UserPage() {
   const project = () => projects.find(project => project.slug === params['projectSlug'])
   return (
     <main class={classes.main}>
-      <TabsHeader />
-      <Show when={project()} keyed>
-        {project => (
-          <h1
-            class={classes.h1}
-            use:viewTransition={{ key: project.slug, onEnterMatch, onExitMatch }}
-          >
-            {project.title.text}
-          </h1>
-        )}
-      </Show>
+      <Zombie>
+        <TabsHeader />
+        <Show when={project()} keyed>
+          {project => (
+            <Zombie>
+              {untrack(() => {
+                const element = (<h1 class={classes.h1}>{project.title.text}</h1>) as HTMLElement
+                createViewTransition(element, { key: 'title', onEnterMatch, onExitMatch })
+                return element
+              })}
+            </Zombie>
+          )}
+        </Show>
+      </Zombie>
     </main>
   )
 }

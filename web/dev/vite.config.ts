@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [
     solid({
       adapter: staticAdapter(),
+			ssr:false
     }),
   ],
 })

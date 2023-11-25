@@ -15,7 +15,7 @@
     "esbuild": "^0.19.4",
     "postcss": "^8.4.31",
     "solid-start-node": "^0.3.6",
-    "typescript": "^5.2.2",
+    "typescript": "5.2.2",
     "typescript-plugin-css-modules": "5.0.2",
     "vite": "^4.4.11"
   },
@@ -41,7 +41,7 @@
     "gl-matrix": "3.4.3",
     "motion": "10.16.4",
     "ramda": "0.29.1",
-    "solid-js": "^1.8.1",
+    "solid-js": "^1.8.3",
     "solid-start": "^0.3.6",
     "solid-start-static": "0.3.6",
     "solid-transition-group": "0.2.3",
