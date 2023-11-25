@@ -3,19 +3,17 @@ import { Directive, MaybeAccessor, access, isServer } from '@solid-primitives/ut
 import {
   Accessor,
   createEffect,
-  createRoot,
   createSignal,
   getOwner,
   on,
-  onCleanup,
   untrack,
-  runWithOwner,
   createComputed,
 } from 'solid-js'
 import { TransitionMatcher } from './transitionMatcher'
 import { useLayoutModel } from '@chloranthy/layout-model'
 import { createSingletonRoot, createSubRoot } from '@solid-primitives/rootless'
 import { createMutationObserver } from '@solid-primitives/mutation-observer'
+import { useDisposal, useUnmounted } from './zombie'
 
 export type ViewTransitionKey = string | symbol
 export type ViewTransitionOptions = {
@@ -122,56 +120,48 @@ function makeViewTransition(element: HTMLElement, options: ViewTransitionOptions
 
   matcher.attemptEnter(key, animation, onEnterAttempt, onEnterAttempt)
 
-  onCleanup(() => {
-    const parent = element.parentElement
-    const rectValue = untrack(rect)
-    if (rectValue && parent) {
-      createRoot(dispose => {
-        const owner = getOwner()
+  const unmounted = useUnmounted()
+  const release = useDisposal()
 
-        const onExitAttempt = (matchAnimation?: Accessor<ReactiveAnimation | undefined>) => {
-          runWithOwner(owner, () => {
-            // useOnExit(element, () => {
-            //   setInert(element, rectValue)
-            //   parent.appendChild(element)
-
-            //   onCleanup(() => {
-            //     parent.removeChild(element)
-            //   })
-            // })
-
-            if (matchAnimation) {
-              createEffect(
-                on(
-                  matchAnimation,
-                  matchAnimationValue => {
+  createEffect(
+    on(
+      unmounted,
+      () => {
+        const parent = element.parentElement
+        const rectValue = untrack(rect)
+        if (rectValue && parent) {
+          const onExitAttempt = (matchAnimation?: Accessor<ReactiveAnimation | undefined>) => {
+            createSubRoot(() => {
+              if (matchAnimation) {
+                createEffect(
+                  on(matchAnimation, matchAnimationValue => {
                     setAnimation(
                       onExitMatch?.(element, {
                         animation: matchAnimationValue,
                         rect: rectValue,
                       }) ?? undefined,
                     )
-                    createOnAnimationFinished(dispose)
-                  },
-                  { defer: true },
-                ),
-              )
-            } else {
-              setAnimation(onExit?.(element) ?? undefined)
-              createOnAnimationFinished(dispose)
-            }
-          })
-        }
+                    createOnAnimationFinished(release)
+                  }),
+                )
+              } else {
+                setAnimation(onExit?.(element) ?? undefined)
+                createOnAnimationFinished(release)
+              }
+            }, owner)
+          }
 
-        matcher.attemptExit(
-          key,
-          { animation: untrack(animation), rect: rectValue },
-          onExitAttempt,
-          onExitAttempt,
-        )
-      })
-    }
-  })
+          matcher.attemptExit(
+            key,
+            { animation: untrack(animation), rect: rectValue },
+            onExitAttempt,
+            onExitAttempt,
+          )
+        }
+      },
+      { defer: true },
+    ),
+  )
 }
 
 export function createViewTransition(

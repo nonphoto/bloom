@@ -71,7 +71,7 @@ export default function UserPage() {
             <Zombie>
               {untrack(() => {
                 const element = (<h1 class={classes.h1}>{project.title.text}</h1>) as HTMLElement
-                createViewTransition(element, { key: 'title', onEnterMatch, onExitMatch })
+                createViewTransition(element, { key: project.slug, onEnterMatch, onExitMatch })
                 return element
               })}
             </Zombie>

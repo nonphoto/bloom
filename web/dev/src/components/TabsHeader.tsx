@@ -9,7 +9,7 @@ import {
   viewTransition,
 } from '@chloranthy/solid'
 import classes from './TabsHeader.module.css'
-import { For, ParentProps, createComputed, createSignal, untrack } from 'solid-js'
+import { For, ParentProps, Show, createSignal, untrack } from 'solid-js'
 import { A, useMatch } from 'solid-start'
 import { projects } from '~/data/projects'
 import { useLayoutModel } from '@chloranthy/layout-model'
@@ -58,21 +58,28 @@ function onExitMatch(
   }
 }
 
+function TabLink(props: { href: string } & ParentProps) {
+  return (
+    <A href={props.href} style={{ display: 'block' }}>
+      {props.children}
+    </A>
+  )
+}
+
 function Tab(props: { slug: string } & ParentProps) {
   const href = () => `/examples/tabs/${props.slug}`
   const match = useMatch(href)
-  const [element, setElement] = createSignal<HTMLElement>()
-
-  createComputed(() => {
-    if (!match()) {
-      createViewTransition(element, { key: props.slug, onEnterMatch, onExitMatch })
-    }
-  })
 
   return (
-    <A ref={setElement} href={href()} style={{ display: 'block' }}>
-      {props.children}
-    </A>
+    <Show when={!match()} fallback={<TabLink href={href()}>{props.children}</TabLink>}>
+      <Zombie>
+        {untrack(() => {
+          const element = (<TabLink href={href()}>{props.children}</TabLink>) as HTMLElement
+          createViewTransition(element, { key: props.slug, onEnterMatch, onExitMatch })
+          return element
+        })}
+      </Zombie>
+    </Show>
   )
 }
 
@@ -86,9 +93,7 @@ export default function TabsHeader() {
         <For each={projects}>
           {project => (
             <li>
-              <Zombie>
-                <Tab slug={project.slug}>{project.title.text}</Tab>
-              </Zombie>
+              <Tab slug={project.slug}>{project.title.text}</Tab>
             </li>
           )}
         </For>
