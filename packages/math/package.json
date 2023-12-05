@@ -16,7 +16,6 @@
   "keywords": [
     "solid"
   ],
-  "private": true,
   "sideEffects": false,
   "publishConfig": {
     "access": "public"
