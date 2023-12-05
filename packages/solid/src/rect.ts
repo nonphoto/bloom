@@ -1,8 +1,8 @@
-import { Rect, rectUntransformMat2d } from '@chloranthy/core'
+import { Rect, rectUntransformMat2d } from '@nonphoto/math'
 import { LayoutModelReturn, useLayoutModel } from '@chloranthy/layout-model'
 import { Directive, MaybeAccessor } from '@solid-primitives/utils'
 import { createMaybeMemo } from './utils'
-import { Mat2d, mat2dCreate, mat2dInvert, mat2dMultiply } from '@chloranthy/gl-matrix'
+import { Mat2d, mat2dCreate, mat2dInvert, mat2dMultiply } from '@nonphoto/gl-matrix'
 import { createSetTransform } from './transform'
 import { createComputed, createRoot } from 'solid-js'
 

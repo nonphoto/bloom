@@ -11,7 +11,7 @@ import {
   Mat2d,
   vec2Zero,
   mat2dZero,
-} from '@chloranthy/gl-matrix'
+} from '@nonphoto/gl-matrix'
 import { Rect } from './rect.js'
 import { fit as commonFit, setAspectRatio as commonSetAspectRatio } from './common.js'
 

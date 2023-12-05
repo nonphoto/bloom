@@ -11,8 +11,8 @@ import {
   quad2dFromPositionSize,
   quad2dTransformMat2d,
   quad2dFromRect,
-} from '@chloranthy/core'
-import { Mat2d, Vec2, vec2Create } from '@chloranthy/gl-matrix'
+} from '@nonphoto/math'
+import { Mat2d, Vec2, vec2Create } from '@nonphoto/gl-matrix'
 import { useLayoutModel } from '@chloranthy/layout-model'
 
 quad

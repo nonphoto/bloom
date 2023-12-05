@@ -2,14 +2,14 @@ import { useLayoutModel } from '@chloranthy/layout-model'
 import classes from './MatrixPlayground.module.css'
 import { createMemo } from 'solid-js'
 import { createSetTransform, createTime } from '@chloranthy/solid'
-import { rectCreate, rectMix, rectUntransformMat2d } from '@chloranthy/core'
+import { rectCreate, rectMix, rectUntransformMat2d } from '@nonphoto/math'
 import {
   Mat2d,
   mat2dCreate,
   mat2dFromRotation,
   mat2dInvert,
   mat2dMultiply,
-} from '@chloranthy/gl-matrix'
+} from '@nonphoto/gl-matrix'
 
 export default function MatrixPlayground() {
   const sourceInnerElement = (<div class={classes.sourceInner}>A</div>) as HTMLElement

@@ -17,7 +17,7 @@ import {
   bodyQuad2dFromRect,
   quad2dCreate,
   quad2dFromRect,
-} from '@chloranthy/core'
+} from '@nonphoto/math'
 import { useLayoutModel } from '@chloranthy/layout-model'
 
 borderRadius

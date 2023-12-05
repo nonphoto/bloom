@@ -1,4 +1,4 @@
-import { Vec2, Mat2d, vec2Set } from '@chloranthy/gl-matrix'
+import { Vec2, Mat2d, vec2Set } from '@nonphoto/gl-matrix'
 import {
   fit as commonFit,
   setAspectRatio as commonSetAspectRatio,

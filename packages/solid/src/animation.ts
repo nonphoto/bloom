@@ -2,18 +2,18 @@ import { Accessor, Setter, batch, createEffect, createMemo, createSignal, on } f
 import { createRAF } from '@solid-primitives/raf'
 import { createMousePosition as createMousePositionStore } from '@solid-primitives/mouse'
 import { maybe, safeWindow } from './utils.js'
-import { Vec2, vec2Set, vec2Create } from '@chloranthy/gl-matrix'
+import { Vec2, vec2Set, vec2Create } from '@nonphoto/gl-matrix'
 import {
   Body2d,
   BodyQuad2d,
   body2dCreate,
   body2dIsAtRest,
   body2dSimpleSpring,
-} from '@chloranthy/core'
+} from '@nonphoto/math'
 import { MaybeAccessor } from '@solid-primitives/utils'
-import { Quad2d } from '@chloranthy/core'
-import { bodyQuad2dIsAtRest } from '@chloranthy/core'
-import { bodyQuad2dSimpleSpring } from '@chloranthy/core'
+import { Quad2d } from '@nonphoto/math'
+import { bodyQuad2dIsAtRest } from '@nonphoto/math'
+import { bodyQuad2dSimpleSpring } from '@nonphoto/math'
 
 /**
  * A callback for an animation frame.

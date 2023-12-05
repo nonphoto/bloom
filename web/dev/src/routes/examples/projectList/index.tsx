@@ -21,8 +21,8 @@ import {
   rectSetAspectRatio,
   rectCreate,
   rectSize,
-} from '@chloranthy/core'
-import { vec2Create } from '@chloranthy/gl-matrix'
+} from '@nonphoto/math'
+import { vec2Create } from '@nonphoto/gl-matrix'
 import { useLayoutModel } from '@chloranthy/layout-model'
 import { animate } from 'motion'
 

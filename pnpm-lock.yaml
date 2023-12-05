@@ -48,19 +48,6 @@ importers:
         specifier: ^0.31.4
         version: 0.31.4(jsdom@22.1.0)
 
-  packages/core:
-    dependencies:
-      '@chloranthy/gl-matrix':
-        specifier: workspace:*
-        version: link:../gl-matrix
-      '@nonphoto/spring':
-        specifier: 0.0.5
-        version: 0.0.5
-    devDependencies:
-      typedoc:
-        specifier: 0.25.0
-        version: 0.25.0(typescript@5.2.2)
-
   packages/gl-matrix:
     dependencies:
       gl-matrix:
@@ -69,7 +56,7 @@ importers:
 
   packages/layout-model:
     dependencies:
-      '@chloranthy/gl-matrix':
+      '@nonphoto/gl-matrix':
         specifier: workspace:*
         version: link:../gl-matrix
       '@solid-primitives/map':
@@ -95,17 +82,30 @@ importers:
         specifier: ^1.7.12
         version: 1.7.12
 
-  packages/solid:
+  packages/math:
     dependencies:
-      '@chloranthy/core':
-        specifier: workspace:*
-        version: link:../core
-      '@chloranthy/gl-matrix':
+      '@nonphoto/gl-matrix':
         specifier: workspace:*
         version: link:../gl-matrix
+      '@nonphoto/spring':
+        specifier: 0.0.5
+        version: 0.0.5
+    devDependencies:
+      typedoc:
+        specifier: 0.25.0
+        version: 0.25.0(typescript@5.2.2)
+
+  packages/solid:
+    dependencies:
       '@chloranthy/layout-model':
         specifier: workspace:*
         version: link:../layout-model
+      '@nonphoto/gl-matrix':
+        specifier: workspace:*
+        version: link:../gl-matrix
+      '@nonphoto/math':
+        specifier: workspace:*
+        version: link:../math
       '@solid-primitives/context':
         specifier: 0.2.1
         version: 0.2.1(solid-js@1.8.3)
@@ -155,12 +155,6 @@ importers:
 
   web/dev:
     dependencies:
-      '@chloranthy/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@chloranthy/gl-matrix':
-        specifier: workspace:*
-        version: link:../../packages/gl-matrix
       '@chloranthy/layout-model':
         specifier: workspace:*
         version: link:../../packages/layout-model
@@ -170,6 +164,12 @@ importers:
       '@nonphoto/css':
         specifier: 1.0.4
         version: 1.0.4
+      '@nonphoto/gl-matrix':
+        specifier: workspace:*
+        version: link:../../packages/gl-matrix
+      '@nonphoto/math':
+        specifier: workspace:*
+        version: link:../../packages/math
       '@solid-devtools/logger':
         specifier: 0.7.4
         version: 0.7.4(solid-js@1.8.1)

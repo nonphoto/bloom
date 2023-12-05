@@ -70,7 +70,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@chloranthy/gl-matrix": "workspace:*",
+    "@nonphoto/gl-matrix": "workspace:*",
     "@nonphoto/spring": "0.0.5"
   },
   "devDependencies": {

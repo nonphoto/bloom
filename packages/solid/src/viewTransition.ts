@@ -1,4 +1,4 @@
-import { BodyQuad2d } from '@chloranthy/core'
+import { BodyQuad2d } from '@nonphoto/math'
 import { Directive, MaybeAccessor, access, isServer } from '@solid-primitives/utils'
 import {
   Accessor,

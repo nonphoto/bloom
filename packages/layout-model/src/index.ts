@@ -10,7 +10,7 @@ import {
   mat2dTranslate,
   mat2dMultiply,
   mat2dFromTranslation,
-} from '@chloranthy/gl-matrix'
+} from '@nonphoto/gl-matrix'
 import {
   Accessor,
   createEffect,

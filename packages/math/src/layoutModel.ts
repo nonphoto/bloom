@@ -1,4 +1,4 @@
-import { Mat2d, Vec2, mat2dCopy, mat2dCreate, vec2Create } from '@chloranthy/gl-matrix'
+import { Mat2d, Vec2, mat2dCopy, mat2dCreate, vec2Create } from '@nonphoto/gl-matrix'
 import { Rect } from './rect'
 import { rectCreate } from '.'
 

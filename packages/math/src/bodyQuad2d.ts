@@ -1,4 +1,4 @@
-import { mat2dCopy, vec2Copy } from '@chloranthy/gl-matrix'
+import { mat2dCopy, vec2Copy } from '@nonphoto/gl-matrix'
 import { Rect, bodyQuad2dCreate, quad2dCreate, quad2dFromRect, quad2dZero } from '.'
 import { Body } from './body'
 import { equals } from './common'

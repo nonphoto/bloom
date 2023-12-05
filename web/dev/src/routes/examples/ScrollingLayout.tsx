@@ -1,8 +1,8 @@
 import classes from './ScrollingLayout.module.css'
 import { quad, setTransform } from '@chloranthy/solid'
-import { Quad2d, quad2dCreate, quad2dFromRect, quad2dTransformMat2d } from '@chloranthy/core'
+import { Quad2d, quad2dCreate, quad2dFromRect, quad2dTransformMat2d } from '@nonphoto/math'
 import { createRAF } from '@solid-primitives/raf'
-import { Mat2d, mat2dCreate, mat2dFromRotation } from '@chloranthy/gl-matrix'
+import { Mat2d, mat2dCreate, mat2dFromRotation } from '@nonphoto/gl-matrix'
 import { createEffect, createMemo, createSignal } from 'solid-js'
 import { useLayoutModel } from '@chloranthy/layout-model'
 

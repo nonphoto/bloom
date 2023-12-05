@@ -1,4 +1,4 @@
-import { Mat2d } from '@chloranthy/gl-matrix'
+import { Mat2d } from '@nonphoto/gl-matrix'
 import { useLayoutModel } from '@chloranthy/layout-model'
 import { Directive, MaybeAccessor, access } from '@solid-primitives/utils'
 import { createComputed } from 'solid-js'

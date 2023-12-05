@@ -1,7 +1,7 @@
 import { useLayoutModel } from '@chloranthy/layout-model'
 import { Directive, MaybeAccessor, access } from '@solid-primitives/utils'
 import { createMaybeMemo, maybe } from './utils.js'
-import { Mat2d, mat2dCreate, mat2dMultiply } from '@chloranthy/gl-matrix'
+import { Mat2d, mat2dCreate, mat2dMultiply } from '@nonphoto/gl-matrix'
 import { createEffect } from 'solid-js'
 
 /**

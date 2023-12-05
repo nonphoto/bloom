@@ -1,14 +1,8 @@
-import {
-  Quad2d,
-  Rect,
-  quad2dCreate,
-  quad2dFromRect,
-  quad2dUntransformMat2d,
-} from '@chloranthy/core'
+import { Quad2d, Rect, quad2dCreate, quad2dFromRect, quad2dUntransformMat2d } from '@nonphoto/math'
 import { useLayoutModel } from '@chloranthy/layout-model'
 import { Directive, MaybeAccessor } from '@solid-primitives/utils'
 import { createMaybeMemo } from './utils'
-import { Mat2d, mat2dCreate, mat2dInvert, mat2dMultiply } from '@chloranthy/gl-matrix'
+import { Mat2d, mat2dCreate, mat2dInvert, mat2dMultiply } from '@nonphoto/gl-matrix'
 import { createSetTransform } from './transform'
 
 export function createSetQuad(

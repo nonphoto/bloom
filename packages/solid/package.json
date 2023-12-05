@@ -45,8 +45,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@chloranthy/core": "workspace:*",
-    "@chloranthy/gl-matrix": "workspace:*",
+    "@nonphoto/math": "workspace:*",
+    "@nonphoto/gl-matrix": "workspace:*",
     "@chloranthy/layout-model": "workspace:*",
     "@solid-primitives/context": "0.2.1",
     "@solid-primitives/event-bus": "1.0.8",

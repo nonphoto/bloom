@@ -1,5 +1,5 @@
 import { MaybeAccessor, access } from '@solid-primitives/utils'
-import { Mat2d, Vec2, vec2Set } from '@chloranthy/gl-matrix'
+import { Mat2d, Vec2, vec2Set } from '@nonphoto/gl-matrix'
 import { createEffect, createRoot } from 'solid-js'
 
 export type MapMaybeAccessor<T> = T extends any[]

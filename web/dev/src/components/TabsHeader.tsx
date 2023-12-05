@@ -18,7 +18,7 @@ import {
   bodyQuad2dFromRect,
   quad2dCreate,
   quad2dFromRect,
-} from '@chloranthy/core'
+} from '@nonphoto/math'
 
 viewTransition
 
