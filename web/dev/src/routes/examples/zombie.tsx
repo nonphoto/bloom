@@ -116,7 +116,7 @@ function Button(props: ParentProps) {
               if (zombie?.unmounted()) {
                 setTimeout(() => {
                   release?.()
-                }, 1000)
+                }, 5000)
               }
             })
             return (
@@ -139,10 +139,8 @@ function Button(props: ParentProps) {
 
 export default function () {
   return (
-    <Zombie>
-      <Button>
-        Zombie A<Button>Zombie B</Button>
-      </Button>
-    </Zombie>
+    <Button>
+      Zombie A<Button>Zombie B</Button>
+    </Button>
   )
 }
