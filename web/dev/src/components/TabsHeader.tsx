@@ -1,66 +1,16 @@
-import {
-  ReactiveAnimation,
-  ViewTransitionMatch,
-  Zombie,
-  createMaybeMemo,
-  createSetQuad,
-  createSpringQuad2d,
-  createViewTransition,
-  viewTransition,
-} from '@chloranthy/solid'
+import { Zombie, createViewTransition } from '@chloranthy/solid'
 import classes from './TabsHeader.module.css'
-import { For, ParentProps, Show, createSignal, untrack } from 'solid-js'
+import { For, ParentProps, Show, untrack } from 'solid-js'
 import { A, useMatch } from 'solid-start'
 import { projects } from '~/data/projects'
-import { useLayoutModel } from '@chloranthy/layout-model'
-import {
-  BodyQuad2d,
-  bodyQuad2dCreate,
-  bodyQuad2dFromRect,
-  quad2dCreate,
-  quad2dFromRect,
-} from '@chloranthy/core'
+import { onEnterMatch, onExitMatch } from '~/lib/transition'
 
-viewTransition
-
-function onEnterMatch(
-  element: HTMLElement,
-  match: ViewTransitionMatch,
-): ReactiveAnimation | undefined {
-  const layoutModel = useLayoutModel()
-  const rect = layoutModel.useRect(element)
-  const [body, setBody] = createSignal<BodyQuad2d>(
-    match.animation
-      ? untrack(match.animation.body)
-      : bodyQuad2dFromRect(bodyQuad2dCreate(), match.rect),
-    {
-      equals: false,
-    },
-  )
-  const quad = createMaybeMemo(quad2dFromRect, quad2dCreate(), rect)
-  const isRunning = createSpringQuad2d(quad, body, setBody, 300)
-  const isFinished = () => quad() != null && !isRunning()
-  createSetQuad(element, () => body().p)
-  return {
-    isFinished,
-    body,
-  }
-}
-
-function onExitMatch(
-  element: HTMLElement,
-  match: ViewTransitionMatch,
-): ReactiveAnimation | undefined {
-  if (match.animation) {
-    const body = match.animation.body
-    createSetQuad(element, () => body().p)
-    return match.animation
-  }
-}
-
-function TabLink(props: { href: string } & ParentProps) {
+function TabLink(props: { href: string; hidden?: boolean } & ParentProps) {
   return (
-    <A href={props.href} style={{ display: 'block' }}>
+    <A
+      href={props.href}
+      style={{ display: 'block', visibility: props.hidden ? 'hidden' : 'visible' }}
+    >
       {props.children}
     </A>
   )
@@ -71,7 +21,14 @@ function Tab(props: { slug: string } & ParentProps) {
   const match = useMatch(href)
 
   return (
-    <Show when={!match()} fallback={<TabLink href={href()}>{props.children}</TabLink>}>
+    <Show
+      when={!match()}
+      fallback={
+        <TabLink href={href()} hidden>
+          {props.children}
+        </TabLink>
+      }
+    >
       <Zombie>
         {untrack(() => {
           const element = (<TabLink href={href()}>{props.children}</TabLink>) as HTMLElement

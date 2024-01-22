@@ -127,35 +127,38 @@ function makeViewTransition(element: HTMLElement, options: ViewTransitionOptions
     on(
       unmounted,
       () => {
-        const parent = element.parentElement
         const rectValue = untrack(rect)
-        if (rectValue && parent) {
-          const onExitAttempt = (matchAnimation?: Accessor<ReactiveAnimation | undefined>) => {
+        if (rectValue) {
+          const onSuccess = (matchAnimation: Accessor<ReactiveAnimation | undefined>) => {
             createSubRoot(() => {
-              if (matchAnimation) {
-                createEffect(
-                  on(matchAnimation, matchAnimationValue => {
-                    setAnimation(
-                      onExitMatch?.(element, {
-                        animation: matchAnimationValue,
-                        rect: rectValue,
-                      }) ?? undefined,
-                    )
-                    createOnAnimationFinished(release)
-                  }),
-                )
-              } else {
-                setAnimation(onExit?.(element) ?? undefined)
-                createOnAnimationFinished(release)
-              }
+              createEffect(
+                on(matchAnimation, matchAnimationValue => {
+                  layoutModel.invalidateRect(element)
+
+                  setAnimation(
+                    onExitMatch?.(element, {
+                      animation: matchAnimationValue,
+                      rect: rectValue,
+                    }) ?? undefined,
+                  )
+                  createOnAnimationFinished(release)
+                }),
+              )
+            }, owner)
+          }
+
+          const onFailure = () => {
+            createSubRoot(() => {
+              setAnimation(onExit?.(element) ?? undefined)
+              createOnAnimationFinished(release)
             }, owner)
           }
 
           matcher.attemptExit(
             key,
             { animation: untrack(animation), rect: rectValue },
-            onExitAttempt,
-            onExitAttempt,
+            onSuccess,
+            onFailure,
           )
         }
       },
