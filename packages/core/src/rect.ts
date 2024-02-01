@@ -1,9 +1,6 @@
-import { Vec2, Mat2d, vec2Set } from '@chloranthy/gl-matrix'
-import {
-  fit as commonFit,
-  setAspectRatio as commonSetAspectRatio,
-  mix as commonMix,
-} from './common.js'
+import { mix } from './common'
+import { Mat2d } from './mat2d'
+import { ReadonlyVec2, Vec2, vec2Set } from './vec2'
 
 /**
  * A rectangle in 2-dimensional space. The rectangle cannot rotate and thus its edges are always axis-aligned. A Rect is a subRect of DOMRect.
@@ -30,19 +27,21 @@ export interface Rect {
   height: number
 }
 
+export type ReadonlyRect = Readonly<Rect>
+
 /**
  * Creates a new Rect.
  */
-export function create(): Rect {
+export function rectCreate(): Rect {
   return {
     x: 0,
     y: 0,
-    width: 0,
-    height: 0,
+    width: 1,
+    height: 1,
   }
 }
 
-export function fromPositionSize(out: Rect, position: Readonly<Vec2>, size: Readonly<Vec2>): Rect {
+export function rectFromPositionSize(out: Rect, position: ReadonlyVec2, size: ReadonlyVec2): Rect {
   out.width = size[0]
   out.height = size[1]
   out.x = position[0] - size[0] / 2
@@ -53,29 +52,29 @@ export function fromPositionSize(out: Rect, position: Readonly<Vec2>, size: Read
 /**
  * Returns the x position of the rectangle's center point.
  */
-export function cx(rect: Readonly<Rect>): number {
+export function rectCenterX(rect: ReadonlyRect): number {
   return rect.x + rect.width / 2
-}
-
-/**
- * Returns the y position of the rectangle's center point.
- */
-export function cy(rect: Readonly<Rect>): number {
-  return rect.y + rect.height / 2
 }
 
 /**
  * Moves the rectangle so that the center point's x position is cx.
  */
-export function setCx(out: Rect, rect: Readonly<Rect>, cx: number): Rect {
+export function rectSetCenterX(out: Rect, rect: ReadonlyRect, cx: number): Rect {
   out.x = cx - rect.width / 2
   return out
 }
 
 /**
+ * Returns the y position of the rectangle's center point.
+ */
+export function rectCenterY(rect: ReadonlyRect): number {
+  return rect.y + rect.height / 2
+}
+
+/**
  * Moves the rectangle so that the center point's y position is cy.
  */
-export function setCy(out: Rect, rect: Readonly<Rect>, cy: number): Rect {
+export function rectSetCenterY(out: Rect, rect: ReadonlyRect, cy: number): Rect {
   out.y = cy - rect.height / 2
   return out
 }
@@ -83,14 +82,26 @@ export function setCy(out: Rect, rect: Readonly<Rect>, cy: number): Rect {
 /**
  * Returns the center point of the rectangle as a vector.
  */
-export function position(out: Vec2, rect: Readonly<Rect>): Vec2 {
-  return vec2Set(out, cx(rect), cy(rect))
+export function rectCenter(out: Vec2, rect: ReadonlyRect): Vec2 {
+  return vec2Set(out, rectCenterX(rect), rectCenterY(rect))
+}
+
+export function rectSetCenter(out: Rect, rect: ReadonlyRect, center: Vec2): Rect {
+  rectSetCenterX(out, rect, center[0])
+  rectSetCenterX(out, rect, center[1])
+  return out
+}
+
+export function rectCopyCenter(out: Rect, source: ReadonlyRect, target: ReadonlyRect): Rect {
+  rectSetCenterX(out, source, rectCenterX(target))
+  rectSetCenterY(out, source, rectCenterY(target))
+  return out
 }
 
 /**
  * Returns the width and height of the rectangle as a vector.
  */
-export function size(out: Vec2, rect: Readonly<Rect>): Vec2 {
+export function rectSize(out: Vec2, rect: ReadonlyRect): Vec2 {
   return vec2Set(out, rect.width, rect.height)
 }
 
@@ -102,15 +113,17 @@ export function size(out: Vec2, rect: Readonly<Rect>): Vec2 {
  * @param compare - Compares two numbers and returns a third representing the rectangle scale.
  * @returns The receiving rectangle with the position of the source rectangle, and a set aspect ratio.
  */
-export function setAspectRatio(
+export function rectSetAspectRatio(
   out: Rect,
-  source: Readonly<Rect>,
+  source: ReadonlyRect,
   aspectRatio: number,
   compare: (a: number, b: number) => number,
 ): Rect {
-  commonSetAspectRatio(out, 'width', 'height', source.width, source.height, aspectRatio, compare)
-  setCx(out, out, cx(source))
-  setCy(out, out, cy(source))
+  const sy = source.height === 0 ? aspectRatio : (source.width * aspectRatio) / source.height
+  const s = compare(1, sy)
+  out.width = source.width * s
+  out.height = source.height * s
+  rectCopyCenter(out, out, source)
   return out
 }
 
@@ -122,40 +135,34 @@ export function setAspectRatio(
  * @param compare - Compares two numbers and returns a third representing the rectangle scale.
  * @returns The receiving rectangle with the position and size of the target rectangle, and the aspect ratio of the source rectangle.
  */
-export function fit(
+export function rectFit(
   out: Rect,
-  source: Readonly<Rect>,
-  target: Readonly<Rect>,
+  source: ReadonlyRect,
+  target: ReadonlyRect,
   compare: (a: number, b: number) => number,
 ): Rect {
-  commonFit(
-    out,
-    'width',
-    'height',
-    source.width,
-    source.height,
-    target.width,
-    target.height,
-    compare,
-  )
-  setCx(out, out, cx(target))
-  setCy(out, out, cy(target))
+  const sx = target.width / source.width
+  const sy = target.height / source.height
+  const s = compare(sx, sy)
+  out.width = source.width * s
+  out.height = source.height * s
+  rectCopyCenter(out, out, target)
   return out
 }
 
-export function contain(out: Rect, source: Readonly<Rect>, target: Readonly<Rect>): Rect {
-  return fit(out, source, target, Math.min)
+export function rectContain(out: Rect, source: ReadonlyRect, target: ReadonlyRect): Rect {
+  return rectFit(out, source, target, Math.min)
 }
 
-export function cover(out: Rect, source: Readonly<Rect>, target: Readonly<Rect>): Rect {
-  return fit(out, source, target, Math.max)
+export function rectCover(out: Rect, source: ReadonlyRect, target: ReadonlyRect): Rect {
+  return rectFit(out, source, target, Math.max)
 }
 
-export function mix(out: Rect, source: Readonly<Rect>, target: Readonly<Rect>, t: number): Rect {
-  out.x = commonMix(source.x, target.x, t)
-  out.y = commonMix(source.y, target.y, t)
-  out.width = commonMix(source.width, target.width, t)
-  out.height = commonMix(source.height, target.height, t)
+export function rectMix(out: Rect, source: ReadonlyRect, target: ReadonlyRect, t: number): Rect {
+  out.x = mix(source.x, target.x, t)
+  out.y = mix(source.y, target.y, t)
+  out.width = mix(source.width, target.width, t)
+  out.height = mix(source.height, target.height, t)
   return out
 }
 
@@ -169,12 +176,12 @@ export function mix(out: Rect, source: Readonly<Rect>, target: Readonly<Rect>, t
  * @param target - The target rectangle.
  * @returns The receiving matrix that represents a transformation from the source rectangle to the target rectangle.
  */
-export function untransformMat2d(out: Mat2d, source: Rect, target: Rect) {
+export function rectUntransformMat2d(out: Mat2d, source: Rect, target: Rect) {
   out[0] = target.width / source.width
   out[1] = 0
   out[2] = 0
   out[3] = target.height / source.height
-  out[4] = cx(target) - cx(source)
-  out[5] = cy(target) - cy(source)
+  out[4] = rectCenterX(target) - rectCenterX(source)
+  out[5] = rectCenterY(target) - rectCenterY(source)
   return out
 }

@@ -1,8 +1,8 @@
-import { Vec2, vec2Create } from '@chloranthy/gl-matrix'
-import { Body } from './body.js'
-import { Body1d, create as body1dCreate } from './body1d.js'
-import { spring as coreSpring, simpleSpring as coreSimpleSpring } from '@nonphoto/spring'
-import { equals } from './common.js'
+import { Body } from './body'
+import { Body1d, body1dCreate } from './body1d'
+import { spring, simpleSpring } from '@nonphoto/spring'
+import { equals } from './common'
+import { Vec2, vec2Create } from './vec2'
 
 /**
  * A 2-dimensional physics body
@@ -16,7 +16,7 @@ export interface Body2d extends Body<Vec2> {
  * Creates a new 2-dimensional physics body.
  * @remarks The x and y properties of the body are proxied to p and v properties' x and y components.
  */
-export function create(): Body2d {
+export function body2dCreate(): Body2d {
   const self: Body2d = {
     p: vec2Create(),
     v: vec2Create(),
@@ -64,7 +64,7 @@ export function create(): Body2d {
 /**
  * Returns true if the body is at rest.
  */
-export function isAtRest(body: Readonly<Body2d>, p: Vec2): boolean {
+export function body2dIsAtRest(body: Readonly<Body2d>, p: Vec2): boolean {
   return (
     equals(body.p[0], p[0]) &&
     equals(body.p[1], p[1]) &&
@@ -84,7 +84,7 @@ export function isAtRest(body: Readonly<Body2d>, p: Vec2): boolean {
  * @param dt - The elapsed time.
  * @returns The receiving body with the spring force applied over the elapsed time.
  */
-export function spring(
+export function body2dSpring(
   out: Body2d,
   start: Readonly<Body2d>,
   end: Readonly<Body2d>,
@@ -92,32 +92,8 @@ export function spring(
   dampingRatio: number,
   dt: number,
 ) {
-  coreSpring(
-    out.p,
-    0,
-    out.v,
-    0,
-    start.p[0],
-    start.v[0],
-    end.p[0],
-    end.v[0],
-    halflife,
-    dampingRatio,
-    dt,
-  )
-  coreSpring(
-    out.p,
-    1,
-    out.v,
-    1,
-    start.p[1],
-    start.v[1],
-    end.p[1],
-    end.v[1],
-    halflife,
-    dampingRatio,
-    dt,
-  )
+  spring(out.p, 0, out.v, 0, start.p[0], start.v[0], end.p[0], end.v[0], halflife, dampingRatio, dt)
+  spring(out.p, 1, out.v, 1, start.p[1], start.v[1], end.p[1], end.v[1], halflife, dampingRatio, dt)
   return out
 }
 
@@ -133,14 +109,14 @@ export function spring(
  * @param dt - The elapsed time.
  * @returns The receiving body with the spring force applied over the elapsed time.
  */
-export function simpleSpring(
+export function body2dSimpleSpring(
   out: Body2d,
   start: Readonly<Body2d>,
   end: Readonly<Vec2>,
   halflife: number,
   dt: number,
 ) {
-  coreSimpleSpring(out.p, 0, out.v, 0, start.p[0], start.v[0], end[0], halflife, dt)
-  coreSimpleSpring(out.p, 1, out.v, 1, start.p[1], start.v[1], end[1], halflife, dt)
+  simpleSpring(out.p, 0, out.v, 0, start.p[0], start.v[0], end[0], halflife, dt)
+  simpleSpring(out.p, 1, out.v, 1, start.p[1], start.v[1], end[1], halflife, dt)
   return out
 }

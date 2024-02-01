@@ -1,19 +1,7 @@
-import {
-  Vec2,
-  vec2Create,
-  vec2Copy,
-  vec2Equals,
-  Mat2,
-  mat2Create,
-  mat2Multiply,
-  mat2Invert,
-  mat2Equals,
-  Mat2d,
-  vec2Zero,
-  mat2dZero,
-} from '@chloranthy/gl-matrix'
-import { Rect } from './rect.js'
-import { fit as commonFit, setAspectRatio as commonSetAspectRatio } from './common.js'
+import { Mat2, mat2Create, mat2Equals, mat2Invert, mat2Multiply } from './mat2'
+import { Mat2d, ReadonlyMat2d, mat2dIdentity } from './mat2d.js'
+import { ReadonlyRect, Rect } from './rect.js'
+import { ReadonlyVec2, Vec2, vec2Copy, vec2Create, vec2Equals, vec2Zero } from './vec2.js'
 
 /**
  * A quad in 2-dimensional space. A quad is a four-sided shape that can be freely transformed by a transformation matrix. Unlike {@link Rect}, its edges are not necessarily axis-aligned.
@@ -30,15 +18,17 @@ export type Quad2d = {
   k: Vec2
 }
 
-export function create(): Quad2d {
+export type ReadonlyQuad2d = Readonly<Quad2d>
+
+export function quad2dCreate(): Quad2d {
   return {
     ij: mat2Create(),
     k: vec2Create(),
   }
 }
 
-export function zero(out: Quad2d): Quad2d {
-  mat2dZero(out.ij)
+export function quad2dReset(out: Quad2d): Quad2d {
+  mat2dIdentity(out.ij)
   vec2Zero(out.k)
   return out
 }
@@ -46,7 +36,7 @@ export function zero(out: Quad2d): Quad2d {
 /**
  * Create a new quad from a rectangle. The quad will have a translation and scaling that matches the rectangle's position and size.
  */
-export function fromRect(out: Quad2d, rect: Readonly<Rect>): Quad2d {
+export function quad2dFromRect(out: Quad2d, rect: ReadonlyRect): Quad2d {
   const w = rect.width / 2,
     h = rect.height / 2
   out.ij[0] = w
@@ -58,16 +48,20 @@ export function fromRect(out: Quad2d, rect: Readonly<Rect>): Quad2d {
   return out
 }
 
-export function fromRectMat2d(out: Quad2d, rect: Readonly<Rect>, matrix: Readonly<Mat2d>): Quad2d {
-  fromRect(out, rect)
-  transformMat2d(out, out, matrix)
+export function quad2dFromRectMat2d(
+  out: Quad2d,
+  rect: ReadonlyRect,
+  matrix: ReadonlyMat2d,
+): Quad2d {
+  quad2dFromRect(out, rect)
+  quad2dTransformMat2d(out, out, matrix)
   return out
 }
 
 /**
  * Create a new quad from a given position and size.
  */
-export function fromPositionSize(out: Quad2d, position: Readonly<Vec2>, size: Readonly<Vec2>) {
+export function quad2dFromPositionSize(out: Quad2d, position: ReadonlyVec2, size: ReadonlyVec2) {
   const w = size[0] / 2,
     h = size[1] / 2
   out.ij[0] = w
@@ -83,10 +77,10 @@ export function fromPositionSize(out: Quad2d, position: Readonly<Vec2>, size: Re
  * Transform a quad by the given transformation matrix.
  * @remarks This is equivalent to premultiplying the quad by the matrix.
  */
-export function transformMat2d(
+export function quad2dTransformMat2d(
   out: Quad2d,
   quad: Readonly<Quad2d>,
-  matrix: Readonly<Mat2d>,
+  matrix: ReadonlyMat2d,
 ): Quad2d {
   mat2Multiply(out.ij, quad.ij, matrix as Mat2)
   out.k[0] = quad.k[0] + matrix[4]
@@ -98,7 +92,7 @@ export function transformMat2d(
  * Returns the transformation matrix that transforms space from one quad to another.
  * @remarks This is equivalent to premultiplying the target quad by the inverse of the source quad.
  */
-export function untransformMat2d(
+export function quad2dUntransformMat2d(
   out: Mat2d,
   source: Readonly<Quad2d>,
   target: Readonly<Quad2d>,
@@ -118,13 +112,16 @@ export function untransformMat2d(
  * @param compare - Compares two numbers and returns a third representing the quad scaling.
  * @returns The receiving quad with the position of the source quad, and a set aspect ratio.
  */
-export function setAspectRatio(
+export function quad2dSetAspectRatio(
   out: Quad2d,
   source: Readonly<Quad2d>,
   aspectRatio: number,
   compare: (a: number, b: number) => number,
 ) {
-  commonSetAspectRatio(out.ij, 0, 3, source.ij[0], source.ij[3], aspectRatio, compare)
+  const sy = source.ij[3] === 0 ? aspectRatio : (source.ij[0] * aspectRatio) / source.ij[3]
+  const s = compare(1, sy)
+  out.ij[0] = source.ij[0] * s
+  out.ij[3] = source.ij[3] * s
   vec2Copy(out.k, source.k)
 }
 
@@ -136,29 +133,33 @@ export function setAspectRatio(
  * @param compare - Compares two numbers and returns a third representing the quad scale.
  * @returns The receiving quad with the position and size of the target quad, and the aspect ratio of the source quad.
  */
-export function fit(
+export function quad2dFit(
   out: Quad2d,
   source: Readonly<Quad2d>,
   target: Readonly<Quad2d>,
   compare: (a: number, b: number) => number,
 ): Quad2d {
-  commonFit(out.ij, 0, 3, source.ij[0], source.ij[3], target.ij[0], target.ij[3], compare)
+  const sx = target.ij[0] / source.ij[0]
+  const sy = target.ij[3] / source.ij[3]
+  const s = compare(sx, sy)
+  out.ij[0] = source.ij[0] * s
+  out.ij[3] = source.ij[3] * s
   vec2Copy(out.k, target.k)
   return out
 }
 
 /**
- * @see {@link fit}
+ * @see {@link quad2dFit}
  */
 export function contain(out: Quad2d, source: Readonly<Quad2d>, target: Readonly<Quad2d>): Quad2d {
-  return fit(out, source, target, Math.min)
+  return quad2dFit(out, source, target, Math.min)
 }
 
 /**
- * @see {@link fit}
+ * @see {@link quad2dFit}
  */
 export function cover(out: Quad2d, source: Readonly<Quad2d>, target: Readonly<Quad2d>): Quad2d {
-  return fit(out, source, target, Math.max)
+  return quad2dFit(out, source, target, Math.max)
 }
 
 /**
