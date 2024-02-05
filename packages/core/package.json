@@ -71,8 +71,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@chloranthy/gl-matrix": "workspace:*",
-    "@nonphoto/spring": "0.0.5"
+    "@nonphoto/spring": "0.0.5",
+    "iterator-helpers-polyfill": "2.3.3"
   },
   "devDependencies": {
     "typedoc": "0.25.0"
