@@ -1,3 +1,4 @@
+export * from './behavior'
 export * from './body'
 export * from './body1d'
 export * from './body2d'
