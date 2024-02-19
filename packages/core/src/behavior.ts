@@ -1,63 +1,72 @@
-import { Iterator } from 'iterator-helpers-polyfill'
+import type { Range } from "./range";
 
-Iterator
+export type Behavior<T> = (t: number) => T;
 
-export type Behavior<T> = (t: number) => T
+const maxDuration = 10_000;
+const frameDuration = 1_000 / 60;
 
-type Range = {
-  start: number
-  end: number
+let RANGES: Range[] | undefined = undefined;
+
+export function withRange<T>(
+  range: Range,
+  flat: (ranges: Range[]) => Range[],
+  b: Behavior<T>,
+): Behavior<T> {
+  return (t) => {
+    if (RANGES) {
+      RANGES = flat([...RANGES, range]);
+    }
+    return b(t);
+  };
 }
 
-let RANGES: Range[] | undefined = undefined
-
-function withRange<T>(start: number, end: number, b: Behavior<T>): Behavior<T> {
-  const range = { start, end }
-  return t => {
-    RANGES?.push(range)
-    return b(t)
-  }
+export function getRanges<T>(b: Behavior<T>, t: number): [Range[], T] {
+  let prevRanges = RANGES;
+  RANGES = [];
+  const value = b(t);
+  const ranges = RANGES;
+  RANGES = prevRanges;
+  return [ranges, value];
 }
 
-function getRanges<T>(b: Behavior<T>, t: number): [Range[], T] {
-  RANGES = []
-  const value = b(t)
-  const ranges = RANGES
-  RANGES = []
-  return [ranges, value]
+function timeout(ms: number): Promise<void> {
+  return new Promise<void>((resolve) => {
+    setTimeout(() => {
+      resolve();
+    }, ms);
+  });
 }
-
-const x: Behavior<number> = withRange(-Infinity, 100, t => t * 2)
-
-const maxDuration = 10_000
 
 export function toAnimationGenerator(
   element: Element,
   prop: string,
   b: Behavior<string>,
-  options?: Pick<KeyframeAnimationOptions, 'timeline'>,
-): Generator<Animation> {
+  options?: Pick<KeyframeAnimationOptions, "timeline">,
+): Generator<Animation | Promise<void>> {
   return (function* () {
-    let done = false
-    while (!done) {
-      const keyframes = []
-      let time = performance.now()
-      const endTime = time + maxDuration
-      const [ranges, value] = getRanges(b, time)
-      while (time < endTime && !done) {
-        const [value, behaviorDone] = b(time)
-        keyframes.push({ [prop]: value })
-        if (behaviorDone) {
-          done = true
+    let time = performance.now();
+    const [ranges] = getRanges(b, time);
+    for (const range of ranges) {
+      if (range[1] > time) {
+        if (range[0] <= time) {
+          while (time < range[1]) {
+            const keyframes = [];
+            const end = Math.min(range[1], maxDuration);
+            while (time <= end) {
+              keyframes.push({ [prop]: b(time) });
+              time += frameDuration;
+            }
+            yield element.animate(keyframes, {
+              duration: maxDuration,
+              easing: "linear",
+              ...(options ?? {}),
+            });
+          }
         } else {
-          time += 1_000 / 60
+          yield timeout(range[0] - time);
+          time = range[0];
         }
       }
-      yield element.animate(keyframes, {
-        duration: maxDuration,
-        easing: 'linear',
-        ...(options ?? {}),
-      })
     }
-  })()
+  })();
 }
