@@ -61,12 +61,6 @@ importers:
         specifier: 0.25.0
         version: 0.25.0(typescript@5.2.2)
 
-  packages/gl-matrix:
-    dependencies:
-      gl-matrix:
-        specifier: 3.4.0
-        version: 3.4.0
-
   packages/layout-model:
     dependencies:
       '@solid-primitives/map':
@@ -4739,11 +4733,6 @@ packages:
       call-bind: 1.0.5
       get-intrinsic: 1.2.2
     dev: true
-
-  /gl-matrix@3.4.0:
-    resolution: {integrity: sha512-n7fF4meQ6jbBSw91jGmP83I/wkQud5kIRSW/dr5z+9YJdQz61GWpgmRK9k7c4O/1QsXaIXu9o2vf/q2Gu3Ybow==}
-    deprecated: Broke various systems. Will investigate and likely republish as a new major version
-    dev: false
 
   /gl-matrix@3.4.3:
     resolution: {integrity: sha512-wcCp8vu8FT22BnvKVPjXa/ICBWRq/zjFfdofZy1WSpQZpphblv12/bOQLBC1rMM7SGOFS9ltVmKOHil5+Ml7gA==}
