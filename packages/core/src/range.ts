@@ -20,3 +20,7 @@ export function rangeUnion(ranges: Range[]): Range[] {
   }
   return result;
 }
+
+export function rangeAdd(ranges: Range[], range: Range): Range[] {
+  return rangeUnion([...ranges, range]);
+}

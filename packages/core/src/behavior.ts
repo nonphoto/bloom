@@ -28,36 +28,80 @@ export function getRanges<T>(b: Behavior<T>, t: number): [Range[], T] {
   return [ranges, value];
 }
 
-export function toAnimationGenerator(
+export function toGenerator(
   element: Element,
   prop: string,
   b: Behavior<string>,
   options?: Pick<KeyframeAnimationOptions, "timeline">,
-): Generator<Animation> {
-  return (function* () {
-    let time = performance.now();
+): () => Generator<Animation> {
+  return function* () {
+    let time = 0;
     const [ranges] = getRanges(b, time);
+    if (ranges.length === 0) {
+      ranges.push([-Infinity, Infinity]);
+    }
     for (const range of ranges) {
-      console.log(range[0], range[1]);
-      if (time >= range[0]) {
-        while (time < range[1]) {
-          const keyframes = [];
-          const end = Math.min(range[1], maxDuration);
-          while (time < end) {
-            keyframes.push({ [prop]: b(time) });
-            time += frameDuration;
-          }
-          console.log(keyframes);
-          yield element.animate(keyframes, {
-            duration: maxDuration,
-            easing: "linear",
-            ...(options ?? {}),
-          });
-        }
-      } else {
+      if (time < range[0]) {
         yield element.animate(null, { duration: range[0] - time });
         time = range[0];
       }
+      while (time < range[1]) {
+        const keyframes = [];
+        const end = Math.min(range[1], time + maxDuration);
+        const duration = end - time;
+        while (time < end) {
+          keyframes.push({ [prop]: b(time) });
+          time += frameDuration;
+        }
+        yield element.animate(keyframes, {
+          duration,
+          easing: "linear",
+          ...(options ?? {}),
+        });
+      }
     }
-  })();
+  };
+}
+
+export function toControls(g: () => Generator<Animation>) {
+  let animation: Animation;
+
+  return {
+    cancel() {
+      if (animation) {
+        animation.cancel();
+      }
+    },
+    async play() {
+      if (animation) {
+        animation.cancel();
+      }
+      try {
+        for (animation of g()) {
+          await animation.finished;
+        }
+      } catch (error) {
+        if (!(error instanceof DOMException)) {
+          throw error;
+        }
+      }
+    },
+  };
+}
+
+export function tween(duration: number): Behavior<number> {
+  return withRanges(
+    () => [[0, duration]],
+    (t) => Math.min(Math.max(t / duration, 0), 1),
+  );
+}
+
+export function delay(ms: number, b: Behavior<number>): Behavior<number> {
+  return withRanges(
+    (ranges) => {
+      console.log(ranges);
+      return ranges.map(([start, end]) => [start + ms, end + ms]);
+    },
+    (t) => b(t - ms),
+  );
 }

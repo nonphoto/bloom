@@ -1,63 +1,25 @@
-import {
-  Behavior,
-  rangeUnion,
-  toAnimationGenerator,
-  withRanges,
-} from "@chloranthy/core";
-import {
-  createEffect,
-  createSignal,
-  getOwner,
-  onCleanup,
-  runWithOwner,
-} from "solid-js";
+import { delay, toControls, toGenerator, tween } from "@chloranthy/core";
 
-function at(start: number = Infinity, t: number) {
-  return Math.max(0, t - start);
+function easeInOutCubic(x: number): number {
+  return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
 }
 
 export default function () {
-  const [startTime, setStartTime] = createSignal<number>(0);
+  const x = delay(500, (t) => easeInOutCubic(tween(1000)(t)));
+  const transform = (t: number) => `translateX(${x(t) * 300}px)`;
+
   const element = (
     <div
       style={{ width: "100px", height: "100px", background: "skyblue" }}
       onClick={() => {
-        setStartTime(performance.now());
+        animation.play();
       }}
     >
       Hello
     </div>
   ) as Element;
 
-  const x: Behavior<number> = withRanges(
-    (ranges) => rangeUnion([...ranges, [startTime(), startTime() + 1_000]]),
-    (t) => at(startTime(), t) * 2,
-  );
-  const transform: Behavior<string> = (t) => `translateX(${x(t)}px)`;
-
-  createEffect(async () => {
-    const owner = getOwner();
-    const animationGenerator = toAnimationGenerator(
-      element,
-      "transform",
-      transform,
-    );
-    for (const animation of animationGenerator) {
-      runWithOwner(owner, () => {
-        onCleanup(() => {
-          console.log("cleanup");
-          animation.cancel();
-        });
-      });
-      try {
-        await animation.finished;
-      } catch (error) {
-        if (!(error instanceof DOMException)) {
-          throw error;
-        }
-      }
-    }
-  });
+  const animation = toControls(toGenerator(element, "transform", transform));
 
   return element;
 }
