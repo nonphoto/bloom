@@ -8,6 +8,7 @@ export * from "./mat2";
 export * from "./mat2d";
 export * from "./mat3";
 export * from "./mat4";
+export * from "./quad2d";
 export * from "./quat";
 export * from "./quat2";
 export * from "./range";

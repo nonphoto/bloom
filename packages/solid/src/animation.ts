@@ -1,45 +1,53 @@
-import { Accessor, Setter, batch, createEffect, createMemo, createSignal, on } from 'solid-js'
-import { createRAF } from '@solid-primitives/raf'
-import { createMousePosition as createMousePositionStore } from '@solid-primitives/mouse'
-import { maybe, safeWindow } from './utils.js'
-import { Vec2, vec2Set, vec2Create } from '@chloranthy/gl-matrix'
+import {
+  Accessor,
+  batch,
+  createEffect,
+  createMemo,
+  createSignal,
+  on,
+  Setter,
+} from "solid-js";
+import { createRAF } from "@solid-primitives/raf";
+import { createMousePosition as createMousePositionStore } from "@solid-primitives/mouse";
+import { maybe, safeWindow } from "./utils.js";
+import { Vec2, vec2Create, vec2Set } from "@chloranthy/core";
 import {
   Body2d,
-  BodyQuad2d,
   body2dCreate,
   body2dIsAtRest,
   body2dSimpleSpring,
-} from '@chloranthy/core'
-import { MaybeAccessor } from '@solid-primitives/utils'
-import { Quad2d } from '@chloranthy/core'
-import { bodyQuad2dIsAtRest } from '@chloranthy/core'
-import { bodyQuad2dSimpleSpring } from '@chloranthy/core'
+  BodyQuad2d,
+} from "@chloranthy/core";
+import { MaybeAccessor } from "@solid-primitives/utils";
+import { Quad2d } from "@chloranthy/core";
+import { bodyQuad2dIsAtRest } from "@chloranthy/core";
+import { bodyQuad2dSimpleSpring } from "@chloranthy/core";
 
 /**
  * A callback for an animation frame.
  * @param time - The time that the animation frame occurred.
  * @param deltaTime - The time since the last animation frame occurred.
  */
-export type TimeCallback = (time: number, deltaTime: number) => void
+export type TimeCallback = (time: number, deltaTime: number) => void;
 
 /**
  * Creates a new effect that calls the callback on every animation frame.
  * @param fn - The callback to call on animation frame.
  */
 export function createTimeCallback(fn: TimeCallback): void {
-  let time = performance.now()
-  let deltaTime = 0
-  const startTime = time
+  let time = performance.now();
+  let deltaTime = 0;
+  const startTime = time;
 
-  const [, start] = createRAF(nextTime => {
-    deltaTime = nextTime - time
-    time = nextTime
-    fn(time - startTime, deltaTime)
-  })
+  const [, start] = createRAF((nextTime) => {
+    deltaTime = nextTime - time;
+    time = nextTime;
+    fn(time - startTime, deltaTime);
+  });
 
   createEffect(() => {
-    start()
-  })
+    start();
+  });
 }
 
 /**
@@ -55,23 +63,23 @@ export type CreateTimeReturn = [
    * The time since the last animation frame occurred. Updates every animation frame.
    */
   Accessor<number>,
-]
+];
 
 /**
  * Creates a new time and delta-time accessor pair.
  */
 export function createTime(): CreateTimeReturn {
-  const [time, setTime] = createSignal(0, { equals: false })
-  const [deltaTime, setDeltaTime] = createSignal(0, { equals: false })
+  const [time, setTime] = createSignal(0, { equals: false });
+  const [deltaTime, setDeltaTime] = createSignal(0, { equals: false });
 
   createTimeCallback((t, dt) => {
     batch(() => {
-      setTime(t)
-      setDeltaTime(dt)
-    })
-  })
+      setTime(t);
+      setDeltaTime(dt);
+    });
+  });
 
-  return [time, deltaTime]
+  return [time, deltaTime];
 }
 
 /**
@@ -79,14 +87,18 @@ export function createTime(): CreateTimeReturn {
  * @returns An accessor that returns the screen-relative mouse position as a 2d vector.
  */
 export function createMousePosition(): Accessor<Vec2> {
-  const store = createMousePositionStore()
+  const store = createMousePositionStore();
 
   return createMemo<Vec2>(
-    out =>
-      vec2Set(out, store.x - (safeWindow()?.scrollX ?? 0), store.y - (safeWindow()?.scrollY ?? 0)),
+    (out) =>
+      vec2Set(
+        out,
+        store.x - (safeWindow()?.scrollX ?? 0),
+        store.y - (safeWindow()?.scrollY ?? 0),
+      ),
     vec2Create(),
     { equals: false },
-  )
+  );
 }
 
 /**
@@ -100,21 +112,28 @@ export function createSpringBody(
   target: Accessor<Vec2 | undefined>,
   halflife: number,
 ): [Accessor<Body2d>, Accessor<boolean>] {
-  const [value, setValue] = createSignal<Body2d>(body2dCreate(), { equals: false })
+  const [value, setValue] = createSignal<Body2d>(body2dCreate(), {
+    equals: false,
+  });
 
-  const isRunning = createMemo(() => maybe(body2dIsAtRest, value, target) === false)
+  const isRunning = createMemo(() =>
+    maybe(body2dIsAtRest, value, target) === false
+  );
 
   createEffect(
-    on(isRunning, isRunning => {
+    on(isRunning, (isRunning) => {
       if (isRunning) {
         createTimeCallback((_, deltaTime) => {
-          setValue(out => maybe(body2dSimpleSpring, out, out, target, halflife, deltaTime) ?? out)
-        })
+          setValue((out) =>
+            maybe(body2dSimpleSpring, out, out, target, halflife, deltaTime) ??
+              out
+          );
+        });
       }
     }),
-  )
+  );
 
-  return [value, isRunning]
+  return [value, isRunning];
 }
 
 export function createSpring(
@@ -123,19 +142,24 @@ export function createSpring(
   setBody: Setter<Body2d>,
   halflife: number,
 ): Accessor<boolean> {
-  const isRunning = createMemo(() => maybe(body2dIsAtRest, body, target) === false)
+  const isRunning = createMemo(() =>
+    maybe(body2dIsAtRest, body, target) === false
+  );
 
   createEffect(
-    on(isRunning, isRunning => {
+    on(isRunning, (isRunning) => {
       if (isRunning) {
         createTimeCallback((_, deltaTime) => {
-          setBody(out => maybe(body2dSimpleSpring, out, out, target, halflife, deltaTime) ?? out)
-        })
+          setBody((out) =>
+            maybe(body2dSimpleSpring, out, out, target, halflife, deltaTime) ??
+              out
+          );
+        });
       }
     }),
-  )
+  );
 
-  return isRunning
+  return isRunning;
 }
 
 export function createSpringQuad2d(
@@ -144,19 +168,29 @@ export function createSpringQuad2d(
   setBody: Setter<BodyQuad2d>,
   halflife: number,
 ): Accessor<boolean> {
-  const isRunning = createMemo(() => maybe(bodyQuad2dIsAtRest, body, target) === false)
+  const isRunning = createMemo(() =>
+    maybe(bodyQuad2dIsAtRest, body, target) === false
+  );
 
   createEffect(
-    on(isRunning, isRunning => {
+    on(isRunning, (isRunning) => {
       if (isRunning) {
         createTimeCallback((_, deltaTime) => {
           setBody(
-            out => maybe(bodyQuad2dSimpleSpring, out, out, target, halflife, deltaTime) ?? out,
-          )
-        })
+            (out) =>
+              maybe(
+                bodyQuad2dSimpleSpring,
+                out,
+                out,
+                target,
+                halflife,
+                deltaTime,
+              ) ?? out,
+          );
+        });
       }
     }),
-  )
+  );
 
-  return isRunning
+  return isRunning;
 }

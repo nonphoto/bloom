@@ -12,10 +12,11 @@ export function withRanges<T>(
   b: Behavior<T>,
 ): Behavior<T> {
   return (t) => {
+    const value = b(t);
     if (RANGES) {
       RANGES = fn(RANGES);
     }
-    return b(t);
+    return value;
   };
 }
 
@@ -98,10 +99,7 @@ export function tween(duration: number): Behavior<number> {
 
 export function delay(ms: number, b: Behavior<number>): Behavior<number> {
   return withRanges(
-    (ranges) => {
-      console.log(ranges);
-      return ranges.map(([start, end]) => [start + ms, end + ms]);
-    },
+    (ranges) => ranges.map(([start, end]) => [start + ms, end + ms]),
     (t) => b(t - ms),
   );
 }

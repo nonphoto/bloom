@@ -1,69 +1,79 @@
-import classes from './index.module.css'
-import { For, createComputed, createSignal } from 'solid-js'
-import { A } from 'solid-start'
-import { imageOptions } from '~/data/images'
-import { projects } from '~/data/projects'
+import classes from "./index.module.css";
+import { createComputed, createSignal, For } from "solid-js";
+import { A } from "solid-start";
+import { imageOptions } from "~/data/images";
+import { projects } from "~/data/projects";
 import {
-  TransitionCallback,
-  createMaybeMemo,
-  quad,
   borderRadius,
+  createListTransition,
+  createMaybeMemo,
   createMousePosition,
   createSpringBody,
-  createListTransition,
-} from '@chloranthy/solid'
+  quad,
+  TransitionCallback,
+} from "@chloranthy/solid";
 import {
   Quad2d,
-  quad2dFromRect,
-  quad2dCreate,
   quad2dCover,
+  quad2dCreate,
   quad2dFromPositionSize,
-  rectSetAspectRatio,
+  quad2dFromRect,
   rectCreate,
+  rectSetAspectRatio,
   rectSize,
-} from '@chloranthy/core'
-import { vec2Create } from '@chloranthy/gl-matrix'
-import { useLayoutModel } from '@chloranthy/layout-model'
-import { animate } from 'motion'
+} from "@chloranthy/core";
+import { vec2Create } from "@chloranthy/core";
+import { useLayoutModel } from "@chloranthy/layout-model";
+import { animate } from "motion";
 
-quad
-borderRadius
+quad;
+borderRadius;
 
-function styleAspectRatio(props: { naturalWidth: number; naturalHeight: number }) {
-  return `${props.naturalWidth} / ${props.naturalHeight}`
+function styleAspectRatio(
+  props: { naturalWidth: number; naturalHeight: number },
+) {
+  return `${props.naturalWidth} / ${props.naturalHeight}`;
 }
 
 function Image(props: {
-  src: string
-  naturalWidth: number
-  naturalHeight: number
-  parentQuad: Quad2d | undefined
-  useEnter: (callback: TransitionCallback) => void
-  useExit: (callback: TransitionCallback) => void
-  isExiting: boolean
+  src: string;
+  naturalWidth: number;
+  naturalHeight: number;
+  parentQuad: Quad2d | undefined;
+  useEnter: (callback: TransitionCallback) => void;
+  useExit: (callback: TransitionCallback) => void;
+  isExiting: boolean;
 }) {
-  const [element, setElement] = createSignal<HTMLDivElement>()
-  const layoutModel = useLayoutModel()
-  const rect = layoutModel.useRect(element)
+  const [element, setElement] = createSignal<HTMLDivElement>();
+  const layoutModel = useLayoutModel();
+  const rect = layoutModel.useRect(element);
 
-  const childQuad = createMaybeMemo(quad2dFromRect, quad2dCreate, rect)
+  const childQuad = createMaybeMemo(quad2dFromRect, quad2dCreate, rect);
 
-  const fitQuad = createMaybeMemo(quad2dCover, quad2dCreate, childQuad, () => props.parentQuad)
+  const fitQuad = createMaybeMemo(
+    quad2dCover,
+    quad2dCreate,
+    childQuad,
+    () => props.parentQuad,
+  );
 
   createComputed(() => {
     props.useEnter(() => {
-      const elementValue = element()
+      const elementValue = element();
       if (elementValue) {
-        return () => animate(elementValue, { opacity: [0, 1] }, { duration: 0 }).finished
+        return () =>
+          animate(elementValue, { opacity: [0, 1] }, { duration: 0 }).finished;
       }
-    })
+    });
     props.useExit(() => {
-      const elementValue = element()
+      const elementValue = element();
       if (elementValue) {
-        return () => animate(elementValue, { opacity: [1, 0] }, { duration: 0.5 }).finished
+        return () =>
+          animate(elementValue, { opacity: [1, 0] }, { duration: 0.5 })
+            .finished;
       }
-    })
-  })
+    });
+  });
 
   return (
     <img
@@ -74,52 +84,56 @@ function Image(props: {
         [classes.isExiting]: props.isExiting,
       }}
       style={{
-        'aspect-ratio': styleAspectRatio(props),
+        "aspect-ratio": styleAspectRatio(props),
       }}
       use:quad={fitQuad()}
     />
-  )
+  );
 }
 
 export default function ProjectListIndex() {
-  const [imageContainerElement, setImageContainerElement] = createSignal<HTMLDivElement>()
+  const [imageContainerElement, setImageContainerElement] = createSignal<
+    HTMLDivElement
+  >();
 
-  const [hoveredIndex, setHoveredIndex] = createSignal<number>()
-  const hoveredProject = () => (hoveredIndex() != null ? projects[hoveredIndex()!] : undefined)
+  const [hoveredIndex, setHoveredIndex] = createSignal<number>();
+  const hoveredProject =
+    () => (hoveredIndex() != null ? projects[hoveredIndex()!] : undefined);
 
-  const mousePosition = createMousePosition()
+  const mousePosition = createMousePosition();
 
-  const layoutModel = useLayoutModel()
-  const imageContainerRect = layoutModel.useRect(imageContainerElement)
+  const layoutModel = useLayoutModel();
+  const imageContainerRect = layoutModel.useRect(imageContainerElement);
   const imageContainerFitRect = createMaybeMemo(
     rectSetAspectRatio,
     rectCreate,
     imageContainerRect,
     9 / 16,
     () => (a: number, b: number) => (a + b) / 2,
-  )
+  );
 
-  const size = createMaybeMemo(rectSize, vec2Create(), imageContainerFitRect)
+  const size = createMaybeMemo(rectSize, vec2Create(), imageContainerFitRect);
 
-  const [transitionSize] = createSpringBody(size, 150)
+  const [transitionSize] = createSpringBody(size, 150);
 
   const imageContainerQuad = createMaybeMemo(
     quad2dFromPositionSize,
     quad2dCreate(),
     mousePosition,
     () => transitionSize().p,
-  )
+  );
 
   const visibleProjects = createListTransition(
     () => (hoveredProject() ? [{ ...hoveredProject()! }] : []),
-    { exitMode: 'move-to-end' },
-  )
+    { exitMode: "move-to-end" },
+  );
 
   return (
     <section class={classes.section}>
       <h1 class={classes.h1}>Projects</h1>
       <p class={classes.p}>
-        Supports keyframes, spring and inertia animations on numbers, colors, and complex strings.
+        Supports keyframes, spring and inertia animations on numbers, colors,
+        and complex strings.
       </p>
       <div
         ref={setImageContainerElement}
@@ -135,9 +149,9 @@ export default function ProjectListIndex() {
                 parentQuad={imageContainerQuad()}
                 useExit={useExit}
                 useEnter={useEnter}
-                isExiting={state() === 'exiting'}
+                isExiting={state() === "exiting"}
               />
-            )
+            );
           }}
         </For>
       </div>
@@ -153,5 +167,5 @@ export default function ProjectListIndex() {
         </For>
       </ul>
     </section>
-  )
+  );
 }

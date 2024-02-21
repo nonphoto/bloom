@@ -1,16 +1,16 @@
 import {
-  Vec2,
-  vec2Set,
-  vec2Create,
-  vec2Sub,
   Mat2d,
-  mat2dCreate,
-  mat2dCopy,
   mat2dClone,
-  mat2dTranslate,
-  mat2dMultiply,
+  mat2dCopy,
+  mat2dCreate,
   mat2dFromTranslation,
-} from '@chloranthy/gl-matrix'
+  mat2dMultiply,
+  mat2dTranslate,
+  Vec2,
+  vec2Create,
+  vec2Set,
+  vec2Sub,
+} from "@chloranthy/core";
 import {
   Accessor,
   createEffect,
@@ -19,53 +19,53 @@ import {
   createSignal,
   onCleanup,
   untrack,
-} from 'solid-js'
+} from "solid-js";
 import {
   center,
+  createDisposableEffect,
   getNearestScrollingAncestor,
   getOffsetParent,
   getScrollEmitter,
+  isDocumentElement,
   mat2dFromNegativeTranslation,
+  maybe,
+  mutatedElements,
   styleTransform,
   walkChildren,
-  willScroll as getWillScroll,
-  isDocumentElement,
-  mutatedElements,
-  maybe,
-  createDisposableEffect,
-  withDocument,
   walkParents,
-} from './utils.js'
-import { SingletonMap } from './singletonMap.js'
-import { Batcher } from './batcher.js'
-import { ReactiveMap } from '@solid-primitives/map'
-import { MaybeAccessor } from '@solid-primitives/utils'
-import { createMutationObserver } from '@solid-primitives/mutation-observer'
-import { createResizeObserver } from '@solid-primitives/resize-observer'
-import { createSingletonRoot } from '@solid-primitives/rootless'
+  willScroll as getWillScroll,
+  withDocument,
+} from "./utils.js";
+import { SingletonMap } from "./singletonMap.js";
+import { Batcher } from "./batcher.js";
+import { ReactiveMap } from "@solid-primitives/map";
+import { MaybeAccessor } from "@solid-primitives/utils";
+import { createMutationObserver } from "@solid-primitives/mutation-observer";
+import { createResizeObserver } from "@solid-primitives/resize-observer";
+import { createSingletonRoot } from "@solid-primitives/rootless";
 
 type RectRoot = {
-  rect: Accessor<DOMRect | undefined>
-  invalidate(): Promise<void>
-}
+  rect: Accessor<DOMRect | undefined>;
+  invalidate(): Promise<void>;
+};
 
 type ScrollRoot = {
-  scrollTranslation: Accessor<Vec2>
-  invalidate(): void
-}
+  scrollTranslation: Accessor<Vec2>;
+  invalidate(): void;
+};
 
 type ParentRoot = {
-  parent: Accessor<HTMLElement | null>
-  invalidate(): void
-}
+  parent: Accessor<HTMLElement | null>;
+  invalidate(): void;
+};
 
 type MatrixRoot = {
-  matrix: Accessor<Mat2d | undefined>
-  intermediateMatrix: Accessor<Mat2d | undefined>
-  rectPosition: Accessor<Vec2 | undefined>
-}
+  matrix: Accessor<Mat2d | undefined>;
+  intermediateMatrix: Accessor<Mat2d | undefined>;
+  rectPosition: Accessor<Vec2 | undefined>;
+};
 
-export type { Accessor }
+export type { Accessor };
 
 /**
  * The return type of {@link createLayoutModel}.
@@ -76,7 +76,7 @@ export type LayoutModelReturn = {
    * @param element - The element to set the transform of.
    * @param transform - The transform to set on the element.
    */
-  setTransform(element: HTMLElement, transform: Mat2d | undefined): void
+  setTransform(element: HTMLElement, transform: Mat2d | undefined): void;
 
   /**
    * Returns an accessor for the layout rect of an element.
@@ -84,7 +84,9 @@ export type LayoutModelReturn = {
    * @param element - The element to get the layout rect accessor of.
    * @returns An accessor that returns the layout rect of the element.
    */
-  useRect(element: MaybeAccessor<HTMLElement | null | undefined>): Accessor<DOMRect | undefined>
+  useRect(
+    element: MaybeAccessor<HTMLElement | null | undefined>,
+  ): Accessor<DOMRect | undefined>;
 
   /**
    * Returns an accessor for the view matrix of the element.
@@ -93,296 +95,324 @@ export type LayoutModelReturn = {
    * @param element - The element to get the view matrix accessor of.
    * @returns An accessor that returns the view matrix of the element.
    */
-  useMatrix(element: MaybeAccessor<HTMLElement | null | undefined>): Accessor<Mat2d | undefined>
+  useMatrix(
+    element: MaybeAccessor<HTMLElement | null | undefined>,
+  ): Accessor<Mat2d | undefined>;
 
   /**
    * Returns an accessor for transformation matrix of an element, as set by `setTransform`.
    * @param element - The element to get the transform property accessor of.
    * @returns An accessor that returns the transformation matrix of the element.
    */
-  useTransform(element: MaybeAccessor<HTMLElement | null | undefined>): Accessor<Mat2d | undefined>
+  useTransform(
+    element: MaybeAccessor<HTMLElement | null | undefined>,
+  ): Accessor<Mat2d | undefined>;
 
   /**
    * Invalidate the measured layout rect of the element, causing the layout model to remeasure it. This can sometimes be necessary if it's position in the layout changed without its width or height changing.
    * @param element - The element to invalidate.
    */
-  invalidateRect(element: HTMLElement): Promise<void>
+  invalidateRect(element: HTMLElement): Promise<void>;
 
   /**
    * Invalidate the measured overflow property of the element, causing the layout model to rebind scroll event listeners. This can sometimes be necessary if the element's `overflow` style property changed from `auto` or `scroll` to `hidden`, or vice versa.
    * @param element - The element to invalidate.
    */
-  invalidateScroll(element: HTMLElement): void
+  invalidateScroll(element: HTMLElement): void;
 
   /**
    * Invalidate the offset parent of the element, causing the layout model to recalculate the parent tree. This can sometimes be necessary if the offset parent of the element changed due to the `position` property of the element or one of its ancestors changing.
    * @param element - The element to invalidate.
    */
-  invalidateParent(element: HTMLElement): void
-}
+  invalidateParent(element: HTMLElement): void;
+};
 
 const layoutModelStub: LayoutModelReturn = {
   setTransform() {},
   useRect() {
-    return () => undefined
+    return () => undefined;
   },
   useMatrix() {
-    return () => undefined
+    return () => undefined;
   },
   useTransform() {
-    return () => undefined
+    return () => undefined;
   },
   async invalidateRect() {},
   invalidateScroll() {},
   invalidateParent() {},
-}
+};
 
 /**
  * Creates a new layout model from the root element. The layout model will track changes to the layout rects and view matrices of elements in the document.
  * @param root - The root element of the document.
  */
 export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
-  const transformMap = new ReactiveMap<HTMLElement, Mat2d>()
+  const transformMap = new ReactiveMap<HTMLElement, Mat2d>();
 
   createResizeObserver(
     () => Array.from(rectRoots.keys()),
     (_, element) => {
       if (element instanceof HTMLElement) {
-        rectRoots.get(element)?.invalidate()
+        rectRoots.get(element)?.invalidate();
       }
     },
-  )
+  );
 
-  createMutationObserver(root, { childList: true, subtree: true }, records => {
-    for (const element of mutatedElements(records)) {
-      rectRoots.get(element)?.invalidate()
-      parentRoots.get(element)?.invalidate()
-    }
-  })
+  createMutationObserver(
+    root,
+    { childList: true, subtree: true },
+    (records) => {
+      for (const element of mutatedElements(records)) {
+        rectRoots.get(element)?.invalidate();
+        parentRoots.get(element)?.invalidate();
+      }
+    },
+  );
 
   const layoutBatcher = new Batcher({
     onPreRun: () => {
-      walkChildren(root, element => {
+      walkChildren(root, (element) => {
         if (untrack(() => transformMap.has(element))) {
-          element.style.transform = ''
+          element.style.transform = "";
         }
-      })
+      });
     },
     onPostRun: () => {
-      walkChildren(root, element => {
-        const transform = untrack(() => transformMap.get(element))
+      walkChildren(root, (element) => {
+        const transform = untrack(() => transformMap.get(element));
         if (transform) {
-          element.style.transform = styleTransform(transform)
+          element.style.transform = styleTransform(transform);
         }
-      })
+      });
     },
-  })
+  });
 
-  const rectRoots = new SingletonMap<HTMLElement, RectRoot>(element => {
-    const [rect, setRect] = createSignal<DOMRect | undefined>(undefined, { equals: false })
+  const rectRoots = new SingletonMap<HTMLElement, RectRoot>((element) => {
+    const [rect, setRect] = createSignal<DOMRect | undefined>(undefined, {
+      equals: false,
+    });
 
     const invalidate = () => {
       return layoutBatcher.enqueue(() => {
-        const rect = element.getBoundingClientRect()
-        walkParents(element, parent => {
-          rect.x += parent.scrollLeft
-          rect.y += parent.scrollTop
-        })
-        setRect(rect)
-      })
-    }
+        const rect = element.getBoundingClientRect();
+        walkParents(element, (parent) => {
+          rect.x += parent.scrollLeft;
+          rect.y += parent.scrollTop;
+        });
+        setRect(rect);
+      });
+    };
 
-    return { rect, invalidate }
-  })
+    return { rect, invalidate };
+  });
 
-  const scrollRoots = new SingletonMap<HTMLElement, ScrollRoot>(element => {
-    const [scrollTranslation, setScrollTranslation] = createSignal(vec2Create(), { equals: false })
-    const [willScroll, setWillScroll] = createSignal(false)
+  const scrollRoots = new SingletonMap<HTMLElement, ScrollRoot>((element) => {
+    const [scrollTranslation, setScrollTranslation] = createSignal(
+      vec2Create(),
+      { equals: false },
+    );
+    const [willScroll, setWillScroll] = createSignal(false);
 
     const onScroll = () => {
-      setScrollTranslation(prev => vec2Set(prev, -element.scrollLeft, -element.scrollTop))
-    }
+      setScrollTranslation((prev) =>
+        vec2Set(prev, -element.scrollLeft, -element.scrollTop)
+      );
+    };
 
     const invalidate = () => {
-      setWillScroll(getWillScroll(element))
-    }
+      setWillScroll(getWillScroll(element));
+    };
 
     createEffect(() => {
       if (willScroll()) {
-        const scrollEmitter = getScrollEmitter(element)
-        scrollEmitter.addEventListener('scroll', onScroll, { passive: true })
+        const scrollEmitter = getScrollEmitter(element);
+        scrollEmitter.addEventListener("scroll", onScroll, { passive: true });
         onCleanup(() => {
-          scrollEmitter.removeEventListener('scroll', onScroll)
-        })
+          scrollEmitter.removeEventListener("scroll", onScroll);
+        });
       }
-    })
+    });
 
     createEffect(() => {
-      invalidate()
-    })
+      invalidate();
+    });
 
     return {
       scrollTranslation,
       invalidate,
-    }
-  })
+    };
+  });
 
-  const parentRoots = new SingletonMap<HTMLElement, ParentRoot>(element => {
-    const [parent, setParent] = createSignal<HTMLElement | null>(null)
+  const parentRoots = new SingletonMap<HTMLElement, ParentRoot>((element) => {
+    const [parent, setParent] = createSignal<HTMLElement | null>(null);
 
     const invalidate = () => {
-      const position = getComputedStyle(element).position
+      const position = getComputedStyle(element).position;
       if (isDocumentElement(element)) {
-        setParent(null)
-      } else if (position === 'sticky') {
-        setParent(getNearestScrollingAncestor(element))
-      } else if (position === 'absolute' || position === 'fixed') {
-        setParent(getOffsetParent(element))
+        setParent(null);
+      } else if (position === "sticky") {
+        setParent(getNearestScrollingAncestor(element));
+      } else if (position === "absolute" || position === "fixed") {
+        setParent(getOffsetParent(element));
       } else {
-        setParent(element.parentElement)
+        setParent(element.parentElement);
       }
-    }
+    };
 
     createEffect(() => {
-      invalidate()
-    })
+      invalidate();
+    });
 
-    return { parent, invalidate }
-  })
+    return { parent, invalidate };
+  });
 
-  const matrixRoots = new SingletonMap<HTMLElement, MatrixRoot>(element => {
-    const parentRoot = parentRoots.use(element)
-    const rectRoot = rectRoots.use(element)
-    const scrollRoot = scrollRoots.use(element)
+  const matrixRoots = new SingletonMap<HTMLElement, MatrixRoot>((element) => {
+    const parentRoot = parentRoots.use(element);
+    const rectRoot = rectRoots.use(element);
+    const scrollRoot = scrollRoots.use(element);
 
     const parentMatrixRoot = createMemo(() => {
-      const parentValue = parentRoot.parent()
+      const parentValue = parentRoot.parent();
       if (parentValue) {
-        return matrixRoots.use(parentValue)
+        return matrixRoots.use(parentValue);
       }
-    })
+    });
 
     const rectPosition = createMemo<Vec2 | undefined>(
-      prev => {
-        const rectValue = rectRoot.rect()
+      (prev) => {
+        const rectValue = rectRoot.rect();
         if (rectValue) {
-          return center(prev ?? vec2Create(), rectValue)
+          return center(prev ?? vec2Create(), rectValue);
         }
       },
       undefined,
       { equals: false },
-    )
+    );
 
     const layoutDelta = createMemo<Vec2 | undefined>(
-      prev => {
-        const parentRectPositionValue = parentMatrixRoot()?.rectPosition()
-        const rectPositionValue = rectPosition()
+      (prev) => {
+        const parentRectPositionValue = parentMatrixRoot()?.rectPosition();
+        const rectPositionValue = rectPosition();
         return rectPositionValue
           ? parentRectPositionValue
-            ? vec2Sub(prev ?? vec2Create(), rectPositionValue, parentRectPositionValue)
+            ? vec2Sub(
+              prev ?? vec2Create(),
+              rectPositionValue,
+              parentRectPositionValue,
+            )
             : isDocumentElement(element)
             ? rectPositionValue
             : undefined
-          : undefined
+          : undefined;
       },
       undefined,
       { equals: false },
-    )
+    );
 
     const layoutMatrix = createMemo<Mat2d | undefined>(
-      prev => {
-        const parentIntermediateMatrixValue = parentMatrixRoot()?.intermediateMatrix()
-        const layoutDeltaValue = layoutDelta()
-        const next = prev ?? mat2dCreate()
+      (prev) => {
+        const parentIntermediateMatrixValue = parentMatrixRoot()
+          ?.intermediateMatrix();
+        const layoutDeltaValue = layoutDelta();
+        const next = prev ?? mat2dCreate();
         if (layoutDeltaValue) {
           if (isDocumentElement(element)) {
-            mat2dFromTranslation(next, layoutDeltaValue)
+            mat2dFromTranslation(next, layoutDeltaValue);
           } else if (parentIntermediateMatrixValue) {
-            mat2dTranslate(next, parentIntermediateMatrixValue, layoutDeltaValue)
+            mat2dTranslate(
+              next,
+              parentIntermediateMatrixValue,
+              layoutDeltaValue,
+            );
           } else {
-            return undefined
+            return undefined;
           }
-          return next
+          return next;
         }
       },
       undefined,
       { equals: false },
-    )
+    );
 
     const intermediateMatrix = createMemo<Mat2d | undefined>(
-      prev => {
-        const layoutMatrixValue = layoutMatrix()
+      (prev) => {
+        const layoutMatrixValue = layoutMatrix();
         if (layoutMatrixValue) {
-          const next = prev ?? mat2dCreate()
-          mat2dCopy(next, layoutMatrixValue)
-          const transform = transformMap.get(element)
+          const next = prev ?? mat2dCreate();
+          mat2dCopy(next, layoutMatrixValue);
+          const transform = transformMap.get(element);
 
           if (transform) {
-            mat2dMultiply(next, next, transform)
+            mat2dMultiply(next, next, transform);
           }
-          return mat2dTranslate(next, next, scrollRoot.scrollTranslation())
+          return mat2dTranslate(next, next, scrollRoot.scrollTranslation());
         }
       },
       undefined,
       { equals: false },
-    )
+    );
 
     const matrix = createMemo<Mat2d | undefined>(
-      prev => {
-        const rectPositionValue = rectPosition()
-        const layoutMatrixValue = layoutMatrix()
-        const next = prev ?? mat2dCreate()
+      (prev) => {
+        const rectPositionValue = rectPosition();
+        const layoutMatrixValue = layoutMatrix();
+        const next = prev ?? mat2dCreate();
         if (rectPositionValue && layoutMatrixValue) {
-          mat2dFromNegativeTranslation(next, rectPositionValue)
-          return mat2dMultiply(next, next, layoutMatrixValue)
+          mat2dFromNegativeTranslation(next, rectPositionValue);
+          return mat2dMultiply(next, next, layoutMatrixValue);
         }
       },
       undefined,
       { equals: false },
-    )
+    );
 
-    return { rectPosition, intermediateMatrix, matrix }
-  })
+    return { rectPosition, intermediateMatrix, matrix };
+  });
 
   function setTransform(element: HTMLElement, transform: Mat2d | undefined) {
     if (transform) {
-      element.style.transform = styleTransform(transform)
-      return transformMap.set(element, mat2dClone(transform))
+      element.style.transform = styleTransform(transform);
+      return transformMap.set(element, mat2dClone(transform));
     } else {
-      element.style.transform = ''
-      return transformMap.delete(element)
+      element.style.transform = "";
+      return transformMap.delete(element);
     }
   }
 
   onCleanup(() => {
     for (const element of untrack(() => transformMap.keys())) {
-      setTransform(element, undefined)
+      setTransform(element, undefined);
     }
-  })
+  });
 
   return {
     setTransform,
     useRect(element: MaybeAccessor<HTMLElement | null | undefined>) {
-      const memo = createMemo(() => maybe(element => rectRoots.use(element).rect, element))
-      return () => memo()?.()
+      const memo = createMemo(() =>
+        maybe((element) => rectRoots.use(element).rect, element)
+      );
+      return () => memo()?.();
     },
     useMatrix(element: MaybeAccessor<HTMLElement | null | undefined>) {
-      const memo = createMemo(() => maybe(element => matrixRoots.use(element).matrix, element))
-      return () => memo()?.()
+      const memo = createMemo(() =>
+        maybe((element) => matrixRoots.use(element).matrix, element)
+      );
+      return () => memo()?.();
     },
     useTransform(element: MaybeAccessor<HTMLElement | null | undefined>) {
-      return () => maybe(element => transformMap.get(element), element)
+      return () => maybe((element) => transformMap.get(element), element);
     },
     async invalidateRect(element: HTMLElement) {
-      return rectRoots.get(element)?.invalidate()
+      return rectRoots.get(element)?.invalidate();
     },
     invalidateScroll(element: HTMLElement) {
-      scrollRoots.get(element)?.invalidate()
+      scrollRoots.get(element)?.invalidate();
     },
     invalidateParent(element: HTMLElement) {
-      parentRoots.get(element)?.invalidate()
+      parentRoots.get(element)?.invalidate();
     },
-  }
+  };
 }
 
 /**
@@ -391,38 +421,38 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
  */
 export const useLayoutModel = createSingletonRoot<LayoutModelReturn>(() => {
   return (
-    withDocument(document => {
-      return createLayoutModel(document.documentElement)
+    withDocument((document) => {
+      return createLayoutModel(document.documentElement);
     }) ?? layoutModelStub
-  )
-})
+  );
+});
 
 /**
  * A layout model that tracks changes to the layout rects and view matrices of elements in the document.
  */
 export class LayoutModel {
-  #observer: LayoutModelReturn
-  #dispose: () => void
+  #observer: LayoutModelReturn;
+  #dispose: () => void;
 
   /**
    * Creates a new layout model from the root element.
    * @param root - The root element of the document.
    */
   constructor(root: HTMLElement) {
-    const { observer, dispose } = createRoot(dispose => {
-      const observer = createLayoutModel(root)
-      return { observer, dispose }
-    })
+    const { observer, dispose } = createRoot((dispose) => {
+      const observer = createLayoutModel(root);
+      return { observer, dispose };
+    });
 
-    this.#observer = observer
-    this.#dispose = dispose
+    this.#observer = observer;
+    this.#dispose = dispose;
   }
 
   /**
    * Properly disposes the reactive graph for this layout model.
    */
   dispose(): void {
-    this.#dispose()
+    this.#dispose();
   }
 
   /**
@@ -431,21 +461,33 @@ export class LayoutModel {
    * @param transform - The transform to set on the element.
    */
   setTransform(element: HTMLElement, transform: Mat2d | undefined): void {
-    this.#observer.setTransform(element, transform)
+    this.#observer.setTransform(element, transform);
   }
 
   /**
    * @returns A disposing function. Calling the function disposes the reactive graph for the callback.
    */
-  useRect(element: HTMLElement, callback: (rect: DOMRect | undefined) => void): () => void {
-    return createDisposableEffect(() => this.#observer.useRect(element), callback)
+  useRect(
+    element: HTMLElement,
+    callback: (rect: DOMRect | undefined) => void,
+  ): () => void {
+    return createDisposableEffect(
+      () => this.#observer.useRect(element),
+      callback,
+    );
   }
 
   /**
    * @returns A disposing function. Calling the function disposes the reactive graph for the callback.
    */
-  useMatrix(element: HTMLElement, callback: (rect: Mat2d | undefined) => void): () => void {
-    return createDisposableEffect(() => this.#observer.useMatrix(element), callback)
+  useMatrix(
+    element: HTMLElement,
+    callback: (rect: Mat2d | undefined) => void,
+  ): () => void {
+    return createDisposableEffect(
+      () => this.#observer.useMatrix(element),
+      callback,
+    );
   }
 
   /**
@@ -453,7 +495,7 @@ export class LayoutModel {
    * @param element - The element to invalidate.
    */
   invalidateRect(element: HTMLElement) {
-    this.#observer.invalidateRect(element)
+    this.#observer.invalidateRect(element);
   }
 
   /**
@@ -461,7 +503,7 @@ export class LayoutModel {
    * @param element - The element to invalidate.
    */
   invalidateScroll(element: HTMLElement) {
-    this.#observer.invalidateScroll(element)
+    this.#observer.invalidateScroll(element);
   }
 
   /**
@@ -469,8 +511,8 @@ export class LayoutModel {
    * @param element - The element to invalidate.
    */
   invalidateParent(element: HTMLElement) {
-    this.#observer.invalidateParent(element)
+    this.#observer.invalidateParent(element);
   }
 }
 
-export { SingletonMap, Batcher }
+export { Batcher, SingletonMap };

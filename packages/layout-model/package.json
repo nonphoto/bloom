@@ -44,6 +44,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@chloranthy/core": "workspace:^",
     "@solid-primitives/map": "^0.4.7",
     "@solid-primitives/mutation-observer": "1.1.14",
     "@solid-primitives/raf": "2.1.13",

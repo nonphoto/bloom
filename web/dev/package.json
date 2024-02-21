@@ -34,7 +34,7 @@
     "@solid-primitives/rootless": "1.4.2",
     "@solid-primitives/transition-group": "^1.0.3",
     "@solid-primitives/utils": "6.2.1",
-    "@solidjs/meta": "^0.28.6",
+    "@solidjs/meta": "^0.29.3",
     "@solidjs/router": "^0.8.3",
     "clsx": "2.0.0",
     "gl-matrix": "3.4.3",

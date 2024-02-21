@@ -1,22 +1,22 @@
-import { Mat2d } from '@chloranthy/gl-matrix'
-import { useLayoutModel } from '@chloranthy/layout-model'
-import { Directive, MaybeAccessor, access } from '@solid-primitives/utils'
-import { createComputed } from 'solid-js'
+import { Mat2d } from "@chloranthy/core";
+import { useLayoutModel } from "@chloranthy/layout-model";
+import { access, Directive, MaybeAccessor } from "@solid-primitives/utils";
+import { createComputed } from "solid-js";
 
 export function createSetTransform(
   element: MaybeAccessor<HTMLElement | null | undefined>,
   value: MaybeAccessor<Mat2d | undefined>,
 ): void {
-  const layout = useLayoutModel()
+  const layout = useLayoutModel();
 
   createComputed(() => {
-    const elementValue = access(element)
+    const elementValue = access(element);
     if (elementValue) {
       createComputed(() => {
-        layout.setTransform(elementValue, access(value))
-      })
+        layout.setTransform(elementValue, access(value));
+      });
     }
-  })
+  });
 }
 
 /**
@@ -27,6 +27,6 @@ export function createSetTransform(
  */
 export const setTransform: Directive<Mat2d | undefined> = (target, value) => {
   if (target instanceof HTMLElement) {
-    createSetTransform(target, value)
+    createSetTransform(target, value);
   }
-}
+};
