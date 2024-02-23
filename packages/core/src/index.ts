@@ -13,6 +13,7 @@ export * from "./quat";
 export * from "./quat2";
 export * from "./range";
 export * from "./rect";
+export * from "./spring";
 export * from "./vec2";
 export * from "./vec3";
 export * from "./vec4";

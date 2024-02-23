@@ -4,15 +4,15 @@
  */
 
 export interface IndexedCollection extends Iterable<number> {
-  readonly length: number
-  [index: number]: number
+  readonly length: number;
+  [index: number]: number;
 }
 
 // Configuration Constants
-export const EPSILON = 0.000001
-export let ARRAY_TYPE: Float32ArrayConstructor | ArrayConstructor = Array
-export const RANDOM = Math.random
-export const ANGLE_ORDER = 'zyx'
+export const EPSILON = 0.000001;
+export let ARRAY_TYPE: Float32ArrayConstructor | ArrayConstructor = Array;
+export const RANDOM = Math.random;
+export const ANGLE_ORDER = "zyx";
 
 /**
  * Symmetric round
@@ -21,9 +21,9 @@ export const ANGLE_ORDER = 'zyx'
  * @param {Number} a value to round
  */
 export function round(a: number): number {
-  if (a >= 0) return Math.round(a)
+  if (a >= 0) return Math.round(a);
 
-  return a % 0.5 === 0 ? Math.floor(a) : Math.round(a)
+  return a % 0.5 === 0 ? Math.floor(a) : Math.round(a);
 }
 
 /**
@@ -31,11 +31,13 @@ export function round(a: number): number {
  *
  * @param {Float32ArrayConstructor | ArrayConstructor} type Array type, such as Float32Array or Array
  */
-export function setMatrixArrayType(type: Float32ArrayConstructor | ArrayConstructor): void {
-  ARRAY_TYPE = type
+export function setMatrixArrayType(
+  type: Float32ArrayConstructor | ArrayConstructor,
+): void {
+  ARRAY_TYPE = type;
 }
 
-const degree = Math.PI / 180
+const degree = Math.PI / 180;
 
 /**
  * Convert Degree To Radian
@@ -43,7 +45,7 @@ const degree = Math.PI / 180
  * @param {Number} a Angle in Degrees
  */
 export function toRadian(a: number): number {
-  return a * degree
+  return a * degree;
 }
 
 /**
@@ -56,9 +58,37 @@ export function toRadian(a: number): number {
  * @returns {Boolean} True if the numbers are approximately equal, false otherwise.
  */
 export function equals(a: number, b: number): boolean {
-  return Math.abs(a - b) <= EPSILON * Math.max(1.0, Math.abs(a), Math.abs(b))
+  return Math.abs(a - b) <= EPSILON * Math.max(1.0, Math.abs(a), Math.abs(b));
 }
 
 export function mix(a: number, b: number, t: number) {
-  return a + t * (b - a)
+  return a + t * (b - a);
+}
+
+export function clamp(min: number, max: number, x: number) {
+  return Math.min(Math.max(x, min), max);
+}
+
+export function copySign(x: number, y: number) {
+  return Math.sign(x) === Math.sign(y) ? x : -x;
+}
+
+export function square(x: number) {
+  return x * x;
+}
+
+export function fastNegExp(x: number) {
+  // return 1 / (1 + 1.006722 * x + 0.453568 * x * x + 0.254559 * x * x * x);
+  return 1 / (1 + 1.119186 * x + 0.097090 * x * x + 0.489114 * x * x * x);
+}
+
+// export function fastNegLog(y: number) {
+//   return (1 + 1.006722 * x + 0.453568 * x * x + 0.254559 * x * x * x) = 1 / y;
+// }
+
+export function fastAtan(x: number) {
+  const z = Math.abs(x);
+  const w = z > 1 ? 1 / z : z;
+  const y = (Math.PI / 4) * w - w * (w - 1) * (0.2447 + 0.0663 * w);
+  return copySign(z > 1 ? Math.PI / 2 - y : y, x);
 }
