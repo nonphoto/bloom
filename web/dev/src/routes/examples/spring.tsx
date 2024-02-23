@@ -1,8 +1,7 @@
 import {
   dampingRatioToStiffness,
-  decay,
-  duration,
   halflifeToDamping,
+  springDuration,
   springPosition,
 } from "@chloranthy/core";
 import { createWindowSize } from "@solid-primitives/resize-observer";
@@ -26,10 +25,12 @@ export default function () {
     canvas.width = w();
     canvas.height = h();
 
-    const damping = halflifeToDamping(w() * 0.1);
-    const stiffness = dampingRatioToStiffness(0.99, damping);
     const startPosition = h();
+    const startVelocity = 0;
     const endPosition = h() / 3;
+    const endVelocity = 10;
+    const damping = halflifeToDamping(w() * 0.1);
+    const stiffness = dampingRatioToStiffness(0.5, damping);
     const step = 2;
 
     const context = canvas.getContext("2d")!;
@@ -43,13 +44,13 @@ export default function () {
 
     context.beginPath();
     context.moveTo(0, h());
-    for (let x = 0; x < 10_000; x += step) {
+    for (let x = 0; x < w(); x += step) {
       const y = springPosition(
         x,
         startPosition,
-        0,
+        startVelocity,
         endPosition,
-        0,
+        endVelocity,
         stiffness,
         damping,
       );
@@ -59,36 +60,14 @@ export default function () {
     context.stroke();
 
     context.beginPath();
-    context.moveTo(0, h());
-    let logged = false;
-    for (let x = 0; x < 10_000; x += step) {
-      const y = decay(
-        x,
-        startPosition,
-        0,
-        endPosition,
-        0,
-        stiffness,
-        damping,
-      );
-      if (!logged && y < 10) {
-        console.log(x);
-        logged = true;
-      }
-      context.lineTo(x, y);
-    }
-    context.strokeStyle = "#0000ff44";
-    context.stroke();
-
-    context.beginPath();
-    const x = duration(
+    const x = springDuration(
       startPosition,
-      0,
+      startVelocity,
       endPosition,
-      0,
+      endVelocity,
       stiffness,
       damping,
-      1,
+      0.5,
     );
     context.moveTo(x, 0);
     context.lineTo(x, h());
