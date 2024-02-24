@@ -1,6 +1,6 @@
 import {
-  dampingRatioToStiffness,
-  halflifeToDamping,
+  springCreate,
+  springDecay,
   springDuration,
   springPosition,
 } from "@chloranthy/core";
@@ -25,50 +25,35 @@ export default function () {
     canvas.width = w();
     canvas.height = h();
 
-    const startPosition = h();
-    const startVelocity = 0;
-    const endPosition = h() / 3;
-    const endVelocity = 10;
-    const damping = halflifeToDamping(w() * 0.1);
-    const stiffness = dampingRatioToStiffness(0.5, damping);
     const step = 2;
 
+    const spring = springCreate({
+      start: h(),
+      end: h() / 3,
+      halflife: w() * 0.1,
+      dampingRatio: 1,
+    });
+
     const context = canvas.getContext("2d")!;
-    context.lineWidth = 3;
+    context.lineWidth = 2;
 
     context.beginPath();
-    context.moveTo(0, endPosition);
-    context.lineTo(w(), endPosition);
+    context.moveTo(0, spring.end);
+    context.lineTo(w(), spring.end);
     context.strokeStyle = "lightgray";
     context.stroke();
 
     context.beginPath();
     context.moveTo(0, h());
     for (let x = 0; x < w(); x += step) {
-      const y = springPosition(
-        x,
-        startPosition,
-        startVelocity,
-        endPosition,
-        endVelocity,
-        stiffness,
-        damping,
-      );
+      const y = springPosition(spring, x);
       context.lineTo(x, y);
     }
     context.strokeStyle = "#0000ff";
     context.stroke();
 
     context.beginPath();
-    const x = springDuration(
-      startPosition,
-      startVelocity,
-      endPosition,
-      endVelocity,
-      stiffness,
-      damping,
-      0.5,
-    );
+    const x = springDuration(spring, 1);
     context.moveTo(x, 0);
     context.lineTo(x, h());
     context.strokeStyle = "#ff0000";

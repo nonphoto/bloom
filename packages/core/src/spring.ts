@@ -1,4 +1,4 @@
-import { mix, square } from "./common";
+import { square } from "./common";
 
 export function halflifeToDamping(halflife: number) {
   return (4 * Math.LN2) / halflife;
@@ -23,7 +23,6 @@ export function criticalHalflife(frequency: number) {
 export function criticalFrequency(halflife: number) {
   return stiffnessToFrequency(square(halflifeToDamping(halflife)) / 4);
 }
-5;
 
 export function dampingRatioToStiffness(ratio: number, damping: number) {
   return square(damping / (ratio * 2));
@@ -33,68 +32,86 @@ export function dampingRatioToDamping(ratio: number, stiffness: number) {
   return ratio * 2 * Math.sqrt(stiffness);
 }
 
-export function damper(
-  start: number,
-  end: number,
-  halflife: number,
-  dt: number,
-): number {
-  return mix(
-    start,
-    end,
-    1 - Math.exp(-(Math.LN2 * dt) / halflife),
-  );
+export function toDampingRatio(damping: number, stiffness: number) {
+  return stiffness - square(damping) / 4;
 }
 
-export function decayDamper(
-  position: number,
-  halflife: number,
-  dt: number,
-): number {
-  return position * Math.exp(-(Math.LN2 * dt) / halflife);
+interface Spring {
+  damping: number;
+  start: number;
+  end: number;
+  startVelocity: number;
+  frequency: number;
+  amplitude: number;
+  phase: number;
 }
 
-export function springDuration(
-  startPosition: number,
-  startVelocity: number,
-  endPosition: number,
-  endVelocity: number,
-  stiffness: number,
-  damping: number,
-  epsilon: number,
-): number {
-  const b = damping / 2;
-  const c = endPosition + (damping * endVelocity) / stiffness;
-  const d = startPosition - c;
-  const w = Math.sqrt(stiffness - (damping * damping) / 4);
-  const amplitude = Math.sqrt(
-    square(startVelocity + b * d) / square(w) +
-      square(d),
-  );
-  return -Math.log(epsilon / amplitude) / b;
-}
-
-export function springPosition(
-  t: number,
-  startPosition: number,
-  startVelocity: number,
-  endPosition: number,
-  endVelocity: number,
-  stiffness: number,
-  damping: number,
-): number {
-  const halfDamping = damping / 2;
-  const equilibrium = endPosition + (damping * endVelocity) / stiffness;
-  const startDelta = startPosition - equilibrium;
-  const frequency = Math.sqrt(stiffness - (damping * damping) / 4);
-  const amplitude = Math.sign(startDelta) * Math.sqrt(
-    square(startVelocity + halfDamping * startDelta) / square(frequency) +
-      square(startDelta),
+export function springCreate(options: {
+  start?: number;
+  end?: number;
+  startVelocity?: number;
+  dampingRatio?: number;
+  halflife?: number;
+}): Spring {
+  const dampingRatio = options.dampingRatio ?? 1;
+  const damping = options.halflife ? halflifeToDamping(options.halflife) : 10;
+  const stiffness = dampingRatioToStiffness(dampingRatio, damping);
+  const start = options.start ?? 0;
+  const end = options.end ?? 0;
+  const startVelocity = options.startVelocity ?? 0;
+  const delta = start - end;
+  const velocityDelta = startVelocity + delta * damping * 0.5;
+  const frequency = Math.sqrt(stiffness - square(damping) / 4);
+  const amplitude = Math.sign(delta) * Math.sqrt(
+    square(velocityDelta) / square(frequency) +
+      square(delta),
   );
   const phase = Math.atan(
-    (startVelocity + startDelta * halfDamping) /
-      (-startDelta * frequency),
+    velocityDelta /
+      (-delta * frequency),
   );
-  return amplitude * Math.exp(-halfDamping * t) *
-      Math.cos(frequency * t + phase) + equilibrium;
+
+  console.log(frequency, amplitude, phase);
+
+  return {
+    start,
+    end,
+    damping,
+    startVelocity,
+    frequency,
+    amplitude,
+    phase,
+  };
+}
+
+export function springPosition(s: Spring, t: number) {
+  const delta = s.start - s.end;
+  const halfDamping = s.damping * 0.5;
+  const exp = Math.exp(-halfDamping * t);
+  return s.frequency > 0
+    ? s.amplitude * exp *
+        Math.cos(s.frequency * t + s.phase) + s.end
+    : exp * (delta + (s.startVelocity + delta * halfDamping) * t) +
+      s.end;
+}
+
+export function springVelocity(s: Spring, t: number) {
+  const delta = s.start - s.end;
+  const halfDamping = s.damping * 0.5;
+  const exp = Math.exp(-halfDamping * t);
+  const theta = s.frequency * t + s.phase;
+  return s.frequency > 0
+    ? -halfDamping * s.amplitude * exp * Math.cos(theta) -
+      s.frequency * s.amplitude * exp * Math.sin(theta)
+    : exp *
+      (s.startVelocity -
+        (s.startVelocity + delta * halfDamping) * halfDamping * t);
+}
+
+export function springDuration(s: Spring, epsilon: number = 1e-5) {
+  const delta = s.start - s.end;
+  const halfDamping = s.damping * 0.5;
+  return -Math.log(
+    Math.sign(delta) * epsilon / s.amplitude,
+  ) / halfDamping;
 }
