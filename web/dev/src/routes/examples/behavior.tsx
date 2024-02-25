@@ -1,25 +1,48 @@
-import { delay, toControls, toGenerator, tween } from "@chloranthy/core";
-
-function easeInOutCubic(x: number): number {
-  return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
-}
+import {
+  behaviorDelay,
+  springBehavior,
+  springCreate,
+  toControls,
+  toGenerator,
+} from "@chloranthy/core";
+import { createEffect, onCleanup } from "solid-js";
 
 export default function () {
-  const x = delay(500, (t) => easeInOutCubic(tween(1000)(t)));
-  const transform = (t: number) => `translateX(${x(t) * 300}px)`;
+  createEffect(() => {
+    const onClick = () => {
+      animation.play();
+    };
+
+    document.body.addEventListener("click", onClick);
+    onCleanup(() => {
+      document.body.removeEventListener("click", onClick);
+    });
+  });
 
   const element = (
     <div
-      style={{ width: "100px", height: "100px", background: "skyblue" }}
-      onClick={() => {
-        animation.play();
+      style={{
+        width: "100px",
+        height: "100px",
+        background: "skyblue",
       }}
     >
       Hello
     </div>
   ) as Element;
 
-  const animation = toControls(toGenerator(element, "transform", transform));
+  const x = behaviorDelay(
+    500,
+    springBehavior(
+      springCreate({ end: 300, halflife: 100 }),
+    ),
+  );
+
+  const animation = toControls(
+    toGenerator(element, "transform", (t: number) => `translateX(${x(t)}px)`, {
+      fill: "forwards",
+    }),
+  );
 
   return element;
 }

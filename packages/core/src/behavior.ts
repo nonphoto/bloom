@@ -1,4 +1,5 @@
 import type { Range } from "./range";
+import { Spring, springDuration, springPosition } from "./spring";
 
 export type Behavior<T> = (t: number) => T;
 
@@ -33,7 +34,7 @@ export function toGenerator(
   element: Element,
   prop: string,
   b: Behavior<string>,
-  options?: Pick<KeyframeAnimationOptions, "timeline">,
+  options?: Pick<KeyframeAnimationOptions, "timeline" | "fill">,
 ): () => Generator<Animation> {
   return function* () {
     let time = 0;
@@ -90,14 +91,24 @@ export function toControls(g: () => Generator<Animation>) {
   };
 }
 
-export function tween(duration: number): Behavior<number> {
+export function springBehavior(s: Spring): Behavior<number> {
+  return withRanges(
+    () => [[0, springDuration(s, 1)]],
+    (t: number) => springPosition(s, t),
+  );
+}
+
+export function tweenBehavior(duration: number): Behavior<number> {
   return withRanges(
     () => [[0, duration]],
     (t) => Math.min(Math.max(t / duration, 0), 1),
   );
 }
 
-export function delay(ms: number, b: Behavior<number>): Behavior<number> {
+export function behaviorDelay(
+  ms: number,
+  b: Behavior<number>,
+): Behavior<number> {
   return withRanges(
     (ranges) => ranges.map(([start, end]) => [start + ms, end + ms]),
     (t) => b(t - ms),
