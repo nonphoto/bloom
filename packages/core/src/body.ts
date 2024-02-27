@@ -5,13 +5,13 @@
  */
 
 export interface Body<T> {
-  /**
-   * The position of the body
-   */
-  p: T
+	/**
+	 * The position of the body
+	 */
+	p: T;
 
-  /**
-   * The velocity of the body
-   */
-  v: T
+	/**
+	 * The velocity of the body
+	 */
+	v: T;
 }

@@ -31,7 +31,7 @@ function createSpring(options: MaybeAccessor<Partial<SpringOptions>>) {
 					start: springPosition(prev, deltaTime),
 					startVelocity: springVelocity(prev, deltaTime),
 					...optionsValue,
-			  })
+				})
 			: springCreate(optionsValue);
 	});
 }

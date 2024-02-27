@@ -87,8 +87,8 @@ export function springPosition(s: Spring, t: number) {
 	return delta === 0
 		? s.end
 		: s.dampedFrequency > 0
-		  ? s.amplitude * exp * Math.cos(s.dampedFrequency * t + s.phase) + s.end
-		  : exp * (delta + (s.startVelocity + delta * halfDamping) * t) + s.end;
+			? s.amplitude * exp * Math.cos(s.dampedFrequency * t + s.phase) + s.end
+			: exp * (delta + (s.startVelocity + delta * halfDamping) * t) + s.end;
 }
 
 export function springVelocity(s: Spring, t: number) {

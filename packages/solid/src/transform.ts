@@ -4,19 +4,19 @@ import { access, Directive, MaybeAccessor } from "@solid-primitives/utils";
 import { createComputed } from "solid-js";
 
 export function createSetTransform(
-  element: MaybeAccessor<HTMLElement | null | undefined>,
-  value: MaybeAccessor<Mat2d | undefined>,
+	element: MaybeAccessor<HTMLElement | null | undefined>,
+	value: MaybeAccessor<Mat2d | undefined>,
 ): void {
-  const layout = useLayoutModel();
+	const layout = useLayoutModel();
 
-  createComputed(() => {
-    const elementValue = access(element);
-    if (elementValue) {
-      createComputed(() => {
-        layout.setTransform(elementValue, access(value));
-      });
-    }
-  });
+	createComputed(() => {
+		const elementValue = access(element);
+		if (elementValue) {
+			createComputed(() => {
+				layout.setTransform(elementValue, access(value));
+			});
+		}
+	});
 }
 
 /**
@@ -26,7 +26,7 @@ export function createSetTransform(
  * @param value - The transform to set on the element.
  */
 export const setTransform: Directive<Mat2d | undefined> = (target, value) => {
-  if (target instanceof HTMLElement) {
-    createSetTransform(target, value);
-  }
+	if (target instanceof HTMLElement) {
+		createSetTransform(target, value);
+	}
 };

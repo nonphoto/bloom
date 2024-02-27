@@ -1,32 +1,40 @@
-import { ANGLE_ORDER, ARRAY_TYPE, EPSILON, IndexedCollection, RANDOM } from './common'
-import { ReadonlyMat3, mat3Create } from './mat3'
 import {
-  ReadonlyVec3,
-  Vec3,
-  vec3Create,
-  vec3Cross,
-  vec3Dot,
-  vec3FromValues,
-  vec3Len,
-  vec3Normalize,
-} from './vec3'
+	ANGLE_ORDER,
+	ARRAY_TYPE,
+	EPSILON,
+	IndexedCollection,
+	RANDOM,
+} from "./common";
+import { ReadonlyMat3, mat3Create } from "./mat3";
 import {
-  vec4Add,
-  vec4Clone,
-  vec4Copy,
-  vec4Dot,
-  vec4ExactEquals,
-  vec4FromValues,
-  vec4Length,
-  vec4Lerp,
-  vec4Normalize,
-  vec4Scale,
-  vec4Set,
-  vec4SquaredLength,
-} from './vec4'
+	ReadonlyVec3,
+	Vec3,
+	vec3Create,
+	vec3Cross,
+	vec3Dot,
+	vec3FromValues,
+	vec3Len,
+	vec3Normalize,
+} from "./vec3";
+import {
+	vec4Add,
+	vec4Clone,
+	vec4Copy,
+	vec4Dot,
+	vec4ExactEquals,
+	vec4FromValues,
+	vec4Length,
+	vec4Lerp,
+	vec4Normalize,
+	vec4Scale,
+	vec4Set,
+	vec4SquaredLength,
+} from "./vec4";
 
-export type Quat = [number, number, number, number] | IndexedCollection
-export type ReadonlyQuat = readonly [number, number, number, number] | IndexedCollection
+export type Quat = [number, number, number, number] | IndexedCollection;
+export type ReadonlyQuat =
+	| readonly [number, number, number, number]
+	| IndexedCollection;
 
 /**
  * Creates a new identity Quat
@@ -34,14 +42,14 @@ export type ReadonlyQuat = readonly [number, number, number, number] | IndexedCo
  * @returns {Quat} a new quaternion
  */
 export function quatCreate(): Quat {
-  let out = new ARRAY_TYPE(4)
-  if (ARRAY_TYPE != Float32Array) {
-    out[0] = 0
-    out[1] = 0
-    out[2] = 0
-  }
-  out[3] = 1
-  return out
+	let out = new ARRAY_TYPE(4);
+	if (ARRAY_TYPE != Float32Array) {
+		out[0] = 0;
+		out[1] = 0;
+		out[2] = 0;
+	}
+	out[3] = 1;
+	return out;
 }
 
 /**
@@ -51,11 +59,11 @@ export function quatCreate(): Quat {
  * @returns {Quat} out
  */
 export function quatIdentity(out: Quat): Quat {
-  out[0] = 0
-  out[1] = 0
-  out[2] = 0
-  out[3] = 1
-  return out
+	out[0] = 0;
+	out[1] = 0;
+	out[2] = 0;
+	out[3] = 1;
+	return out;
 }
 
 /**
@@ -67,14 +75,18 @@ export function quatIdentity(out: Quat): Quat {
  * @param {Number} rad the angle in radians
  * @returns {Quat} out
  **/
-export function quatSetAxisAngle(out: Quat, axis: ReadonlyVec3, rad: number): Quat {
-  rad = rad * 0.5
-  let s = Math.sin(rad)
-  out[0] = s * axis[0]
-  out[1] = s * axis[1]
-  out[2] = s * axis[2]
-  out[3] = Math.cos(rad)
-  return out
+export function quatSetAxisAngle(
+	out: Quat,
+	axis: ReadonlyVec3,
+	rad: number,
+): Quat {
+	rad = rad * 0.5;
+	let s = Math.sin(rad);
+	out[0] = s * axis[0];
+	out[1] = s * axis[1];
+	out[2] = s * axis[2];
+	out[3] = Math.cos(rad);
+	return out;
 }
 
 /**
@@ -91,19 +103,19 @@ export function quatSetAxisAngle(out: Quat, axis: ReadonlyVec3, rad: number): Qu
  * @return {Number}     Angle, in radians, of the rotation
  */
 export function quatGetAxisAngle(out_axis: Vec3, q: ReadonlyQuat): number {
-  let rad = Math.acos(q[3]) * 2.0
-  let s = Math.sin(rad / 2.0)
-  if (s > EPSILON) {
-    out_axis[0] = q[0] / s
-    out_axis[1] = q[1] / s
-    out_axis[2] = q[2] / s
-  } else {
-    // If s is zero, return any axis (no rotation - axis does not matter)
-    out_axis[0] = 1
-    out_axis[1] = 0
-    out_axis[2] = 0
-  }
-  return rad
+	let rad = Math.acos(q[3]) * 2.0;
+	let s = Math.sin(rad / 2.0);
+	if (s > EPSILON) {
+		out_axis[0] = q[0] / s;
+		out_axis[1] = q[1] / s;
+		out_axis[2] = q[2] / s;
+	} else {
+		// If s is zero, return any axis (no rotation - axis does not matter)
+		out_axis[0] = 1;
+		out_axis[1] = 0;
+		out_axis[2] = 0;
+	}
+	return rad;
 }
 
 /**
@@ -114,9 +126,9 @@ export function quatGetAxisAngle(out_axis: Vec3, q: ReadonlyQuat): number {
  * @return {Number}     Angle, in radians, between the two quaternions
  */
 export function quatGetAngle(a: ReadonlyQuat, b: ReadonlyQuat): number {
-  let dotproduct = quatDot(a, b)
+	let dotproduct = quatDot(a, b);
 
-  return Math.acos(2 * dotproduct * dotproduct - 1)
+	return Math.acos(2 * dotproduct * dotproduct - 1);
 }
 
 /**
@@ -127,21 +139,25 @@ export function quatGetAngle(a: ReadonlyQuat, b: ReadonlyQuat): number {
  * @param {ReadonlyQuat} b the second operand
  * @returns {Quat} out
  */
-export function quatMultiply(out: Quat, a: ReadonlyQuat, b: ReadonlyQuat): Quat {
-  let ax = a[0],
-    ay = a[1],
-    az = a[2],
-    aw = a[3]
-  let bx = b[0],
-    by = b[1],
-    bz = b[2],
-    bw = b[3]
+export function quatMultiply(
+	out: Quat,
+	a: ReadonlyQuat,
+	b: ReadonlyQuat,
+): Quat {
+	let ax = a[0],
+		ay = a[1],
+		az = a[2],
+		aw = a[3];
+	let bx = b[0],
+		by = b[1],
+		bz = b[2],
+		bw = b[3];
 
-  out[0] = ax * bw + aw * bx + ay * bz - az * by
-  out[1] = ay * bw + aw * by + az * bx - ax * bz
-  out[2] = az * bw + aw * bz + ax * by - ay * bx
-  out[3] = aw * bw - ax * bx - ay * by - az * bz
-  return out
+	out[0] = ax * bw + aw * bx + ay * bz - az * by;
+	out[1] = ay * bw + aw * by + az * bx - ax * bz;
+	out[2] = az * bw + aw * bz + ax * by - ay * bx;
+	out[3] = aw * bw - ax * bx - ay * by - az * bz;
+	return out;
 }
 
 /**
@@ -153,20 +169,20 @@ export function quatMultiply(out: Quat, a: ReadonlyQuat, b: ReadonlyQuat): Quat 
  * @returns {Quat} out
  */
 export function quatRotateX(out: Quat, a: ReadonlyQuat, rad: number): Quat {
-  rad *= 0.5
+	rad *= 0.5;
 
-  let ax = a[0],
-    ay = a[1],
-    az = a[2],
-    aw = a[3]
-  let bx = Math.sin(rad),
-    bw = Math.cos(rad)
+	let ax = a[0],
+		ay = a[1],
+		az = a[2],
+		aw = a[3];
+	let bx = Math.sin(rad),
+		bw = Math.cos(rad);
 
-  out[0] = ax * bw + aw * bx
-  out[1] = ay * bw + az * bx
-  out[2] = az * bw - ay * bx
-  out[3] = aw * bw - ax * bx
-  return out
+	out[0] = ax * bw + aw * bx;
+	out[1] = ay * bw + az * bx;
+	out[2] = az * bw - ay * bx;
+	out[3] = aw * bw - ax * bx;
+	return out;
 }
 
 /**
@@ -178,20 +194,20 @@ export function quatRotateX(out: Quat, a: ReadonlyQuat, rad: number): Quat {
  * @returns {Quat} out
  */
 export function quatRotateY(out: Quat, a: ReadonlyQuat, rad: number): Quat {
-  rad *= 0.5
+	rad *= 0.5;
 
-  let ax = a[0],
-    ay = a[1],
-    az = a[2],
-    aw = a[3]
-  let by = Math.sin(rad),
-    bw = Math.cos(rad)
+	let ax = a[0],
+		ay = a[1],
+		az = a[2],
+		aw = a[3];
+	let by = Math.sin(rad),
+		bw = Math.cos(rad);
 
-  out[0] = ax * bw - az * by
-  out[1] = ay * bw + aw * by
-  out[2] = az * bw + ax * by
-  out[3] = aw * bw - ay * by
-  return out
+	out[0] = ax * bw - az * by;
+	out[1] = ay * bw + aw * by;
+	out[2] = az * bw + ax * by;
+	out[3] = aw * bw - ay * by;
+	return out;
 }
 
 /**
@@ -203,20 +219,20 @@ export function quatRotateY(out: Quat, a: ReadonlyQuat, rad: number): Quat {
  * @returns {Quat} out
  */
 export function quatRotateZ(out: Quat, a: ReadonlyQuat, rad: number): Quat {
-  rad *= 0.5
+	rad *= 0.5;
 
-  let ax = a[0],
-    ay = a[1],
-    az = a[2],
-    aw = a[3]
-  let bz = Math.sin(rad),
-    bw = Math.cos(rad)
+	let ax = a[0],
+		ay = a[1],
+		az = a[2],
+		aw = a[3];
+	let bz = Math.sin(rad),
+		bw = Math.cos(rad);
 
-  out[0] = ax * bw + ay * bz
-  out[1] = ay * bw - ax * bz
-  out[2] = az * bw + aw * bz
-  out[3] = aw * bw - az * bz
-  return out
+	out[0] = ax * bw + ay * bz;
+	out[1] = ay * bw - ax * bz;
+	out[2] = az * bw + aw * bz;
+	out[3] = aw * bw - az * bz;
+	return out;
 }
 
 /**
@@ -229,15 +245,15 @@ export function quatRotateZ(out: Quat, a: ReadonlyQuat, rad: number): Quat {
  * @returns {Quat} out
  */
 export function quatCalculateW(out: Quat, a: ReadonlyQuat): Quat {
-  let x = a[0],
-    y = a[1],
-    z = a[2]
+	let x = a[0],
+		y = a[1],
+		z = a[2];
 
-  out[0] = x
-  out[1] = y
-  out[2] = z
-  out[3] = Math.sqrt(Math.abs(1.0 - x * x - y * y - z * z))
-  return out
+	out[0] = x;
+	out[1] = y;
+	out[2] = z;
+	out[3] = Math.sqrt(Math.abs(1.0 - x * x - y * y - z * z));
+	return out;
 }
 
 /**
@@ -248,21 +264,21 @@ export function quatCalculateW(out: Quat, a: ReadonlyQuat): Quat {
  * @returns {Quat} out
  */
 export function quatExp(out: Quat, a: ReadonlyQuat): Quat {
-  let x = a[0],
-    y = a[1],
-    z = a[2],
-    w = a[3]
+	let x = a[0],
+		y = a[1],
+		z = a[2],
+		w = a[3];
 
-  let r = Math.sqrt(x * x + y * y + z * z)
-  let et = Math.exp(w)
-  let s = r > 0 ? (et * Math.sin(r)) / r : 0
+	let r = Math.sqrt(x * x + y * y + z * z);
+	let et = Math.exp(w);
+	let s = r > 0 ? (et * Math.sin(r)) / r : 0;
 
-  out[0] = x * s
-  out[1] = y * s
-  out[2] = z * s
-  out[3] = et * Math.cos(r)
+	out[0] = x * s;
+	out[1] = y * s;
+	out[2] = z * s;
+	out[3] = et * Math.cos(r);
 
-  return out
+	return out;
 }
 
 /**
@@ -273,20 +289,20 @@ export function quatExp(out: Quat, a: ReadonlyQuat): Quat {
  * @returns {Quat} out
  */
 export function quatLn(out: Quat, a: ReadonlyQuat): Quat {
-  let x = a[0],
-    y = a[1],
-    z = a[2],
-    w = a[3]
+	let x = a[0],
+		y = a[1],
+		z = a[2],
+		w = a[3];
 
-  let r = Math.sqrt(x * x + y * y + z * z)
-  let t = r > 0 ? Math.atan2(r, w) / r : 0
+	let r = Math.sqrt(x * x + y * y + z * z);
+	let t = r > 0 ? Math.atan2(r, w) / r : 0;
 
-  out[0] = x * t
-  out[1] = y * t
-  out[2] = z * t
-  out[3] = 0.5 * Math.log(x * x + y * y + z * z + w * w)
+	out[0] = x * t;
+	out[1] = y * t;
+	out[2] = z * t;
+	out[3] = 0.5 * Math.log(x * x + y * y + z * z + w * w);
 
-  return out
+	return out;
 }
 
 /**
@@ -298,10 +314,10 @@ export function quatLn(out: Quat, a: ReadonlyQuat): Quat {
  * @returns {Quat} out
  */
 export function quatPow(out: Quat, a: ReadonlyQuat, b: number): Quat {
-  quatLn(out, a)
-  quatScale(out, out, b)
-  quatExp(out, out)
-  return out
+	quatLn(out, a);
+	quatScale(out, out, b);
+	quatExp(out, out);
+	return out;
 }
 
 /**
@@ -313,50 +329,55 @@ export function quatPow(out: Quat, a: ReadonlyQuat, b: number): Quat {
  * @param {Number} t interpolation amount, in the range [0-1], between the two inputs
  * @returns {Quat} out
  */
-export function quatSlerp(out: Quat, a: ReadonlyQuat, b: ReadonlyQuat, t: number): Quat {
-  // benchmarks:
-  //    http://jsperf.com/quaternion-slerp-implementations
-  let ax = a[0],
-    ay = a[1],
-    az = a[2],
-    aw = a[3]
-  let bx = b[0],
-    by = b[1],
-    bz = b[2],
-    bw = b[3]
+export function quatSlerp(
+	out: Quat,
+	a: ReadonlyQuat,
+	b: ReadonlyQuat,
+	t: number,
+): Quat {
+	// benchmarks:
+	//    http://jsperf.com/quaternion-slerp-implementations
+	let ax = a[0],
+		ay = a[1],
+		az = a[2],
+		aw = a[3];
+	let bx = b[0],
+		by = b[1],
+		bz = b[2],
+		bw = b[3];
 
-  let omega, cosom, sinom, scale0, scale1
+	let omega, cosom, sinom, scale0, scale1;
 
-  // calc cosine
-  cosom = ax * bx + ay * by + az * bz + aw * bw
-  // adjust signs (if necessary)
-  if (cosom < 0.0) {
-    cosom = -cosom
-    bx = -bx
-    by = -by
-    bz = -bz
-    bw = -bw
-  }
-  // calculate coefficients
-  if (1.0 - cosom > EPSILON) {
-    // standard case (slerp)
-    omega = Math.acos(cosom)
-    sinom = Math.sin(omega)
-    scale0 = Math.sin((1.0 - t) * omega) / sinom
-    scale1 = Math.sin(t * omega) / sinom
-  } else {
-    // "from" and "to" quaternions are very close
-    //  ... so we can do a linear interpolation
-    scale0 = 1.0 - t
-    scale1 = t
-  }
-  // calculate final values
-  out[0] = scale0 * ax + scale1 * bx
-  out[1] = scale0 * ay + scale1 * by
-  out[2] = scale0 * az + scale1 * bz
-  out[3] = scale0 * aw + scale1 * bw
+	// calc cosine
+	cosom = ax * bx + ay * by + az * bz + aw * bw;
+	// adjust signs (if necessary)
+	if (cosom < 0.0) {
+		cosom = -cosom;
+		bx = -bx;
+		by = -by;
+		bz = -bz;
+		bw = -bw;
+	}
+	// calculate coefficients
+	if (1.0 - cosom > EPSILON) {
+		// standard case (slerp)
+		omega = Math.acos(cosom);
+		sinom = Math.sin(omega);
+		scale0 = Math.sin((1.0 - t) * omega) / sinom;
+		scale1 = Math.sin(t * omega) / sinom;
+	} else {
+		// "from" and "to" quaternions are very close
+		//  ... so we can do a linear interpolation
+		scale0 = 1.0 - t;
+		scale1 = t;
+	}
+	// calculate final values
+	out[0] = scale0 * ax + scale1 * bx;
+	out[1] = scale0 * ay + scale1 * by;
+	out[2] = scale0 * az + scale1 * bz;
+	out[3] = scale0 * aw + scale1 * bw;
 
-  return out
+	return out;
 }
 
 /**
@@ -366,20 +387,20 @@ export function quatSlerp(out: Quat, a: ReadonlyQuat, b: ReadonlyQuat, t: number
  * @returns {Quat} out
  */
 export function quatRandom(out: Quat): Quat {
-  // Implementation of http://planning.cs.uiuc.edu/node198.html
-  // TODO: Calling random 3 times is probably not the fastest solution
-  let u1 = RANDOM()
-  let u2 = RANDOM()
-  let u3 = RANDOM()
+	// Implementation of http://planning.cs.uiuc.edu/node198.html
+	// TODO: Calling random 3 times is probably not the fastest solution
+	let u1 = RANDOM();
+	let u2 = RANDOM();
+	let u3 = RANDOM();
 
-  let sqrt1MinusU1 = Math.sqrt(1 - u1)
-  let sqrtU1 = Math.sqrt(u1)
+	let sqrt1MinusU1 = Math.sqrt(1 - u1);
+	let sqrtU1 = Math.sqrt(u1);
 
-  out[0] = sqrt1MinusU1 * Math.sin(2.0 * Math.PI * u2)
-  out[1] = sqrt1MinusU1 * Math.cos(2.0 * Math.PI * u2)
-  out[2] = sqrtU1 * Math.sin(2.0 * Math.PI * u3)
-  out[3] = sqrtU1 * Math.cos(2.0 * Math.PI * u3)
-  return out
+	out[0] = sqrt1MinusU1 * Math.sin(2.0 * Math.PI * u2);
+	out[1] = sqrt1MinusU1 * Math.cos(2.0 * Math.PI * u2);
+	out[2] = sqrtU1 * Math.sin(2.0 * Math.PI * u3);
+	out[3] = sqrtU1 * Math.cos(2.0 * Math.PI * u3);
+	return out;
 }
 
 /**
@@ -390,20 +411,20 @@ export function quatRandom(out: Quat): Quat {
  * @returns {Quat} out
  */
 export function quatInvert(out: Quat, a: ReadonlyQuat): Quat {
-  let a0 = a[0],
-    a1 = a[1],
-    a2 = a[2],
-    a3 = a[3]
-  let dot = a0 * a0 + a1 * a1 + a2 * a2 + a3 * a3
-  let invDot = dot ? 1.0 / dot : 0
+	let a0 = a[0],
+		a1 = a[1],
+		a2 = a[2],
+		a3 = a[3];
+	let dot = a0 * a0 + a1 * a1 + a2 * a2 + a3 * a3;
+	let invDot = dot ? 1.0 / dot : 0;
 
-  // TODO: Would be faster to return [0,0,0,0] immediately if dot == 0
+	// TODO: Would be faster to return [0,0,0,0] immediately if dot == 0
 
-  out[0] = -a0 * invDot
-  out[1] = -a1 * invDot
-  out[2] = -a2 * invDot
-  out[3] = a3 * invDot
-  return out
+	out[0] = -a0 * invDot;
+	out[1] = -a1 * invDot;
+	out[2] = -a2 * invDot;
+	out[3] = a3 * invDot;
+	return out;
 }
 
 /**
@@ -415,11 +436,11 @@ export function quatInvert(out: Quat, a: ReadonlyQuat): Quat {
  * @returns {Quat} out
  */
 export function quatConjugate(out: Quat, a: ReadonlyQuat): Quat {
-  out[0] = -a[0]
-  out[1] = -a[1]
-  out[2] = -a[2]
-  out[3] = a[3]
-  return out
+	out[0] = -a[0];
+	out[1] = -a[1];
+	out[2] = -a[2];
+	out[3] = a[3];
+	return out;
 }
 
 /**
@@ -434,38 +455,41 @@ export function quatConjugate(out: Quat, a: ReadonlyQuat): Quat {
  * @function
  */
 export function quatFromMat3(out: Quat, m: ReadonlyMat3): Quat {
-  // Algorithm in Ken Shoemake's article in 1987 SIGGRAPH course notes
-  // article "quaternion Calculus and Fast Animation".
-  let fTrace = m[0] + m[4] + m[8]
-  let fRoot
+	// Algorithm in Ken Shoemake's article in 1987 SIGGRAPH course notes
+	// article "quaternion Calculus and Fast Animation".
+	let fTrace = m[0] + m[4] + m[8];
+	let fRoot;
 
-  if (fTrace > 0.0) {
-    // |w| > 1/2, may as well choose w > 1/2
-    fRoot = Math.sqrt(fTrace + 1.0) // 2w
-    out[3] = 0.5 * fRoot
-    fRoot = 0.5 / fRoot // 1/(4w)
-    out[0] = (m[5] - m[7]) * fRoot
-    out[1] = (m[6] - m[2]) * fRoot
-    out[2] = (m[1] - m[3]) * fRoot
-  } else {
-    // |w| <= 1/2
-    let i = 0
-    if (m[4] > m[0]) i = 1
-    if (m[8] > (m[i * 3 + i] as number)) i = 2
-    let j = (i + 1) % 3
-    let k = (i + 2) % 3
+	if (fTrace > 0.0) {
+		// |w| > 1/2, may as well choose w > 1/2
+		fRoot = Math.sqrt(fTrace + 1.0); // 2w
+		out[3] = 0.5 * fRoot;
+		fRoot = 0.5 / fRoot; // 1/(4w)
+		out[0] = (m[5] - m[7]) * fRoot;
+		out[1] = (m[6] - m[2]) * fRoot;
+		out[2] = (m[1] - m[3]) * fRoot;
+	} else {
+		// |w| <= 1/2
+		let i = 0;
+		if (m[4] > m[0]) i = 1;
+		if (m[8] > (m[i * 3 + i] as number)) i = 2;
+		let j = (i + 1) % 3;
+		let k = (i + 2) % 3;
 
-    fRoot = Math.sqrt(
-      (m[i * 3 + i] as number) - (m[j * 3 + j] as number) - (m[k * 3 + k] as number) + 1.0,
-    )
-    out[i] = 0.5 * fRoot
-    fRoot = 0.5 / fRoot
-    out[3] = ((m[j * 3 + k] as number) - (m[k * 3 + j] as number)) * fRoot
-    out[j] = ((m[j * 3 + i] as number) + (m[i * 3 + j] as number)) * fRoot
-    out[k] = ((m[k * 3 + i] as number) + (m[i * 3 + k] as number)) * fRoot
-  }
+		fRoot = Math.sqrt(
+			(m[i * 3 + i] as number) -
+				(m[j * 3 + j] as number) -
+				(m[k * 3 + k] as number) +
+				1.0,
+		);
+		out[i] = 0.5 * fRoot;
+		fRoot = 0.5 / fRoot;
+		out[3] = ((m[j * 3 + k] as number) - (m[k * 3 + j] as number)) * fRoot;
+		out[j] = ((m[j * 3 + i] as number) + (m[i * 3 + j] as number)) * fRoot;
+		out[k] = ((m[k * 3 + i] as number) + (m[i * 3 + k] as number)) * fRoot;
+	}
 
-  return out
+	return out;
 }
 
 /**
@@ -480,72 +504,72 @@ export function quatFromMat3(out: Quat, m: ReadonlyMat3): Quat {
  * @function
  */
 export function quatFromEuler(
-  out: Quat,
-  x: number,
-  y: number,
-  z: number,
-  order: 'zyx' | 'xyz' | 'xzy' | 'yxz' | 'yzx' | 'zxy' | 'zyx' = ANGLE_ORDER,
+	out: Quat,
+	x: number,
+	y: number,
+	z: number,
+	order: "zyx" | "xyz" | "xzy" | "yxz" | "yzx" | "zxy" | "zyx" = ANGLE_ORDER,
 ): Quat {
-  let halfToRad = Math.PI / 360
-  x *= halfToRad
-  z *= halfToRad
-  y *= halfToRad
+	let halfToRad = Math.PI / 360;
+	x *= halfToRad;
+	z *= halfToRad;
+	y *= halfToRad;
 
-  let sx = Math.sin(x)
-  let cx = Math.cos(x)
-  let sy = Math.sin(y)
-  let cy = Math.cos(y)
-  let sz = Math.sin(z)
-  let cz = Math.cos(z)
+	let sx = Math.sin(x);
+	let cx = Math.cos(x);
+	let sy = Math.sin(y);
+	let cy = Math.cos(y);
+	let sz = Math.sin(z);
+	let cz = Math.cos(z);
 
-  switch (order) {
-    case 'xyz':
-      out[0] = sx * cy * cz + cx * sy * sz
-      out[1] = cx * sy * cz - sx * cy * sz
-      out[2] = cx * cy * sz + sx * sy * cz
-      out[3] = cx * cy * cz - sx * sy * sz
-      break
+	switch (order) {
+		case "xyz":
+			out[0] = sx * cy * cz + cx * sy * sz;
+			out[1] = cx * sy * cz - sx * cy * sz;
+			out[2] = cx * cy * sz + sx * sy * cz;
+			out[3] = cx * cy * cz - sx * sy * sz;
+			break;
 
-    case 'xzy':
-      out[0] = sx * cy * cz - cx * sy * sz
-      out[1] = cx * sy * cz - sx * cy * sz
-      out[2] = cx * cy * sz + sx * sy * cz
-      out[3] = cx * cy * cz + sx * sy * sz
-      break
+		case "xzy":
+			out[0] = sx * cy * cz - cx * sy * sz;
+			out[1] = cx * sy * cz - sx * cy * sz;
+			out[2] = cx * cy * sz + sx * sy * cz;
+			out[3] = cx * cy * cz + sx * sy * sz;
+			break;
 
-    case 'yxz':
-      out[0] = sx * cy * cz + cx * sy * sz
-      out[1] = cx * sy * cz - sx * cy * sz
-      out[2] = cx * cy * sz - sx * sy * cz
-      out[3] = cx * cy * cz + sx * sy * sz
-      break
+		case "yxz":
+			out[0] = sx * cy * cz + cx * sy * sz;
+			out[1] = cx * sy * cz - sx * cy * sz;
+			out[2] = cx * cy * sz - sx * sy * cz;
+			out[3] = cx * cy * cz + sx * sy * sz;
+			break;
 
-    case 'yzx':
-      out[0] = sx * cy * cz + cx * sy * sz
-      out[1] = cx * sy * cz + sx * cy * sz
-      out[2] = cx * cy * sz - sx * sy * cz
-      out[3] = cx * cy * cz - sx * sy * sz
-      break
+		case "yzx":
+			out[0] = sx * cy * cz + cx * sy * sz;
+			out[1] = cx * sy * cz + sx * cy * sz;
+			out[2] = cx * cy * sz - sx * sy * cz;
+			out[3] = cx * cy * cz - sx * sy * sz;
+			break;
 
-    case 'zxy':
-      out[0] = sx * cy * cz - cx * sy * sz
-      out[1] = cx * sy * cz + sx * cy * sz
-      out[2] = cx * cy * sz + sx * sy * cz
-      out[3] = cx * cy * cz - sx * sy * sz
-      break
+		case "zxy":
+			out[0] = sx * cy * cz - cx * sy * sz;
+			out[1] = cx * sy * cz + sx * cy * sz;
+			out[2] = cx * cy * sz + sx * sy * cz;
+			out[3] = cx * cy * cz - sx * sy * sz;
+			break;
 
-    case 'zyx':
-      out[0] = sx * cy * cz - cx * sy * sz
-      out[1] = cx * sy * cz + sx * cy * sz
-      out[2] = cx * cy * sz - sx * sy * cz
-      out[3] = cx * cy * cz + sx * sy * sz
-      break
+		case "zyx":
+			out[0] = sx * cy * cz - cx * sy * sz;
+			out[1] = cx * sy * cz + sx * cy * sz;
+			out[2] = cx * cy * sz - sx * sy * cz;
+			out[3] = cx * cy * cz + sx * sy * sz;
+			break;
 
-    default:
-      throw new Error('Unknown angle order ' + order)
-  }
+		default:
+			throw new Error("Unknown angle order " + order);
+	}
 
-  return out
+	return out;
 }
 
 /**
@@ -555,7 +579,7 @@ export function quatFromEuler(
  * @returns {String} string representation of the vector
  */
 export function quatStr(a: ReadonlyQuat): string {
-  return 'Quat(' + a[0] + ', ' + a[1] + ', ' + a[2] + ', ' + a[3] + ')'
+	return "Quat(" + a[0] + ", " + a[1] + ", " + a[2] + ", " + a[3] + ")";
 }
 
 /**
@@ -565,7 +589,7 @@ export function quatStr(a: ReadonlyQuat): string {
  * @returns {Quat} a new quaternion
  * @function
  */
-export const quatClone = vec4Clone
+export const quatClone = vec4Clone;
 
 /**
  * Creates a new Quat initialized with the given values
@@ -577,7 +601,7 @@ export const quatClone = vec4Clone
  * @returns {Quat} a new quaternion
  * @function
  */
-export const quatFromValues = vec4FromValues
+export const quatFromValues = vec4FromValues;
 
 /**
  * Copy the values from one Quat to another
@@ -587,7 +611,7 @@ export const quatFromValues = vec4FromValues
  * @returns {Quat} out
  * @function
  */
-export const quatCopy = vec4Copy
+export const quatCopy = vec4Copy;
 
 /**
  * Set the components of a Quat to the given values
@@ -600,7 +624,7 @@ export const quatCopy = vec4Copy
  * @returns {Quat} out
  * @function
  */
-export const quatSet = vec4Set
+export const quatSet = vec4Set;
 
 /**
  * Adds two Quat's
@@ -611,13 +635,13 @@ export const quatSet = vec4Set
  * @returns {Quat} out
  * @function
  */
-export const quatAdd = vec4Add
+export const quatAdd = vec4Add;
 
 /**
  * Alias for {@link quatMultiply}
  * @function
  */
-export const quatMul = quatMultiply
+export const quatMul = quatMultiply;
 
 /**
  * Scales a Quat by a scalar number
@@ -628,7 +652,7 @@ export const quatMul = quatMultiply
  * @returns {Quat} out
  * @function
  */
-export const quatScale = vec4Scale
+export const quatScale = vec4Scale;
 
 /**
  * Calculates the dot product of two Quat's
@@ -638,7 +662,7 @@ export const quatScale = vec4Scale
  * @returns {Number} dot product of a and b
  * @function
  */
-export const quatDot = vec4Dot
+export const quatDot = vec4Dot;
 
 /**
  * Performs a linear interpolation between two Quat's
@@ -650,7 +674,7 @@ export const quatDot = vec4Dot
  * @returns {Quat} out
  * @function
  */
-export const quatLerp = vec4Lerp
+export const quatLerp = vec4Lerp;
 
 /**
  * Calculates the length of a Quat
@@ -658,13 +682,13 @@ export const quatLerp = vec4Lerp
  * @param {ReadonlyQuat} a vector to calculate length of
  * @returns {Number} length of a
  */
-export const quatLength = vec4Length
+export const quatLength = vec4Length;
 
 /**
  * Alias for {@link Quat.length}
  * @function
  */
-export const quatLen = quatLength
+export const quatLen = quatLength;
 
 /**
  * Calculates the squared length of a Quat
@@ -673,13 +697,13 @@ export const quatLen = quatLength
  * @returns {Number} squared length of a
  * @function
  */
-export const quatSquaredLength = vec4SquaredLength
+export const quatSquaredLength = vec4SquaredLength;
 
 /**
  * Alias for {@link quatSquaredLength}
  * @function
  */
-export const quatSqrLen = quatSquaredLength
+export const quatSqrLen = quatSquaredLength;
 
 /**
  * Normalize a Quat
@@ -689,7 +713,7 @@ export const quatSqrLen = quatSquaredLength
  * @returns {Quat} out
  * @function
  */
-export const quatNormalize = vec4Normalize
+export const quatNormalize = vec4Normalize;
 
 /**
  * Returns whether or not the quaternions have exactly the same elements in the same position (when compared with ===)
@@ -698,7 +722,7 @@ export const quatNormalize = vec4Normalize
  * @param {ReadonlyQuat} b The second quaternion.
  * @returns {Boolean} True if the vectors are equal, false otherwise.
  */
-export const quatExactEquals = vec4ExactEquals
+export const quatExactEquals = vec4ExactEquals;
 
 /**
  * Returns whether or not the quaternions point approximately to the same direction.
@@ -710,7 +734,7 @@ export const quatExactEquals = vec4ExactEquals
  * @returns {Boolean} True if the quaternions are equal, false otherwise.
  */
 export function quatEquals(a: ReadonlyQuat, b: ReadonlyQuat): boolean {
-  return Math.abs(quatDot(a, b)) >= 1 - EPSILON
+	return Math.abs(quatDot(a, b)) >= 1 - EPSILON;
 }
 
 /**
@@ -725,34 +749,34 @@ export function quatEquals(a: ReadonlyQuat, b: ReadonlyQuat): boolean {
  * @returns {Quat} out
  */
 export const rotationTo = (function () {
-  let tmpvec3 = vec3Create()
-  let xUnitVec3 = vec3FromValues(1, 0, 0)
-  let yUnitVec3 = vec3FromValues(0, 1, 0)
+	let tmpvec3 = vec3Create();
+	let xUnitVec3 = vec3FromValues(1, 0, 0);
+	let yUnitVec3 = vec3FromValues(0, 1, 0);
 
-  return function (out: Quat, a: ReadonlyVec3, b: ReadonlyVec3): Quat {
-    let dot = vec3Dot(a, b)
-    if (dot < -0.999999) {
-      vec3Cross(tmpvec3, xUnitVec3, a)
-      if (vec3Len(tmpvec3) < 0.000001) vec3Cross(tmpvec3, yUnitVec3, a)
-      vec3Normalize(tmpvec3, tmpvec3)
-      quatSetAxisAngle(out, tmpvec3, Math.PI)
-      return out
-    } else if (dot > 0.999999) {
-      out[0] = 0
-      out[1] = 0
-      out[2] = 0
-      out[3] = 1
-      return out
-    } else {
-      vec3Cross(tmpvec3, a, b)
-      out[0] = tmpvec3[0]
-      out[1] = tmpvec3[1]
-      out[2] = tmpvec3[2]
-      out[3] = 1 + dot
-      return quatNormalize(out, out)
-    }
-  }
-})()
+	return function (out: Quat, a: ReadonlyVec3, b: ReadonlyVec3): Quat {
+		let dot = vec3Dot(a, b);
+		if (dot < -0.999999) {
+			vec3Cross(tmpvec3, xUnitVec3, a);
+			if (vec3Len(tmpvec3) < 0.000001) vec3Cross(tmpvec3, yUnitVec3, a);
+			vec3Normalize(tmpvec3, tmpvec3);
+			quatSetAxisAngle(out, tmpvec3, Math.PI);
+			return out;
+		} else if (dot > 0.999999) {
+			out[0] = 0;
+			out[1] = 0;
+			out[2] = 0;
+			out[3] = 1;
+			return out;
+		} else {
+			vec3Cross(tmpvec3, a, b);
+			out[0] = tmpvec3[0];
+			out[1] = tmpvec3[1];
+			out[2] = tmpvec3[2];
+			out[3] = 1 + dot;
+			return quatNormalize(out, out);
+		}
+	};
+})();
 
 /**
  * Performs a spherical linear interpolation with two control points
@@ -766,24 +790,24 @@ export const rotationTo = (function () {
  * @returns {Quat} out
  */
 export const sqlerp = (function () {
-  let temp1 = quatCreate()
-  let temp2 = quatCreate()
+	let temp1 = quatCreate();
+	let temp2 = quatCreate();
 
-  return function (
-    out: Quat,
-    a: ReadonlyQuat,
-    b: ReadonlyQuat,
-    c: ReadonlyQuat,
-    d: ReadonlyQuat,
-    t: number,
-  ) {
-    quatSlerp(temp1, a, d, t)
-    quatSlerp(temp2, b, c, t)
-    quatSlerp(out, temp1, temp2, 2 * t * (1 - t))
+	return function (
+		out: Quat,
+		a: ReadonlyQuat,
+		b: ReadonlyQuat,
+		c: ReadonlyQuat,
+		d: ReadonlyQuat,
+		t: number,
+	) {
+		quatSlerp(temp1, a, d, t);
+		quatSlerp(temp2, b, c, t);
+		quatSlerp(out, temp1, temp2, 2 * t * (1 - t));
 
-    return out
-  }
-})()
+		return out;
+	};
+})();
 
 /**
  * Sets the specified quaternion with values corresponding to the given
@@ -796,21 +820,26 @@ export const sqlerp = (function () {
  * @returns {Quat} out
  */
 export const setAxes = (function () {
-  let matr = mat3Create()
+	let matr = mat3Create();
 
-  return function (out: ReadonlyVec3, view: ReadonlyVec3, right: ReadonlyVec3, up: ReadonlyVec3) {
-    matr[0] = right[0]
-    matr[3] = right[1]
-    matr[6] = right[2]
+	return function (
+		out: ReadonlyVec3,
+		view: ReadonlyVec3,
+		right: ReadonlyVec3,
+		up: ReadonlyVec3,
+	) {
+		matr[0] = right[0];
+		matr[3] = right[1];
+		matr[6] = right[2];
 
-    matr[1] = up[0]
-    matr[4] = up[1]
-    matr[7] = up[2]
+		matr[1] = up[0];
+		matr[4] = up[1];
+		matr[7] = up[2];
 
-    matr[2] = -view[0]
-    matr[5] = -view[1]
-    matr[8] = -view[2]
+		matr[2] = -view[0];
+		matr[5] = -view[1];
+		matr[8] = -view[2];
 
-    return quatNormalize(out, quatFromMat3(out, matr))
-  }
-})()
+		return quatNormalize(out, quatFromMat3(out, matr));
+	};
+})();

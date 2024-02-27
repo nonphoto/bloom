@@ -1,6 +1,6 @@
-import { useParams } from 'solid-start'
+import { useParams } from "solid-start";
 
 export default function UserPage() {
-  const params = useParams()
-  return <div>{params['projectSlug']}</div>
+	const params = useParams();
+	return <div>{params["projectSlug"]}</div>;
 }
