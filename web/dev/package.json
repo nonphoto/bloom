@@ -26,6 +26,7 @@
     "@nonphoto/css": "1.0.4",
     "@solid-devtools/logger": "0.7.4",
     "@solid-primitives/context": "0.2.1",
+    "@solid-primitives/event-listener": "2.3.1",
     "@solid-primitives/map": "^0.4.8",
     "@solid-primitives/mouse": "2.0.16",
     "@solid-primitives/raf": "2.1.13",
