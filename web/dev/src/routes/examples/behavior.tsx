@@ -1,4 +1,5 @@
 import {
+	Behavior,
 	Spring,
 	SpringOptions,
 	behaviorDelay,
@@ -31,14 +32,17 @@ function createSpring(options: MaybeAccessor<Partial<SpringOptions>>) {
 					start: springPosition(prev, deltaTime),
 					startVelocity: springVelocity(prev, deltaTime),
 					...optionsValue,
-				})
+			  })
 			: springCreate(optionsValue);
 	});
 }
 
-function createSpringBehavior(options: MaybeAccessor<Partial<SpringOptions>>) {
+function createSpringBehavior(
+	options: MaybeAccessor<Partial<SpringOptions>>,
+): Behavior<number> {
 	const spring = createSpring(options);
-	return createMemo(() => springBehavior(spring()));
+	const memo = createMemo(() => springBehavior(spring()));
+	return (t) => memo()(t);
 }
 
 export default function () {
@@ -58,9 +62,7 @@ export default function () {
 				height: "100px",
 				background: "skyblue",
 			}}
-		>
-			Hello
-		</div>
+		></div>
 	) as Element;
 
 	const x = createSpringBehavior(() => ({
@@ -79,7 +81,7 @@ export default function () {
 				"transform",
 				behaviorDelay(
 					performance.now(),
-					(t: number) => `translate(${x()(t)}px, ${y()(t)}px)`,
+					(t: number) => `translate(${x(t)}px, ${y(t)}px)`,
 				),
 				{ fill: "forwards" },
 			),

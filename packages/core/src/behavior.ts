@@ -93,7 +93,7 @@ export function toControls(g: () => Generator<Animation>) {
 
 export function springBehavior(s: Spring): Behavior<number> {
 	return withRanges(
-		() => [[0, springDuration(s, 1)]],
+		() => [[0, springDuration(s, 0.1)]],
 		(t: number) => springPosition(s, t),
 	);
 }
