@@ -2,6 +2,7 @@ import type { Range } from "./range";
 import { Spring, springDuration, springPosition } from "./spring";
 
 export type Behavior<T> = (t: number) => T;
+export type MaybeBehavior<T> = Behavior<T> | T;
 
 const maxDuration = 10_000;
 const frameDuration = 1_000 / 60;
