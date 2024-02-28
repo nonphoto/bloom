@@ -1,4 +1,4 @@
-import { Batcher } from "@chloranthy/layout-model";
+import { Batcher } from "./batcher";
 
 type Attempt<T, U> = {
 	value: T;
@@ -6,16 +6,12 @@ type Attempt<T, U> = {
 	onFailure: () => void;
 };
 
-export class TransitionMatcher<T, Enter, Exit> {
+export class Matcher<T, Enter, Exit> {
 	#entering = new Map<T, Attempt<Enter, Exit>[]>();
 	#exiting = new Map<T, Attempt<Exit, Enter>[]>();
-	#onPreRun?: () => void;
-	#onPostRun?: () => void;
-	#onFirstAttempt?: () => void;
+	#onRun: (run: () => void) => void = (run) => run();
 	#batcher = new Batcher({
-		onFirstEnqueue: () => this.#onFirstAttempt?.(),
-		onPreRun: () => {
-			this.#onPreRun?.();
+		onRun: (run) => {
 			const keys = new Set([...this.#entering.keys(), ...this.#exiting.keys()]);
 			for (const key of keys) {
 				const entering = this.#entering.get(key) ?? [];
@@ -42,22 +38,16 @@ export class TransitionMatcher<T, Enter, Exit> {
 					i++;
 				}
 			}
-		},
-		onPostRun: () => {
-			this.#onPostRun?.();
+
+			this.#onRun(run);
+
 			this.#entering = new Map<T, Attempt<Enter, Exit>[]>();
 			this.#exiting = new Map<T, Attempt<Exit, Enter>[]>();
 		},
 	});
 
-	constructor(options?: {
-		onPreRun?: () => void;
-		onPostRun?: () => void;
-		onFirstAttempt?: () => void;
-	}) {
-		this.#onPreRun = options?.onPreRun;
-		this.#onPostRun = options?.onPostRun;
-		this.#onFirstAttempt = options?.onFirstAttempt;
+	constructor(options?: { onRun?: () => void }) {
+		this.#onRun = options?.onRun ?? this.#onRun;
 	}
 
 	#attempt<Send, Receive>(

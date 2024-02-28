@@ -1,5 +1,5 @@
 import { ARRAY_TYPE, EPSILON, IndexedCollection } from "./common";
-import { ReadonlyVec2 } from "./vec2";
+import { ReadonlyVec2, Vec2 } from "./vec2";
 
 // prettier-ignore
 export type Mat2d =
@@ -366,6 +366,16 @@ export function mat2dFromTranslation(out: Mat2d, v: ReadonlyVec2): Mat2d {
 	out[3] = 1;
 	out[4] = v[0];
 	out[5] = v[1];
+	return out;
+}
+
+export function mat2dScaling(out: Vec2, a: ReadonlyMat2d): Vec2 {
+	let m11 = a[0];
+	let m12 = a[1];
+	let m21 = a[2];
+	let m22 = a[3];
+	out[0] = Math.hypot(m11, m12);
+	out[1] = Math.hypot(m21, m22);
 	return out;
 }
 

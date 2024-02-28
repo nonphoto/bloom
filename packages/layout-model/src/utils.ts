@@ -1,10 +1,5 @@
 import { access, MaybeAccessor } from "@solid-primitives/utils";
-import { Mat2d, Vec2, vec2Set } from "@chloranthy/core";
 import { createEffect, createRoot } from "solid-js";
-
-export type MapMaybeAccessor<T> = T extends any[]
-	? { [K in keyof T]: MaybeAccessor<T[K] | null | undefined> }
-	: never;
 
 const willChangeValues = [
 	"position",
@@ -17,51 +12,6 @@ const willChangeValues = [
 	"webkit-filter",
 	"isolation",
 ];
-
-export function borderRadius(radius: number, size: Vec2, transform: Mat2d) {
-	const x = (radius / (size[0] * transform[0])) * 100;
-	const y = (radius / (size[1] * transform[3])) * 100;
-	return `${x}% / ${y}%`;
-}
-
-export function boxShadow(
-	inset: boolean,
-	offsetX: number,
-	offsetY: number,
-	blurRadius: number,
-	spreadRadius: number,
-	color: string,
-	transform: Mat2d,
-) {
-	const meanScale = (transform[0] + transform[3]) / 2;
-	return `${inset ? "inset " : ""}${offsetX / transform[0]}px ${
-		offsetY / transform[3]
-	}px ${blurRadius / meanScale}px ${spreadRadius / meanScale}px ${color}`;
-}
-
-export function getScaling(out: Vec2, a: Mat2d) {
-	let m11 = a[0];
-	let m12 = a[1];
-	let m21 = a[2];
-	let m22 = a[3];
-	out[0] = Math.hypot(m11, m12);
-	out[1] = Math.hypot(m21, m22);
-	return out;
-}
-
-export function center(out: Vec2, rect: DOMRect) {
-	return vec2Set(out, rect.x + rect.width / 2, rect.y + rect.height / 2);
-}
-
-export function mat2dFromNegativeTranslation(out: Mat2d, a: Vec2) {
-	out[0] = 1;
-	out[1] = 0;
-	out[2] = 0;
-	out[3] = 1;
-	out[4] = -a[0];
-	out[5] = -a[1];
-	return out;
-}
 
 export function isFlexItem(element: Element) {
 	const parent = element.parentElement;
@@ -125,18 +75,7 @@ export function getScrollEmitter(element: HTMLElement): HTMLElement | Document {
 	return element === document.documentElement ? document : element;
 }
 
-export function styleTransform(transform: Mat2d): string {
-	let result = "matrix(";
-	for (let i = 0; i < transform.length; i++) {
-		result += String(transform[i]);
-		if (i !== transform.length - 1) {
-			result += ",";
-		}
-	}
-	return result + ")";
-}
-
-export function walkParents(
+export function walkAncestors(
 	element: HTMLElement,
 	callback: (element: HTMLElement) => void,
 ) {
@@ -147,7 +86,7 @@ export function walkParents(
 	}
 }
 
-export function walkChildren(
+export function walkDescendants(
 	root: HTMLElement,
 	callback: (element: HTMLElement) => void,
 ) {
@@ -166,14 +105,12 @@ export function walkChildren(
 	}
 }
 
-export function withDocument<T>(fn: (document: Document) => T) {
-	return typeof document !== "undefined" ? fn(document) : undefined;
+export function safeDocument(): Document | undefined {
+	return typeof document !== "undefined" ? document : undefined;
 }
 
-export function isDocumentElement(element: HTMLElement) {
-	return (
-		withDocument((document) => element === document.documentElement) ?? false
-	);
+export function isDocumentElement(element: HTMLElement): boolean {
+	return safeDocument()?.documentElement === element;
 }
 
 export function mutatedElements(records: MutationRecord[]): Set<HTMLElement> {
@@ -191,16 +128,6 @@ export function mutatedElements(records: MutationRecord[]): Set<HTMLElement> {
 		}
 	}
 	return mutatedElements;
-}
-
-export function maybe<F extends (...args: any[]) => any>(
-	fn: F,
-	...args: MapMaybeAccessor<Parameters<F>>
-): ReturnType<F> | undefined {
-	const values = args.map(access);
-	if (!values.some((value) => value == null)) {
-		return fn(...values);
-	}
 }
 
 export function createDisposableEffect<T>(

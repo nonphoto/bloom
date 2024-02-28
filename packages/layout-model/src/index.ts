@@ -1,4 +1,5 @@
 import {
+	Batcher,
 	Mat2d,
 	mat2dClone,
 	mat2dCopy,
@@ -6,8 +7,11 @@ import {
 	mat2dFromTranslation,
 	mat2dMultiply,
 	mat2dTranslate,
+	rectCenter,
+	styleTransformMat2d,
 	Vec2,
 	vec2Create,
+	vec2Negate,
 	vec2Set,
 	vec2Sub,
 } from "@chloranthy/core";
@@ -21,25 +25,20 @@ import {
 	untrack,
 } from "solid-js";
 import {
-	center,
 	createDisposableEffect,
 	getNearestScrollingAncestor,
 	getOffsetParent,
 	getScrollEmitter,
 	isDocumentElement,
-	mat2dFromNegativeTranslation,
-	maybe,
 	mutatedElements,
-	styleTransform,
-	walkChildren,
-	walkParents,
 	willScroll as getWillScroll,
-	withDocument,
+	walkDescendants,
+	walkAncestors,
+	safeDocument,
 } from "./utils.js";
 import { SingletonMap } from "./singletonMap.js";
-import { Batcher } from "./batcher.js";
 import { ReactiveMap } from "@solid-primitives/map";
-import { MaybeAccessor } from "@solid-primitives/utils";
+import { access, MaybeAccessor } from "@solid-primitives/utils";
 import { createMutationObserver } from "@solid-primitives/mutation-observer";
 import { createResizeObserver } from "@solid-primitives/resize-observer";
 import { createSingletonRoot } from "@solid-primitives/rootless";
@@ -171,18 +170,19 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
 	);
 
 	const layoutBatcher = new Batcher({
-		onPreRun: () => {
-			walkChildren(root, (element) => {
+		onRun: (run) => {
+			walkDescendants(root, (element) => {
 				if (untrack(() => transformMap.has(element))) {
 					element.style.transform = "";
 				}
 			});
-		},
-		onPostRun: () => {
-			walkChildren(root, (element) => {
+
+			run();
+
+			walkDescendants(root, (element) => {
 				const transform = untrack(() => transformMap.get(element));
 				if (transform) {
-					element.style.transform = styleTransform(transform);
+					element.style.transform = styleTransformMat2d(transform);
 				}
 			});
 		},
@@ -196,7 +196,7 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
 		const invalidate = () => {
 			return layoutBatcher.enqueue(() => {
 				const rect = element.getBoundingClientRect();
-				walkParents(element, (parent) => {
+				walkAncestors(element, (parent) => {
 					rect.x += parent.scrollLeft;
 					rect.y += parent.scrollTop;
 				});
@@ -283,7 +283,7 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
 			(prev) => {
 				const rectValue = rectRoot.rect();
 				if (rectValue) {
-					return center(prev ?? vec2Create(), rectValue);
+					return rectCenter(prev ?? vec2Create(), rectValue);
 				}
 			},
 			undefined,
@@ -300,10 +300,10 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
 								prev ?? vec2Create(),
 								rectPositionValue,
 								parentRectPositionValue,
-							)
+						  )
 						: isDocumentElement(element)
-							? rectPositionValue
-							: undefined
+						  ? rectPositionValue
+						  : undefined
 					: undefined;
 			},
 			undefined,
@@ -353,13 +353,25 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
 			{ equals: false },
 		);
 
-		const matrix = createMemo<Mat2d | undefined>(
+		const negativeTranslation = createMemo<Vec2 | undefined>(
 			(prev) => {
 				const rectPositionValue = rectPosition();
+				const next = prev ?? vec2Create();
+				if (rectPositionValue) {
+					return vec2Negate(next, rectPositionValue);
+				}
+			},
+			undefined,
+			{ equals: false },
+		);
+
+		const matrix = createMemo<Mat2d | undefined>(
+			(prev) => {
+				const negativeTranslationValue = negativeTranslation();
 				const layoutMatrixValue = layoutMatrix();
 				const next = prev ?? mat2dCreate();
-				if (rectPositionValue && layoutMatrixValue) {
-					mat2dFromNegativeTranslation(next, rectPositionValue);
+				if (negativeTranslationValue && layoutMatrixValue) {
+					mat2dTranslate(next, next, negativeTranslationValue);
 					return mat2dMultiply(next, next, layoutMatrixValue);
 				}
 			},
@@ -372,7 +384,7 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
 
 	function setTransform(element: HTMLElement, transform: Mat2d | undefined) {
 		if (transform) {
-			element.style.transform = styleTransform(transform);
+			element.style.transform = styleTransformMat2d(transform);
 			return transformMap.set(element, mat2dClone(transform));
 		} else {
 			element.style.transform = "";
@@ -389,19 +401,30 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
 	return {
 		setTransform,
 		useRect(element: MaybeAccessor<HTMLElement | null | undefined>) {
-			const memo = createMemo(() =>
-				maybe((element) => rectRoots.use(element).rect, element),
-			);
+			const memo = createMemo(() => {
+				const elementValue = access(element);
+				if (elementValue) {
+					return rectRoots.use(elementValue).rect;
+				}
+			});
 			return () => memo()?.();
 		},
 		useMatrix(element: MaybeAccessor<HTMLElement | null | undefined>) {
-			const memo = createMemo(() =>
-				maybe((element) => matrixRoots.use(element).matrix, element),
-			);
+			const memo = createMemo(() => {
+				const elementValue = access(element);
+				if (elementValue) {
+					return matrixRoots.use(elementValue).matrix;
+				}
+			});
 			return () => memo()?.();
 		},
 		useTransform(element: MaybeAccessor<HTMLElement | null | undefined>) {
-			return () => maybe((element) => transformMap.get(element), element);
+			return () => {
+				const elementValue = access(element);
+				if (elementValue) {
+					return transformMap.get(elementValue);
+				}
+			};
 		},
 		async invalidateRect(element: HTMLElement) {
 			return rectRoots.get(element)?.invalidate();
@@ -420,11 +443,10 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
  * @returns The layout model.
  */
 export const useLayoutModel = createSingletonRoot<LayoutModelReturn>(() => {
-	return (
-		withDocument((document) => {
-			return createLayoutModel(document.documentElement);
-		}) ?? layoutModelStub
-	);
+	const document = safeDocument();
+	return document
+		? createLayoutModel(document.documentElement)
+		: layoutModelStub;
 });
 
 /**
@@ -514,5 +536,3 @@ export class LayoutModel {
 		this.#observer.invalidateParent(element);
 	}
 }
-
-export { Batcher, SingletonMap };
