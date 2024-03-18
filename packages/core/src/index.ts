@@ -11,6 +11,7 @@ export * from "./mat2d";
 export * from "./mat3";
 export * from "./mat4";
 export * from "./matcher";
+export * from "./maybe";
 export * from "./quad2d";
 export * from "./quat";
 export * from "./quat2";

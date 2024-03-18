@@ -26,6 +26,10 @@ export function isBehavior<T>(value: any): value is Behavior<T> {
 	return typeof value === "function" && value.length === 1;
 }
 
+export function behave<T>(b: MaybeBehavior<T>, t: number): T {
+	return isBehavior(b) ? b(t) : b;
+}
+
 export function getRanges<T>(b: Behavior<T>, t: number): [Range[], T] {
 	let prevRanges = RANGES;
 	RANGES = [];

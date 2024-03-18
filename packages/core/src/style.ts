@@ -1,4 +1,5 @@
 import { Mat2d } from "./mat2d";
+import { Rect } from "./rect";
 import { Vec2 } from "./vec2";
 
 export function styleTransformMat2d(transform: Mat2d): string {
@@ -12,7 +13,7 @@ export function styleTransformMat2d(transform: Mat2d): string {
 	return result + ")";
 }
 
-export function styleBorderRadius(
+export function styleBorderRadiusSize(
 	radius: number,
 	size: Vec2,
 	transform: Mat2d,
@@ -20,6 +21,20 @@ export function styleBorderRadius(
 	const x = (radius / (size[0] * transform[0])) * 100;
 	const y = (radius / (size[1] * transform[3])) * 100;
 	return `${x}% / ${y}%`;
+}
+
+export function styleBorderRadiusRect(
+	radius: number,
+	rect?: Rect,
+	transform?: Mat2d,
+) {
+	if (rect) {
+		const x = (radius / (rect.width * (transform?.[0] ?? 1))) * 100;
+		const y = (radius / (rect.height * (transform?.[3] ?? 1))) * 100;
+		return `${x}% / ${y}%`;
+	} else {
+		return `${radius}px`;
+	}
 }
 
 export function styleBoxShadow(
