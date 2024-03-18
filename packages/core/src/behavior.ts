@@ -22,6 +22,10 @@ export function withRanges<T>(
 	};
 }
 
+export function isBehavior<T>(value: any): value is Behavior<T> {
+	return typeof value === "function" && value.length === 1;
+}
+
 export function getRanges<T>(b: Behavior<T>, t: number): [Range[], T] {
 	let prevRanges = RANGES;
 	RANGES = [];

@@ -2,14 +2,14 @@ import { ReactiveMap } from "@solid-primitives/map";
 import { createSingletonRoot } from "@solid-primitives/rootless";
 import { Owner, createRoot, getOwner, onCleanup, untrack } from "solid-js";
 
-type Factory<T, U, V> = (key: T, args?: V) => U;
+type SingletonMapFactory<T, U, V> = (key: T, args?: V) => U;
 
 export class SingletonMap<T, U, V = void> {
 	#map = new ReactiveMap<T, () => U>();
-	#factory: Factory<T, U, V>;
+	#factory: SingletonMapFactory<T, U, V>;
 	#owner: Owner | null;
 
-	constructor(factory: Factory<T, U, V>) {
+	constructor(factory: SingletonMapFactory<T, U, V>) {
 		this.#factory = factory;
 		this.#owner = getOwner();
 	}

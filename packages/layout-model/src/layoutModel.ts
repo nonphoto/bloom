@@ -1,14 +1,16 @@
 import {
 	Batcher,
+	Behavior,
+	isBehavior,
 	Mat2d,
-	mat2dClone,
 	mat2dCopy,
 	mat2dCreate,
 	mat2dFromTranslation,
 	mat2dMultiply,
 	mat2dTranslate,
+	MaybeBehavior,
+	Rect,
 	rectCenter,
-	styleTransformMat2d,
 	Vec2,
 	vec2Create,
 	vec2Negate,
@@ -31,7 +33,7 @@ import {
 	getScrollEmitter,
 	isDocumentElement,
 	mutatedElements,
-	willScroll as getWillScroll,
+	getWillScroll,
 	walkDescendants,
 	walkAncestors,
 	safeDocument,
@@ -44,7 +46,7 @@ import { createResizeObserver } from "@solid-primitives/resize-observer";
 import { createSingletonRoot } from "@solid-primitives/rootless";
 
 type RectRoot = {
-	rect: Accessor<DOMRect | undefined>;
+	rect: Accessor<Rect | undefined>;
 	invalidate(): Promise<void>;
 };
 
@@ -59,12 +61,10 @@ type ParentRoot = {
 };
 
 type MatrixRoot = {
-	matrix: Accessor<Mat2d | undefined>;
-	intermediateMatrix: Accessor<Mat2d | undefined>;
+	matrix: Accessor<MaybeBehavior<Mat2d> | undefined>;
+	intermediateMatrix: Accessor<MaybeBehavior<Mat2d> | undefined>;
 	rectPosition: Accessor<Vec2 | undefined>;
 };
-
-export type { Accessor };
 
 /**
  * The return type of {@link createLayoutModel}.
@@ -75,17 +75,20 @@ export type LayoutModelReturn = {
 	 * @param element - The element to set the transform of.
 	 * @param transform - The transform to set on the element.
 	 */
-	setTransform(element: HTMLElement, transform: Mat2d | undefined): void;
+	setTransform(
+		element: HTMLElement,
+		transform: MaybeBehavior<Mat2d> | undefined,
+	): void;
 
 	/**
 	 * Returns an accessor for the layout rect of an element.
-	 * The layout rect is a document relative DOMRect; it is equivalent to calling `element.getBoundingClientRect()` when the transform properties and scroll positions of all elements in the document are unset. The accessor updates whenever the DOMRect changes.
+	 * The layout rect is a document relative Rect; it is equivalent to calling `element.getBoundingClientRect()` when the transform properties and scroll positions of all elements in the document are unset. The accessor updates whenever the Rect changes.
 	 * @param element - The element to get the layout rect accessor of.
 	 * @returns An accessor that returns the layout rect of the element.
 	 */
 	useRect(
 		element: MaybeAccessor<HTMLElement | null | undefined>,
-	): Accessor<DOMRect | undefined>;
+	): Accessor<Rect | undefined>;
 
 	/**
 	 * Returns an accessor for the view matrix of the element.
@@ -96,7 +99,7 @@ export type LayoutModelReturn = {
 	 */
 	useMatrix(
 		element: MaybeAccessor<HTMLElement | null | undefined>,
-	): Accessor<Mat2d | undefined>;
+	): Accessor<MaybeBehavior<Mat2d> | undefined>;
 
 	/**
 	 * Returns an accessor for transformation matrix of an element, as set by `setTransform`.
@@ -105,7 +108,7 @@ export type LayoutModelReturn = {
 	 */
 	useTransform(
 		element: MaybeAccessor<HTMLElement | null | undefined>,
-	): Accessor<Mat2d | undefined>;
+	): Accessor<MaybeBehavior<Mat2d> | undefined>;
 
 	/**
 	 * Invalidate the measured layout rect of the element, causing the layout model to remeasure it. This can sometimes be necessary if it's position in the layout changed without its width or height changing.
@@ -147,7 +150,7 @@ const layoutModelStub: LayoutModelReturn = {
  * @param root - The root element of the document.
  */
 export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
-	const transformMap = new ReactiveMap<HTMLElement, Mat2d>();
+	const transformMap = new ReactiveMap<HTMLElement, Behavior<Mat2d> | Mat2d>();
 
 	createResizeObserver(
 		() => Array.from(rectRoots.keys()),
@@ -171,25 +174,25 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
 
 	const layoutBatcher = new Batcher({
 		onRun: (run) => {
+			const transforms = new Map<HTMLElement, string>();
 			walkDescendants(root, (element) => {
-				if (untrack(() => transformMap.has(element))) {
-					element.style.transform = "";
-				}
+				transforms.set(element, element.style.transform);
+				element.style.transform = "";
 			});
 
 			run();
 
 			walkDescendants(root, (element) => {
-				const transform = untrack(() => transformMap.get(element));
+				const transform = transforms.get(element);
 				if (transform) {
-					element.style.transform = styleTransformMat2d(transform);
+					element.style.transform = transform;
 				}
 			});
 		},
 	});
 
 	const rectRoots = new SingletonMap<HTMLElement, RectRoot>((element) => {
-		const [rect, setRect] = createSignal<DOMRect | undefined>(undefined, {
+		const [rect, setRect] = createSignal<Rect | undefined>(undefined, {
 			equals: false,
 		});
 
@@ -267,127 +270,205 @@ export function createLayoutModel(root: HTMLElement): LayoutModelReturn {
 		return { parent, invalidate };
 	});
 
-	const matrixRoots = new SingletonMap<HTMLElement, MatrixRoot>((element) => {
-		const parentRoot = parentRoots.use(element);
-		const rectRoot = rectRoots.use(element);
-		const scrollRoot = scrollRoots.use(element);
+	const matrixRoots: SingletonMap<HTMLElement, MatrixRoot> = new SingletonMap(
+		(element) => {
+			const parentRoot = parentRoots.use(element);
+			const rectRoot = rectRoots.use(element);
+			const scrollRoot = scrollRoots.use(element);
 
-		const parentMatrixRoot = createMemo(() => {
-			const parentValue = parentRoot.parent();
-			if (parentValue) {
-				return matrixRoots.use(parentValue);
-			}
-		});
-
-		const rectPosition = createMemo<Vec2 | undefined>(
-			(prev) => {
-				const rectValue = rectRoot.rect();
-				if (rectValue) {
-					return rectCenter(prev ?? vec2Create(), rectValue);
+			const parentMatrixRoot = createMemo(() => {
+				const parentValue = parentRoot.parent();
+				if (parentValue) {
+					return matrixRoots.use(parentValue);
 				}
-			},
-			undefined,
-			{ equals: false },
-		);
+			});
 
-		const layoutDelta = createMemo<Vec2 | undefined>(
-			(prev) => {
-				const parentRectPositionValue = parentMatrixRoot()?.rectPosition();
-				const rectPositionValue = rectPosition();
-				return rectPositionValue
-					? parentRectPositionValue
-						? vec2Sub(
-								prev ?? vec2Create(),
+			const rectPositionValue = vec2Create();
+			const rectPosition = createMemo<Vec2 | undefined>(
+				() => {
+					const rectValue = rectRoot.rect();
+					if (rectValue) {
+						return rectCenter(rectPositionValue, rectValue);
+					}
+				},
+				undefined,
+				{ equals: false },
+			);
+
+			const layoutDeltaValue = vec2Create();
+			const layoutDelta = createMemo<Vec2 | undefined>(
+				() => {
+					const parentRectPositionValue = parentMatrixRoot()?.rectPosition();
+					const rectPositionValue = rectPosition();
+					if (rectPositionValue) {
+						if (parentRectPositionValue) {
+							return vec2Sub(
+								layoutDeltaValue,
 								rectPositionValue,
 								parentRectPositionValue,
-						  )
-						: isDocumentElement(element)
-						  ? rectPositionValue
-						  : undefined
-					: undefined;
-			},
-			undefined,
-			{ equals: false },
-		);
-
-		const layoutMatrix = createMemo<Mat2d | undefined>(
-			(prev) => {
-				const parentIntermediateMatrixValue =
-					parentMatrixRoot()?.intermediateMatrix();
-				const layoutDeltaValue = layoutDelta();
-				const next = prev ?? mat2dCreate();
-				if (layoutDeltaValue) {
-					if (isDocumentElement(element)) {
-						mat2dFromTranslation(next, layoutDeltaValue);
-					} else if (parentIntermediateMatrixValue) {
-						mat2dTranslate(
-							next,
-							parentIntermediateMatrixValue,
-							layoutDeltaValue,
-						);
-					} else {
-						return undefined;
+							);
+						} else if (isDocumentElement(element)) {
+							return rectPositionValue;
+						}
 					}
-					return next;
-				}
-			},
-			undefined,
-			{ equals: false },
-		);
+				},
+				undefined,
+				{ equals: false },
+			);
 
-		const intermediateMatrix = createMemo<Mat2d | undefined>(
-			(prev) => {
-				const layoutMatrixValue = layoutMatrix();
-				if (layoutMatrixValue) {
-					const next = prev ?? mat2dCreate();
-					mat2dCopy(next, layoutMatrixValue);
+			function calcLayoutMatrix(
+				layoutMatrix: Mat2d,
+				parentIntermediateMatrix: Mat2d,
+				layoutDelta: Vec2,
+			) {
+				return mat2dTranslate(
+					layoutMatrix,
+					parentIntermediateMatrix,
+					layoutDelta,
+				);
+			}
+
+			const layoutMatrixValue = mat2dCreate();
+			const layoutMatrix = createMemo<MaybeBehavior<Mat2d> | undefined>(
+				() => {
+					const parentIntermediateMatrixValue =
+						parentMatrixRoot()?.intermediateMatrix();
+					const layoutDeltaValue = layoutDelta();
+					if (layoutDeltaValue) {
+						if (isDocumentElement(element)) {
+							return () =>
+								mat2dFromTranslation(layoutMatrixValue, layoutDeltaValue);
+						} else if (parentIntermediateMatrixValue) {
+							if (isBehavior(parentIntermediateMatrixValue)) {
+								return (t) =>
+									calcLayoutMatrix(
+										layoutMatrixValue,
+										parentIntermediateMatrixValue(t),
+										layoutDeltaValue,
+									);
+							} else {
+								return calcLayoutMatrix(
+									layoutMatrixValue,
+									parentIntermediateMatrixValue,
+									layoutDeltaValue,
+								);
+							}
+						}
+					}
+				},
+				undefined,
+				{ equals: false },
+			);
+
+			function calcIntermediateMatrix(
+				layoutMatrix: Mat2d,
+				scrollTranslation: Vec2,
+				transform?: Mat2d,
+			) {
+				mat2dCopy(intermediateMatrixValue, layoutMatrix);
+				if (transform) {
+					mat2dMultiply(
+						intermediateMatrixValue,
+						intermediateMatrixValue,
+						transform,
+					);
+				}
+				return mat2dTranslate(
+					intermediateMatrixValue,
+					intermediateMatrixValue,
+					scrollTranslation,
+				);
+			}
+
+			const intermediateMatrixValue = mat2dCreate();
+			const intermediateMatrix = createMemo<
+				Behavior<Mat2d> | Mat2d | undefined
+			>(
+				() => {
+					const layoutMatrixValue = layoutMatrix();
 					const transform = transformMap.get(element);
-
-					if (transform) {
-						mat2dMultiply(next, next, transform);
+					const scrollTranslationValue = scrollRoot.scrollTranslation();
+					if (layoutMatrixValue) {
+						if (isBehavior(transform) || isBehavior(layoutMatrixValue)) {
+							return (t) =>
+								calcIntermediateMatrix(
+									isBehavior(layoutMatrixValue)
+										? layoutMatrixValue(t)
+										: layoutMatrixValue,
+									scrollTranslationValue,
+									isBehavior(transform) ? transform(t) : transform,
+								);
+						} else {
+							calcIntermediateMatrix(
+								layoutMatrixValue,
+								scrollTranslationValue,
+								transform,
+							);
+						}
 					}
-					return mat2dTranslate(next, next, scrollRoot.scrollTranslation());
-				}
-			},
-			undefined,
-			{ equals: false },
-		);
+				},
+				undefined,
+				{ equals: false },
+			);
 
-		const negativeTranslation = createMemo<Vec2 | undefined>(
-			(prev) => {
-				const rectPositionValue = rectPosition();
-				const next = prev ?? vec2Create();
-				if (rectPositionValue) {
-					return vec2Negate(next, rectPositionValue);
-				}
-			},
-			undefined,
-			{ equals: false },
-		);
+			const negativeTranslationValue = vec2Create();
+			const negativeTranslation = createMemo<Vec2 | undefined>(
+				() => {
+					const rectPositionValue = rectPosition();
+					if (rectPositionValue) {
+						return vec2Negate(negativeTranslationValue, rectPositionValue);
+					}
+				},
+				undefined,
+				{ equals: false },
+			);
 
-		const matrix = createMemo<Mat2d | undefined>(
-			(prev) => {
-				const negativeTranslationValue = negativeTranslation();
-				const layoutMatrixValue = layoutMatrix();
-				const next = prev ?? mat2dCreate();
-				if (negativeTranslationValue && layoutMatrixValue) {
-					mat2dTranslate(next, next, negativeTranslationValue);
-					return mat2dMultiply(next, next, layoutMatrixValue);
-				}
-			},
-			undefined,
-			{ equals: false },
-		);
+			function calcMatrix(
+				matrix: Mat2d,
+				negativeTranslation: Vec2,
+				layoutMatrix: Mat2d,
+			) {
+				mat2dTranslate(matrix, matrix, negativeTranslation);
+				return mat2dMultiply(matrix, matrix, layoutMatrix);
+			}
 
-		return { rectPosition, intermediateMatrix, matrix };
-	});
+			const matrixValue = mat2dCreate();
+			const matrix = createMemo<Behavior<Mat2d> | undefined>(
+				() => {
+					const negativeTranslationValue = negativeTranslation();
+					const layoutMatrixValue = layoutMatrix();
+					if (negativeTranslationValue && layoutMatrixValue) {
+						if (isBehavior(layoutMatrixValue)) {
+							return (t) =>
+								calcMatrix(
+									matrixValue,
+									negativeTranslationValue,
+									layoutMatrixValue(t),
+								);
+						} else {
+							calcMatrix(
+								matrixValue,
+								negativeTranslationValue,
+								layoutMatrixValue,
+							);
+						}
+					}
+				},
+				undefined,
+				{ equals: false },
+			);
 
-	function setTransform(element: HTMLElement, transform: Mat2d | undefined) {
+			return { matrix, intermediateMatrix, rectPosition };
+		},
+	);
+
+	function setTransform(
+		element: HTMLElement,
+		transform: Behavior<Mat2d> | Mat2d | undefined,
+	) {
 		if (transform) {
-			element.style.transform = styleTransformMat2d(transform);
-			return transformMap.set(element, mat2dClone(transform));
+			return transformMap.set(element, transform);
 		} else {
-			element.style.transform = "";
 			return transformMap.delete(element);
 		}
 	}
@@ -491,7 +572,7 @@ export class LayoutModel {
 	 */
 	useRect(
 		element: HTMLElement,
-		callback: (rect: DOMRect | undefined) => void,
+		callback: (rect: Rect | undefined) => void,
 	): () => void {
 		return createDisposableEffect(
 			() => this.#observer.useRect(element),
@@ -504,7 +585,7 @@ export class LayoutModel {
 	 */
 	useMatrix(
 		element: HTMLElement,
-		callback: (rect: Mat2d | undefined) => void,
+		callback: (matrix: MaybeBehavior<Mat2d> | undefined) => void,
 	): () => void {
 		return createDisposableEffect(
 			() => this.#observer.useMatrix(element),

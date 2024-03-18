@@ -41,7 +41,7 @@ export function createsStackingContext(element: Element) {
 	return false;
 }
 
-export function willScroll(element: Element) {
+export function getWillScroll(element: Element) {
 	if (element === document.documentElement) {
 		return true;
 	} else {
