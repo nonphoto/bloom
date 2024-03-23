@@ -2,6 +2,8 @@ export function easeInQuad(x: number) {
 	return x * x;
 }
 
+export const square = easeInQuad;
+
 export function easeOutQuad(x: number) {
 	return 1 - (1 - x) * (1 - x);
 }
@@ -13,6 +15,8 @@ export function easeInOutQuad(x: number) {
 export function easeInCubic(x: number) {
 	return x * x * x;
 }
+
+export const cube = easeInCubic;
 
 export function easeOutCubic(x: number) {
 	return 1 - Math.pow(1 - x, 3);
@@ -26,6 +30,8 @@ export function easeInQuart(x: number) {
 	return x * x * x * x;
 }
 
+export const quart = easeInQuart;
+
 export function easeOutQuart(x: number) {
 	return 1 - Math.pow(1 - x, 4);
 }
@@ -37,6 +43,8 @@ export function easeInOutQuart(x: number) {
 export function easeInQuint(x: number) {
 	return x * x * x * x * x;
 }
+
+export const quint = easeInQuint;
 
 export function easeOutQuint(x: number) {
 	return 1 - Math.pow(1 - x, 5);
@@ -70,10 +78,10 @@ export function easeInOutExpo(x: number) {
 	return x === 0
 		? 0
 		: x === 1
-			? 1
-			: x < 0.5
-				? Math.pow(2, 20 * x - 10) / 2
-				: (2 - Math.pow(2, -20 * x + 10)) / 2;
+		  ? 1
+		  : x < 0.5
+		    ? Math.pow(2, 20 * x - 10) / 2
+		    : (2 - Math.pow(2, -20 * x + 10)) / 2;
 }
 
 export function easeInCirc(x: number) {

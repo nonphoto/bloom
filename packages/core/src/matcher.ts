@@ -64,7 +64,7 @@ export class Matcher<T, Enter, Exit> {
 		} else {
 			map.set(key, [mutation]);
 		}
-		this.#batcher.enqueue();
+		this.#batcher.task();
 	}
 
 	attemptEnter(

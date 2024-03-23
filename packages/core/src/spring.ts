@@ -1,4 +1,4 @@
-import { EPSILON, square } from "./common";
+import { square } from "./ease";
 
 export function halflifeToDamping(halflife: number) {
 	return (4 * Math.LN2) / halflife;
@@ -67,7 +67,7 @@ export function springCreate(options: Partial<SpringOptions>): Spring {
 	const amplitude =
 		Math.sign(delta) *
 		Math.sqrt(square(velocityDelta) / square(dampedFrequency) + square(delta));
-	const phase = Math.atan(velocityDelta / (-delta * dampedFrequency + EPSILON));
+	const phase = Math.atan(velocityDelta / (-delta * dampedFrequency));
 
 	return {
 		start,
@@ -87,8 +87,8 @@ export function springPosition(s: Spring, t: number) {
 	return delta === 0
 		? s.end
 		: s.dampedFrequency > 0
-			? s.amplitude * exp * Math.cos(s.dampedFrequency * t + s.phase) + s.end
-			: exp * (delta + (s.startVelocity + delta * halfDamping) * t) + s.end;
+		  ? s.amplitude * exp * Math.cos(s.dampedFrequency * t + s.phase) + s.end
+		  : exp * (delta + (s.startVelocity + delta * halfDamping) * t) + s.end;
 }
 
 export function springVelocity(s: Spring, t: number) {
