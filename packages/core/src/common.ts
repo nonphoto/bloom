@@ -72,3 +72,10 @@ export function clamp(min: number, max: number, x: number) {
 export function square(x: number) {
 	return x * x;
 }
+
+export function withValue<T, U extends [], V>(
+	value: T,
+	fn: (value: T, ...args: U) => V,
+): (...args: U) => V {
+	return (...args) => fn(value, ...args);
+}

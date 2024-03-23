@@ -1,6 +1,7 @@
 import type { Range } from "./range";
 import { Spring, springDuration, springPosition } from "./spring";
 
+export type AbstractTimeline = () => number;
 export type Behavior<T> = (t: number) => T;
 export type MaybeBehavior<T> = Behavior<T> | T;
 
