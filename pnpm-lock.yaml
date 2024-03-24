@@ -94,9 +94,6 @@ importers:
       '@chloranthy/core':
         specifier: workspace:*
         version: link:../core
-      '@chloranthy/layout-model':
-        specifier: workspace:*
-        version: link:../layout-model
       '@solid-primitives/context':
         specifier: 0.2.1
         version: 0.2.1(solid-js@1.8.3)

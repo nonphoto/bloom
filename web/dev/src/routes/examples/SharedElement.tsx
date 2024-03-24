@@ -1,24 +1,24 @@
-import classes from "./SharedElement.module.css";
-import { createSignal } from "solid-js";
-import { xprod } from "ramda";
 import {
-	borderRadius,
-	createMaybeMemo,
-	createSpringBody,
-	quad,
-} from "@chloranthy/solid";
-import {
+	Mat2d,
 	Quad2d,
+	Vec2,
+	catchMaybe,
+	maybe,
 	quad2dCover,
 	quad2dCreate,
 	quad2dFromPositionSize,
 	quad2dFromRect,
 	quad2dTransformMat2d,
-	rectPosition,
+	rectCenter,
 	rectSize,
+	vec2Create,
+	withValue,
 } from "@chloranthy/core";
-import { Mat2d, Vec2, vec2Create } from "@chloranthy/core";
 import { useLayoutModel } from "@chloranthy/layout-model";
+import { borderRadius, createMaybeMemo, quad } from "@chloranthy/solid";
+import { xprod } from "ramda";
+import { createSignal } from "solid-js";
+import classes from "./SharedElement.module.css";
 
 quad;
 borderRadius;
@@ -44,19 +44,25 @@ export default function SharedElement() {
 		HTMLElement | undefined
 	>();
 
-	const layoutModel = useLayoutModel();
+	const layoutTree = useLayoutModel();
 	const outerTargetRect = layoutModel.useRect(outerElement);
 	const innerTargetRect = layoutModel.useRect(innerElement);
 
-	const targetPosition = createMaybeMemo(
-		rectPosition,
-		vec2Create(),
-		outerTargetRect,
+	const targetPosition = catchMaybe(
+		withValue(vec2Create(), (value) =>
+			rectCenter(value, maybe(outerTargetRect())),
+		),
 	);
-	const targetSize = createMaybeMemo(rectSize, vec2Create(), outerTargetRect);
-
-	const [position] = createSpringBody(targetPosition, 150);
-	const [size] = createSpringBody(targetSize, 300);
+	const targetSize = catchMaybe(
+		withValue(vec2Create(), (value) =>
+			rectSize(value, maybe(outerTargetRect())),
+		),
+	);
+	const position = createSpringBehavior2d(targetPosition, { halflife: 150 });
+	const size = createSpringBehavior2d(targetSize, { halflife: 300 });
+	const quad = withValue(quad2dCreate(), (value) =>
+		quad2dFromPositionSize(value, position(), size()),
+	);
 
 	const outerMatrix = layoutModel.useMatrix(outerElement);
 
@@ -69,7 +75,7 @@ export default function SharedElement() {
 		quad2dCreate,
 		() => position().p,
 		() => size().p,
-		outerMatrix,
+		outerMatrix, // this is only for scroll in this example
 	);
 
 	const innerTargetQuad = createMaybeMemo(
@@ -103,7 +109,7 @@ export default function SharedElement() {
 					<div
 						ref={setOuterElement}
 						class={classes.outer}
-						use:quad={outerQuad()}
+						use:quad={outerQuad()} // use:quad does not make sense, quads are only relative to view but we need better scoping
 						use:borderRadius={50}
 						id="outer"
 					>

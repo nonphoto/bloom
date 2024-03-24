@@ -46,7 +46,6 @@
   },
   "dependencies": {
     "@chloranthy/core": "workspace:*",
-    "@chloranthy/layout-model": "workspace:*",
     "@solid-primitives/context": "0.2.1",
     "@solid-primitives/event-bus": "1.0.8",
     "@solid-primitives/jsx-tokenizer": "1.0.7",
