@@ -28,7 +28,7 @@ export class Bus<T extends WeakKey, U> {
 		return listeners && listeners.size > 0;
 	}
 
-	notify(key: T, value: U) {
+	send(key: T, value: U) {
 		for (const listener of this.#map.get(key) ?? []) {
 			listener.call(undefined, value);
 		}

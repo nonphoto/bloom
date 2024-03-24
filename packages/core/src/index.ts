@@ -6,6 +6,7 @@ export * from "./body2d";
 export * from "./bodyQuad2d";
 export * from "./common";
 export * from "./ease";
+export * from "./layout";
 export * from "./mat2";
 export * from "./mat2d";
 export * from "./mat3";

@@ -69,6 +69,17 @@ export function getNearestScrollingAncestor(
 	return element.parentElement;
 }
 
+export function getContainingElement(element: HTMLElement): HTMLElement | null {
+	const position = getComputedStyle(element).position;
+	if (isDocumentElement(element)) {
+		return null;
+	} else if (position === "absolute" || position === "fixed") {
+		return getOffsetParent(element);
+	} else {
+		return element.parentElement;
+	}
+}
+
 export function walkAncestors(
 	element: HTMLElement,
 	callback: (element: HTMLElement) => void,

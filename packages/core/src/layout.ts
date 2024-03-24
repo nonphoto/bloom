@@ -25,13 +25,9 @@ export function layoutCreate(
 ): Layout {
 	const offsetCenter = rectCenter(vec2Create(), rect);
 
-	const layoutDelta = (() => {
-		if (parent) {
-			return vec2Sub(vec2Create(), offsetCenter, parent.offsetCenter);
-		} else {
-			return offsetCenter;
-		}
-	})();
+	const layoutDelta = parent
+		? vec2Sub(vec2Create(), offsetCenter, parent.offsetCenter)
+		: offsetCenter;
 
 	const offsetMatrix = withValue(mat2dCreate(), (offsetMatrix) => {
 		if (parent) {

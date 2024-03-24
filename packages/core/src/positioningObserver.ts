@@ -1,24 +1,17 @@
 import { Batcher } from "./batcher";
-import { getOffsetParent, isDocumentElement, mutatedElements } from "./dom";
-
-function getContainingElement(
-	element: HTMLElement,
-	position: string,
-): HTMLElement | null {
-	if (isDocumentElement(element)) {
-		return null;
-	} else if (position === "absolute" || position === "fixed") {
-		return getOffsetParent(element);
-	} else {
-		return element.parentElement;
-	}
-}
+import { getContainingElement, mutatedElements } from "./dom";
 
 export type PositioningObserverEntry = {
-	element: HTMLElement;
+	target: HTMLElement;
 	containingElement: HTMLElement | null;
-	position: string;
 };
+
+function positioningObserverEntryCreate(target: HTMLElement) {
+	return {
+		target,
+		containingElement: getContainingElement(target),
+	};
+}
 
 export class PositioningObserver {
 	#batcher: Batcher<PositioningObserverEntry[]>;
@@ -49,12 +42,7 @@ export class PositioningObserver {
 	async invalidate(element: HTMLElement) {
 		await this.#batcher.task((entries) => {
 			if (this.#elements.has(element)) {
-				const position = getComputedStyle(element).position;
-				entries.push({
-					element,
-					position,
-					containingElement: getContainingElement(element, position),
-				});
+				entries.push(positioningObserverEntryCreate(element));
 			}
 		});
 	}
