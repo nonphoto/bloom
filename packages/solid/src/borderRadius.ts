@@ -1,50 +1,40 @@
-import { useLayoutModel } from "@chloranthy/layout-model";
-import { access, Directive, MaybeAccessor } from "@solid-primitives/utils";
-import { createMaybeMemo, maybe } from "./utils.js";
-import { Mat2d, mat2dCreate, mat2dMultiply } from "@chloranthy/core";
+import {
+	catchMaybe,
+	mat2dCreate,
+	mat2dMultiply,
+	maybe,
+	styleBorderRadiusRect,
+} from "@chloranthy/core";
+import {
+	Directive,
+	MaybeAccessor,
+	access,
+	withAccess,
+} from "@solid-primitives/utils";
 import { createEffect } from "solid-js";
-
-/**
- * @private
- */
-export function styleBorderRadius(
-	radius: number,
-	rect?: DOMRect,
-	transform?: Mat2d,
-) {
-	if (rect) {
-		const x = (radius / (rect.width * (transform?.[0] ?? 1))) * 100;
-		const y = (radius / (rect.height * (transform?.[3] ?? 1))) * 100;
-		return `${x}% / ${y}%`;
-	} else {
-		return `${radius}px`;
-	}
-}
+import { useMatrix, useRect, useTransform } from "./layout.js";
 
 export function createSetBorderRadius(
-	element: MaybeAccessor<HTMLElement | null | undefined>,
+	element: MaybeAccessor<HTMLElement | undefined>,
 	value: MaybeAccessor<number | undefined>,
 ) {
-	const layout = useLayoutModel();
-	const rect = layout.useRect(element);
-	const matrix = layout.useMatrix(element);
-	const transform = layout.useTransform(element);
-
-	const totalTransform = createMaybeMemo(
-		mat2dMultiply,
-		mat2dCreate(),
-		matrix,
-		transform,
-	);
+	const rect = useRect(element);
+	const matrix = useMatrix(element);
+	const transform = useTransform(element);
+	const totalTransform = mat2dCreate();
 
 	createEffect(() => {
-		const elementValue = access(element);
-		if (elementValue) {
-			elementValue.style.borderRadius =
-				maybe(styleBorderRadius, value, rect, totalTransform) ??
-				maybe(styleBorderRadius, value) ??
-				"";
-		}
+		withAccess(element, (element) => {
+			element.style.borderRadius =
+				catchMaybe(() => {
+					mat2dMultiply(totalTransform, maybe(matrix()), maybe(transform()));
+					return styleBorderRadiusRect(
+						maybe(access(value)),
+						maybe(rect()),
+						totalTransform,
+					);
+				})() ?? "";
+		});
 	});
 }
 

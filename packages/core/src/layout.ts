@@ -13,14 +13,17 @@ import { Vec2, vec2Create, vec2Sub } from "./vec2";
 
 export type Layout = {
 	offsetCenter: Vec2;
+	rect: Rect;
 	intermediateMatrix: () => Mat2d;
 	matrix: () => Mat2d;
+	transform: () => Mat2d | undefined;
+	scroll: () => Vec2;
 };
 
 export function layoutCreate(
 	parent: Layout | null,
 	rect: Rect,
-	transform: () => Mat2d,
+	transform: () => Mat2d | undefined,
 	scroll: () => Vec2,
 ): Layout {
 	const offsetCenter = rectCenter(vec2Create(), rect);
@@ -56,8 +59,11 @@ export function layoutCreate(
 	});
 
 	return {
+		rect,
 		offsetCenter,
 		intermediateMatrix,
 		matrix,
+		transform,
+		scroll,
 	};
 }

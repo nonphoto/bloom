@@ -1,49 +1,36 @@
 import {
+	catchMaybe,
+	mat2dCreate,
+	mat2dInvert,
+	mat2dMultiply,
+	maybe,
 	Quad2d,
 	quad2dCreate,
 	quad2dFromRect,
 	quad2dUntransformMat2d,
-	Rect,
 } from "@chloranthy/core";
-import { useLayoutModel } from "@chloranthy/layout-model";
-import { Directive, MaybeAccessor } from "@solid-primitives/utils";
-import { createMaybeMemo } from "./utils";
-import {
-	Mat2d,
-	mat2dCreate,
-	mat2dInvert,
-	mat2dMultiply,
-} from "@chloranthy/core";
+import { access, Directive, MaybeAccessor } from "@solid-primitives/utils";
+import { createMemo } from "solid-js";
+import { useMatrix, useRect } from "./layout";
 import { createSetTransform } from "./transform";
 
 export function createSetQuad(
-	element: MaybeAccessor<HTMLElement | null | undefined>,
+	element: MaybeAccessor<HTMLElement | undefined>,
 	value: MaybeAccessor<Quad2d | undefined>,
 ) {
-	const layout = useLayoutModel();
-	const rect = layout.useRect(element);
-	const matrix = layout.useMatrix(element);
-
-	const targetTransform = createMaybeMemo(
-		(
-			out: Mat2d,
-			inverseMatrix: Mat2d,
-			quad: Quad2d,
-			matrix: Mat2d,
-			rect: Rect,
-			value: Quad2d,
-		) => {
-			quad2dFromRect(quad, rect);
-			quad2dUntransformMat2d(out, quad, value);
-			mat2dInvert(inverseMatrix, matrix);
+	const rect = useRect(element);
+	const matrix = useMatrix(element);
+	const quad = quad2dCreate();
+	const inverseMatrix = mat2dCreate();
+	const targetTransform = createMemo(
+		catchMaybe((out) => {
+			quad2dFromRect(quad, maybe(rect()));
+			quad2dUntransformMat2d(out, quad, maybe(access(value)));
+			mat2dInvert(inverseMatrix, maybe(matrix()));
 			return mat2dMultiply(out, inverseMatrix, out);
-		},
+		}),
 		mat2dCreate(),
-		mat2dCreate(),
-		quad2dCreate(),
-		matrix,
-		rect,
-		value,
+		{ equals: false },
 	);
 
 	createSetTransform(element, targetTransform);

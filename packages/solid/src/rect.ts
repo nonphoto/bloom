@@ -1,62 +1,35 @@
-import { Rect, rectUntransformMat2d } from "@chloranthy/core";
-import { LayoutModelReturn, useLayoutModel } from "@chloranthy/layout-model";
-import { Directive, MaybeAccessor } from "@solid-primitives/utils";
-import { createMaybeMemo } from "./utils";
 import {
-	Mat2d,
+	Rect,
+	catchMaybe,
 	mat2dCreate,
 	mat2dInvert,
 	mat2dMultiply,
+	maybe,
+	rectUntransformMat2d,
 } from "@chloranthy/core";
+import { Directive, MaybeAccessor, access } from "@solid-primitives/utils";
+import { createMemo } from "solid-js";
+import { useMatrix, useRect } from "./layout";
 import { createSetTransform } from "./transform";
-import { createComputed, createRoot } from "solid-js";
 
 export function createSetRect(
-	element: MaybeAccessor<HTMLElement | null | undefined>,
+	element: MaybeAccessor<HTMLElement | undefined>,
 	value: MaybeAccessor<Rect | undefined>,
 ) {
-	const layout = useLayoutModel();
-	const rect = layout.useRect(element);
-	const matrix = layout.useMatrix(element);
-
-	const targetTransform = createMaybeMemo(
-		(
-			out: Mat2d,
-			inversetMatrix: Mat2d,
-			matrix: Mat2d,
-			rect: Rect,
-			value: Rect,
-		) => {
-			rectUntransformMat2d(out, rect, value);
-			mat2dInvert(inversetMatrix, matrix);
-			return mat2dMultiply(out, inversetMatrix, out);
-		},
+	const rect = useRect(element);
+	const matrix = useMatrix(element);
+	const inverseMatrix = mat2dCreate();
+	const targetTransform = createMemo(
+		catchMaybe((out) => {
+			rectUntransformMat2d(out, maybe(rect()), maybe(access(value)));
+			mat2dInvert(inverseMatrix, maybe(matrix()));
+			return mat2dMultiply(out, inverseMatrix, out);
+		}),
 		mat2dCreate(),
-		mat2dCreate(),
-		matrix,
-		rect,
-		value,
+		{ equals: false },
 	);
 
 	createSetTransform(element, targetTransform);
-}
-
-export function getRect(
-	layoutModel: LayoutModelReturn,
-	element: HTMLElement,
-): Promise<DOMRect> {
-	return createRoot((dispose) => {
-		return new Promise<DOMRect>((resolve, reject) => {
-			const rect = layoutModel.useRect(element);
-			createComputed(() => {
-				const rectValue = rect();
-				if (rectValue) {
-					resolve(rectValue);
-				}
-			});
-			layoutModel.invalidateRect(element).then(reject);
-		}).finally(dispose);
-	});
 }
 
 /**

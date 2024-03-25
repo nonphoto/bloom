@@ -1,4 +1,6 @@
-import { BodyQuad2d } from "@chloranthy/core";
+import { BodyQuad2d, Matcher, Rect } from "@chloranthy/core";
+import { createMutationObserver } from "@solid-primitives/mutation-observer";
+import { createSingletonRoot, createSubRoot } from "@solid-primitives/rootless";
 import {
 	Directive,
 	MaybeAccessor,
@@ -7,17 +9,14 @@ import {
 } from "@solid-primitives/utils";
 import {
 	Accessor,
+	createComputed,
 	createEffect,
 	createSignal,
 	getOwner,
 	on,
 	untrack,
-	createComputed,
 } from "solid-js";
-import { TransitionMatcher } from "./transitionMatcher";
-import { useLayoutModel } from "@chloranthy/layout-model";
-import { createSingletonRoot, createSubRoot } from "@solid-primitives/rootless";
-import { createMutationObserver } from "@solid-primitives/mutation-observer";
+import { useRectObserver } from "./rectObserver";
 import { useDisposal, useUnmounted } from "./zombie";
 
 export type ViewTransitionKey = string | symbol;
@@ -36,14 +35,14 @@ export type ViewTransitionOptions = {
 };
 export type ViewTransitionMatch = {
 	animation?: ReactiveAnimation;
-	rect: DOMRect;
+	rect: Rect;
 };
 export type ReactiveAnimation = {
 	isFinished: Accessor<boolean>;
 	body: Accessor<BodyQuad2d>;
 };
 export type ViewTransitionContext = {
-	matcher: TransitionMatcher<
+	matcher: Matcher<
 		ViewTransitionKey,
 		Accessor<ReactiveAnimation | undefined>,
 		ViewTransitionMatch
@@ -75,26 +74,35 @@ export const useViewTransitionContext = createSingletonRoot(() => {
 		},
 	);
 
-	const matcher = new TransitionMatcher<
+	const matcher = new Matcher<
 		ViewTransitionKey,
 		Accessor<ReactiveAnimation | undefined>,
 		ViewTransitionMatch
 	>({
-		onFirstAttempt: () => {
-			watchRemovals = true;
-		},
-		onPostRun: () => {
+		onRun: (run) => {
+			run();
 			watchRemovals = false;
 			removals.clear();
 		},
 	});
 
+	const attemptEnter: typeof matcher.attemptEnter = (...args) => {
+		watchRemovals = true;
+		matcher.attemptEnter(...args);
+	};
+
+	const attemptExit: typeof matcher.attemptExit = (...args) => {
+		watchRemovals = true;
+		matcher.attemptExit(...args);
+	};
+
 	return {
-		matcher,
+		attemptEnter,
+		attemptExit,
 	};
 });
 
-export function setInert(element: HTMLElement, rect: DOMRect) {
+export function setInert(element: HTMLElement, rect: Rect) {
 	element.style.width = rect?.width + "px";
 	element.style.height = rect?.height + "px";
 	element.style.position = "absolute";
@@ -107,12 +115,12 @@ function makeViewTransition(
 ) {
 	const owner = getOwner();
 	const { key, onEnterMatch, onExitMatch, onEnter, onExit } = options;
-	const { matcher } = useViewTransitionContext();
+	const { attemptEnter, attemptExit } = useViewTransitionContext();
 	const [animation, setAnimation] = createSignal<
 		ReactiveAnimation | undefined
 	>();
-	const layoutModel = useLayoutModel();
-	const rect = layoutModel.useRect(element);
+	const rectObserver = useRectObserver();
+	const rect = rectObserver.use(element);
 
 	const createOnAnimationFinished = (fn: () => void) => {
 		createEffect(() => {
@@ -133,7 +141,7 @@ function makeViewTransition(
 		}, owner);
 	};
 
-	matcher.attemptEnter(key, animation, onEnterAttempt, onEnterAttempt);
+	attemptEnter(key, animation, onEnterAttempt, onEnterAttempt);
 
 	const unmounted = useUnmounted();
 	const release = useDisposal();
@@ -150,7 +158,7 @@ function makeViewTransition(
 						createSubRoot(() => {
 							createEffect(
 								on(matchAnimation, (matchAnimationValue) => {
-									layoutModel.invalidateRect(element);
+									rectObserver.invalidate(element);
 
 									setAnimation(
 										onExitMatch?.(element, {
@@ -171,7 +179,7 @@ function makeViewTransition(
 						}, owner);
 					};
 
-					matcher.attemptExit(
+					attemptExit(
 						key,
 						{ animation: untrack(animation), rect: rectValue },
 						onSuccess,

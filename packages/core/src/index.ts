@@ -5,6 +5,7 @@ export * from "./body1d";
 export * from "./body2d";
 export * from "./bodyQuad2d";
 export * from "./common";
+export * from "./dom";
 export * from "./ease";
 export * from "./layout";
 export * from "./mat2";

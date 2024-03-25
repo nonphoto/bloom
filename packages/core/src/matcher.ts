@@ -1,4 +1,4 @@
-import { Batcher } from "./batcher";
+import { Batcher, BatcherCallback } from "./batcher";
 
 type Attempt<T, U> = {
 	value: T;
@@ -9,7 +9,7 @@ type Attempt<T, U> = {
 export class Matcher<T, Enter, Exit> {
 	#entering = new Map<T, Attempt<Enter, Exit>[]>();
 	#exiting = new Map<T, Attempt<Exit, Enter>[]>();
-	#onRun: (run: () => void) => void = (run) => run();
+	#onRun: (run: BatcherCallback<void>) => void = (run) => run();
 	#batcher = new Batcher({
 		onRun: (run) => {
 			const keys = new Set([...this.#entering.keys(), ...this.#exiting.keys()]);
@@ -46,7 +46,7 @@ export class Matcher<T, Enter, Exit> {
 		},
 	});
 
-	constructor(options?: { onRun?: () => void }) {
+	constructor(options?: { onRun?: (run: BatcherCallback<void>) => void }) {
 		this.#onRun = options?.onRun ?? this.#onRun;
 	}
 
