@@ -8,19 +8,36 @@ import { Accessor, batch, createEffect, createSignal } from "solid-js";
  */
 export type TimeCallback = (time: number, deltaTime: number) => void;
 
+export class Clock {
+	#time = performance.now();
+	#deltaTime = 0;
+
+	tick() {
+		const nextTime = performance.now();
+		this.#deltaTime = nextTime - this.#time;
+		this.#time = nextTime;
+	}
+
+	get time() {
+		return this.#time;
+	}
+
+	get deltaTime() {
+		return this.#deltaTime;
+	}
+}
+
 /**
  * Creates a new effect that calls the callback on every animation frame.
  * @param fn - The callback to call on animation frame.
  */
 export function createTimeCallback(fn: TimeCallback): void {
-	let time = performance.now();
-	let deltaTime = 0;
-	const startTime = time;
+	const clock = new Clock();
+	const startTime = clock.time;
 
-	const [, start] = createRAF((nextTime) => {
-		deltaTime = nextTime - time;
-		time = nextTime;
-		fn(time - startTime, deltaTime);
+	const [, start] = createRAF(() => {
+		clock.tick();
+		fn(clock.time - startTime, clock.deltaTime);
 	});
 
 	createEffect(() => {
