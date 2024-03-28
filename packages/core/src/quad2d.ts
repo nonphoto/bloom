@@ -1,5 +1,12 @@
-import { Mat2, mat2Create, mat2Equals, mat2Invert, mat2Multiply } from "./mat2";
-import { Mat2d, mat2dIdentity, ReadonlyMat2d } from "./mat2d.js";
+import {
+	Mat2,
+	mat2Create,
+	mat2Equals,
+	mat2Invert,
+	mat2Multiply,
+	mat2Rotate,
+} from "./mat2";
+import { Mat2d, ReadonlyMat2d, mat2dIdentity } from "./mat2d.js";
 import { ReadonlyRect, Rect } from "./rect.js";
 import {
 	ReadonlyVec2,
@@ -81,6 +88,22 @@ export function quad2dFromPositionSize(
 	out.ij[3] = h;
 	out.k[0] = position[0];
 	out.k[1] = position[1];
+	return out;
+}
+
+export function quad2dFromPositionSizeRotationValues(
+	out: Quad2d,
+	x: number,
+	y: number,
+	w: number,
+	h: number,
+	r: number,
+) {
+	out.k[0] = x;
+	out.k[1] = y;
+	out.ij[0] = w;
+	out.ij[3] = h;
+	mat2Rotate(out.ij, out.ij, r);
 	return out;
 }
 

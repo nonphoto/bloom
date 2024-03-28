@@ -5,6 +5,7 @@ export * from "./positioningObserver";
 export * from "./quad";
 export * from "./rect";
 export * from "./rectObserver";
+export * from "./spring";
 export * from "./time";
 export * from "./transform";
 export * from "./transition";

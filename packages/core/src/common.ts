@@ -69,7 +69,7 @@ export function clamp(min: number, max: number, x: number) {
 	return Math.min(Math.max(x, min), max);
 }
 
-export function withValue<T, U extends [], V>(
+export function withValue<T, U extends unknown[], V>(
 	value: T,
 	fn: (value: T, ...args: U) => V,
 ): (...args: U) => V {

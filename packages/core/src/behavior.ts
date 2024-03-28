@@ -1,7 +1,7 @@
+import { safeDocument } from "./dom";
 import type { Range } from "./range";
 import { Spring, springDuration, springPosition } from "./spring";
 
-export type AbstractTimeline = () => number;
 export type Behavior<T> = (t: number) => T;
 export type MaybeBehavior<T> = Behavior<T> | T;
 
@@ -9,13 +9,22 @@ const maxDuration = 10_000;
 const frameDuration = 1_000 / 60;
 
 let RANGES: Range[] | undefined = undefined;
+let TIMELINES: Set<AnimationTimeline> | undefined = undefined;
+
+const time: Behavior<number> = (t) => {
+	const timeline = safeDocument()?.timeline;
+	if (TIMELINES && timeline) {
+		TIMELINES.add(timeline);
+	}
+	return t;
+};
 
 export function withRanges<T>(
 	fn: (ranges: Range[]) => Range[],
-	b: Behavior<T>,
+	behavior: Behavior<T>,
 ): Behavior<T> {
 	return (t) => {
-		const value = b(t);
+		const value = behavior(t);
 		if (RANGES) {
 			RANGES = fn(RANGES);
 		}
@@ -23,59 +32,51 @@ export function withRanges<T>(
 	};
 }
 
-export function isBehavior<T>(value: any): value is Behavior<T> {
-	return typeof value === "function" && value.length === 1;
-}
-
-export function behave<T>(b: MaybeBehavior<T>, t: number): T {
-	return isBehavior(b) ? b(t) : b;
-}
-
-export function getRanges<T>(b: Behavior<T>, t: number): [Range[], T] {
-	let prevRanges = RANGES;
-	RANGES = [];
-	const value = b(t);
-	const ranges = RANGES;
-	RANGES = prevRanges;
-	return [ranges, value];
-}
-
 export function toGenerator(
 	element: Element,
 	prop: string,
-	b: Behavior<string>,
+	behavior: Behavior<string>,
 	options?: Pick<KeyframeAnimationOptions, "timeline" | "fill">,
 ): () => Generator<Animation> {
 	return function* () {
-		let time = performance.now();
-		const [ranges] = getRanges(b, time);
+		let t = performance.now();
+		const timelines: Set<AnimationTimeline> = (TIMELINES = new Set());
+		const ranges: Range[] = (RANGES = []);
+		behavior(t);
+		TIMELINES = undefined;
+		RANGES = undefined;
 		if (ranges.length === 0) {
 			ranges.push([-Infinity, Infinity]);
 		}
-		for (const range of ranges) {
-			if (time < range[0]) {
-				yield element.animate(null, { duration: range[0] - time });
-				time = range[0];
-			}
-			while (time < range[1]) {
-				const keyframes = [];
-				const end = Math.min(range[1], time + maxDuration);
-				const duration = end - time;
-				while (time < end) {
-					keyframes.push({ [prop]: b(time) });
-					time += frameDuration;
+		const timeline = timelines.values().next();
+		if (timelines.size === 1 && timeline) {
+			for (const range of ranges) {
+				if (t < range[0]) {
+					// TODO: implement timeouts for ScrollTimelines
+					yield element.animate(null, { duration: range[0] - t });
+					t = range[0];
 				}
-				yield element.animate(keyframes, {
-					duration,
-					easing: "linear",
-					...(options ?? {}),
-				});
+				while (t < range[1]) {
+					const keyframes = [];
+					const end = Math.min(range[1], t + maxDuration);
+					const duration = end - t;
+					while (t < end) {
+						keyframes.push({ [prop]: behavior(t) });
+						t += frameDuration;
+					}
+					yield element.animate(keyframes, {
+						...(options ?? {}),
+						duration,
+						easing: "linear",
+						timeline: timeline.value,
+					});
+				}
 			}
 		}
 	};
 }
 
-export function toControls(g: () => Generator<Animation>) {
+export function toControls(generator: () => Generator<Animation>) {
 	let animation: Animation;
 
 	return {
@@ -89,7 +90,7 @@ export function toControls(g: () => Generator<Animation>) {
 				animation.cancel();
 			}
 			try {
-				for (animation of g()) {
+				for (animation of generator()) {
 					await animation.finished;
 				}
 			} catch (error) {
@@ -101,23 +102,26 @@ export function toControls(g: () => Generator<Animation>) {
 	};
 }
 
-export function springBehavior(s: Spring): Behavior<number> {
+export function springBehavior(spring: Spring): Behavior<number> {
 	return withRanges(
-		() => [[0, springDuration(s, 0.1)]],
-		(t: number) => springPosition(s, t),
+		() => [[0, springDuration(spring, 0.1)]],
+		(t) => springPosition(spring, time(t)),
 	);
 }
 
 export function tweenBehavior(duration: number): Behavior<number> {
 	return withRanges(
 		() => [[0, duration]],
-		(t) => Math.min(Math.max(t / duration, 0), 1),
+		(t) => Math.min(Math.max(time(t) / duration, 0), 1),
 	);
 }
 
-export function behaviorDelay<T>(ms: number, b: Behavior<T>): Behavior<T> {
+export function behaviorDelay<T>(
+	ms: number,
+	behavior: Behavior<T>,
+): Behavior<T> {
 	return withRanges(
 		(ranges) => ranges.map(([start, end]) => [start + ms, end + ms]),
-		(t) => b(t - ms),
+		(t) => behavior(t - ms),
 	);
 }
