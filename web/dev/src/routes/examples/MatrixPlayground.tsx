@@ -1,15 +1,21 @@
-import { useLayoutModel } from "@chloranthy/layout-model";
-import classes from "./MatrixPlayground.module.css";
-import { createMemo } from "solid-js";
-import { createSetTransform, createTime } from "@chloranthy/solid";
-import { rectCreate, rectMix, rectUntransformMat2d } from "@chloranthy/core";
 import {
 	Mat2d,
 	mat2dCreate,
 	mat2dFromRotation,
 	mat2dInvert,
 	mat2dMultiply,
+	rectCreate,
+	rectMix,
+	rectUntransformMat2d,
 } from "@chloranthy/core";
+import {
+	createSetTransform,
+	createTime,
+	useMatrix,
+	useRect,
+} from "@chloranthy/solid";
+import { createMemo } from "solid-js";
+import classes from "./MatrixPlayground.module.css";
 
 export default function MatrixPlayground() {
 	const sourceInnerElement = (
@@ -29,12 +35,11 @@ export default function MatrixPlayground() {
 	const t1 = () => Math.sin(time() * 0.001) * 0.5 + 0.5;
 	const t2 = () => Math.cos(time() * 0.0015) * 0.5 + 0.5;
 
-	const layoutModel = useLayoutModel();
-	const sourceOuterRect = layoutModel.useRect(sourceOuterElement);
-	const sourceInnerRect = layoutModel.useRect(sourceInnerElement);
-	const sourceInnerMatrix = layoutModel.useMatrix(sourceInnerElement);
-	const targetOuterRect = layoutModel.useRect(targetOuterElement);
-	const targetInnerRect = layoutModel.useRect(targetInnerElement);
+	const sourceOuterRect = useRect(sourceOuterElement);
+	const sourceInnerRect = useRect(sourceInnerElement);
+	const sourceInnerMatrix = useMatrix(sourceInnerElement);
+	const targetOuterRect = useRect(targetOuterElement);
+	const targetInnerRect = useRect(targetInnerElement);
 
 	const mixedOuterRect = rectCreate();
 	const sourceOuterTransform = createMemo<Mat2d>(

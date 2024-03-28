@@ -1,12 +1,11 @@
-import classes from "./index.module.css";
-import { useParams } from "solid-start";
-import { projects } from "~/data/projects";
-import TabsHeader from "~/components/TabsHeader";
+import { rectCenterY } from "@chloranthy/core";
 import { Zombie, createViewTransition } from "@chloranthy/solid";
 import { Show, createEffect, untrack } from "solid-js";
+import { useParams } from "solid-start";
+import TabsHeader from "~/components/TabsHeader";
+import { projects } from "~/data/projects";
 import { onEnterMatch, onExitMatch } from "~/lib/transition";
-import { useLayoutModel } from "@chloranthy/layout-model";
-import { rectCy } from "@chloranthy/core";
+import classes from "./index.module.css";
 
 export default function UserPage() {
 	const params = useParams();
@@ -34,7 +33,10 @@ export default function UserPage() {
 								const rect = layoutModel.useRect(element);
 								createEffect(() => {
 									if (element.dataset["key"] === "alpha") {
-										console.log("rect", rect() ? rectCy(rect()!) : undefined);
+										console.log(
+											"rect",
+											rect() ? rectCenterY(rect()!) : undefined,
+										);
 									}
 								});
 								return element;

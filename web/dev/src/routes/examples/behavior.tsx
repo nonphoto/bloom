@@ -1,48 +1,11 @@
-import {
-	Behavior,
-	Spring,
-	SpringOptions,
-	behaviorDelay,
-	springBehavior,
-	springCreate,
-	springPosition,
-	springVelocity,
-	toControls,
-	toGenerator,
-} from "@chloranthy/core";
-import { access } from "@solid-primitives/utils";
-import { MaybeAccessor } from "@chloranthy/solid";
+import { behaviorDelay, toControls, toGenerator } from "@chloranthy/core";
+import { createSpringBehavior } from "@chloranthy/solid";
 import { createEventListener } from "@solid-primitives/event-listener";
-import { createEffect, createMemo, onCleanup } from "solid-js";
+import { createEffect, onCleanup } from "solid-js";
 import { createStore } from "solid-js/store";
 
 function safeDocument() {
 	return typeof document != "undefined" ? document : undefined;
-}
-
-function createSpring(options: MaybeAccessor<Partial<SpringOptions>>) {
-	let time = performance.now();
-	return createMemo<Spring>((prev) => {
-		const nextTime = performance.now();
-		const deltaTime = nextTime - time;
-		time = nextTime;
-		const optionsValue = access(options);
-		return prev
-			? springCreate({
-					start: springPosition(prev, deltaTime),
-					startVelocity: springVelocity(prev, deltaTime),
-					...optionsValue,
-			  })
-			: springCreate(optionsValue);
-	});
-}
-
-function createSpringBehavior(
-	options: MaybeAccessor<Partial<SpringOptions>>,
-): Behavior<number> {
-	const spring = createSpring(options);
-	const memo = createMemo(() => springBehavior(spring()));
-	return (t) => memo()(t);
 }
 
 export default function () {
@@ -65,24 +28,17 @@ export default function () {
 		></div>
 	) as Element;
 
-	const x = createSpringBehavior(() => ({
-		end: mousePosition.x,
-		halflife: 100,
-	}));
-	const y = createSpringBehavior(() => ({
-		end: mousePosition.y,
-		halflife: 100,
-	}));
+	const x = createSpringBehavior(() => mousePosition.x, { halflife: 100 });
+	const y = createSpringBehavior(() => mousePosition.y, { halflife: 100 });
 
 	createEffect(() => {
 		const controls = toControls(
 			toGenerator(
 				element,
 				"transform",
-				behaviorDelay(
-					performance.now(),
-					(t: number) => `translate(${x(t)}px, ${y(t)}px)`,
-				),
+				behaviorDelay(performance.now(), (t) => {
+					return `translate(${x(t)}px, ${y(t)}px)`;
+				}),
 				{ fill: "forwards" },
 			),
 		);

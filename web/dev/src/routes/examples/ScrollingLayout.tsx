@@ -1,15 +1,16 @@
-import classes from "./ScrollingLayout.module.css";
-import { quad, setTransform } from "@chloranthy/solid";
 import {
+	Mat2d,
 	Quad2d,
+	mat2dCreate,
+	mat2dFromRotation,
 	quad2dCreate,
 	quad2dFromRect,
 	quad2dTransformMat2d,
 } from "@chloranthy/core";
+import { quad, setTransform, useMatrix, useRect } from "@chloranthy/solid";
 import { createRAF } from "@solid-primitives/raf";
-import { Mat2d, mat2dCreate, mat2dFromRotation } from "@chloranthy/core";
 import { createEffect, createMemo, createSignal } from "solid-js";
-import { useLayoutModel } from "@chloranthy/layout-model";
+import classes from "./ScrollingLayout.module.css";
 
 quad;
 setTransform;
@@ -41,9 +42,8 @@ export default function ScrollingLayout() {
 		start();
 	});
 
-	const layout = useLayoutModel();
-	const innerRect = layout.useRect(innerElement);
-	const innerMatrix = layout.useMatrix(innerElement);
+	const innerRect = useRect(innerElement);
+	const innerMatrix = useMatrix(innerElement);
 
 	const shadowQuad = createMemo<Quad2d>(
 		(out) => {

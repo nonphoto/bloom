@@ -14,8 +14,7 @@ import {
 	vec2Create,
 	withValue,
 } from "@chloranthy/core";
-import { useLayoutModel } from "@chloranthy/layout-model";
-import { borderRadius, createMaybeMemo, quad } from "@chloranthy/solid";
+import { borderRadius, quad, useRect } from "@chloranthy/solid";
 import { xprod } from "ramda";
 import { createSignal } from "solid-js";
 import classes from "./SharedElement.module.css";
@@ -44,9 +43,8 @@ export default function SharedElement() {
 		HTMLElement | undefined
 	>();
 
-	const layoutTree = useLayoutModel();
-	const outerTargetRect = layoutModel.useRect(outerElement);
-	const innerTargetRect = layoutModel.useRect(innerElement);
+	const outerTargetRect = useRect(outerElement);
+	const innerTargetRect = useRect(innerElement);
 
 	const targetPosition = catchMaybe(
 		withValue(vec2Create(), (value) =>
@@ -58,8 +56,8 @@ export default function SharedElement() {
 			rectSize(value, maybe(outerTargetRect())),
 		),
 	);
-	const position = createSpringBehavior2d(targetPosition, { halflife: 150 });
-	const size = createSpringBehavior2d(targetSize, { halflife: 300 });
+	const position = createSpring2(targetPosition, { halflife: 150 });
+	const size = createSpring2(targetSize, { halflife: 300 });
 	const quad = withValue(quad2dCreate(), (value) =>
 		quad2dFromPositionSize(value, position(), size()),
 	);

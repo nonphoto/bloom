@@ -1,17 +1,3 @@
-import classes from "./index.module.css";
-import { createComputed, createSignal, For } from "solid-js";
-import { A } from "solid-start";
-import { imageOptions } from "~/data/images";
-import { projects } from "~/data/projects";
-import {
-	borderRadius,
-	createListTransition,
-	createMaybeMemo,
-	createMousePosition,
-	createSpringBody,
-	quad,
-	TransitionCallback,
-} from "@chloranthy/solid";
 import {
 	Quad2d,
 	quad2dCover,
@@ -21,10 +7,23 @@ import {
 	rectCreate,
 	rectSetAspectRatio,
 	rectSize,
+	vec2Create,
 } from "@chloranthy/core";
-import { vec2Create } from "@chloranthy/core";
-import { useLayoutModel } from "@chloranthy/layout-model";
+import {
+	borderRadius,
+	createListTransition,
+	createMaybeMemo,
+	createMousePosition,
+	createSpringBody,
+	quad,
+	TransitionCallback,
+} from "@chloranthy/solid";
 import { animate } from "motion";
+import { createComputed, createSignal, For } from "solid-js";
+import { A } from "solid-start";
+import { imageOptions } from "~/data/images";
+import { projects } from "~/data/projects";
+import classes from "./index.module.css";
 
 quad;
 borderRadius;

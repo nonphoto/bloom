@@ -2,37 +2,40 @@ import {
 	BodyQuad2d,
 	bodyQuad2dCreate,
 	bodyQuad2dFromRect,
+	catchMaybe,
+	maybe,
 	quad2dCreate,
 	quad2dFromRect,
 } from "@chloranthy/core";
-import { useLayoutModel } from "@chloranthy/layout-model";
 import {
 	ReactiveAnimation,
 	ViewTransitionMatch,
-	createMaybeMemo,
 	createSetQuad,
 	createSpringQuad2d,
+	useRect,
 } from "@chloranthy/solid";
-import { createEffect, createSignal, untrack } from "solid-js";
+import { createMemo, createSignal, untrack } from "solid-js";
 
 export function onEnterMatch(
 	element: HTMLElement,
 	match: ViewTransitionMatch,
 ): ReactiveAnimation | undefined {
-	const layoutModel = useLayoutModel();
-	const rect = layoutModel.useRect(element);
+	const rect = useRect(element);
 
 	const [body, setBody] = createSignal<BodyQuad2d>(
 		match.animation
 			? untrack(match.animation.body)
 			: bodyQuad2dFromRect(bodyQuad2dCreate(), match.rect),
-		{
-			equals: false,
-		},
+		{ equals: false },
 	);
-	const quad = createMaybeMemo(quad2dFromRect, quad2dCreate(), rect);
-	const isRunning = createSpringQuad2d(quad, body, setBody, 300);
-	const isFinished = () => quad() != null && !isRunning();
+	const targetQuad = createMemo(
+		catchMaybe((out) => quad2dFromRect(out, maybe(rect()))),
+		quad2dCreate(),
+		{ equals: false },
+	);
+	const quad = createSpringQuad2d(targetQuad, { halflife: 300 });
+	// TODO: Implement isFinished
+	const isFinished = () => quad() != null && false;
 	createSetQuad(element, () => body().p);
 	return {
 		isFinished,

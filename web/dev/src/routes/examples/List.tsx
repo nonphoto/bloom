@@ -1,16 +1,3 @@
-import classes from "./List.module.css";
-import { For, createSignal, untrack } from "solid-js";
-import clsx from "clsx";
-import {
-	ReactiveAnimation,
-	ViewTransitionOptions,
-	ViewTransitionMatch,
-	borderRadius,
-	createMaybeMemo,
-	createSetQuad,
-	createSpringQuad2d,
-	viewTransition,
-} from "@chloranthy/solid";
 import {
 	BodyQuad2d,
 	bodyQuad2dCreate,
@@ -18,7 +5,19 @@ import {
 	quad2dCreate,
 	quad2dFromRect,
 } from "@chloranthy/core";
-import { useLayoutModel } from "@chloranthy/layout-model";
+import {
+	ReactiveAnimation,
+	ViewTransitionMatch,
+	ViewTransitionOptions,
+	borderRadius,
+	createSetQuad,
+	createSpringQuad2d,
+	useRect,
+	viewTransition,
+} from "@chloranthy/solid";
+import clsx from "clsx";
+import { For, createSignal, untrack } from "solid-js";
+import classes from "./List.module.css";
 
 borderRadius;
 viewTransition;
@@ -53,8 +52,7 @@ function onEnterMatch(
 	element: HTMLElement,
 	match: ViewTransitionMatch,
 ): ReactiveAnimation | undefined {
-	const layoutModel = useLayoutModel();
-	const rect = layoutModel.useRect(element);
+	const rect = useRect(element);
 	const [body, setBody] = createSignal<BodyQuad2d>(
 		match.animation
 			? untrack(match.animation.body)
@@ -63,7 +61,7 @@ function onEnterMatch(
 			equals: false,
 		},
 	);
-	const quad = createMaybeMemo(quad2dFromRect, quad2dCreate(), rect);
+	const quad = createMemo(quad2dFromRect, quad2dCreate(), rect);
 	const isRunning = createSpringQuad2d(quad, body, setBody, 300);
 	const isFinished = () => quad() != null && !isRunning();
 	createSetQuad(element, () => body().p);
