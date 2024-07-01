@@ -10,6 +10,7 @@ import {
 	on,
 	untrack,
 } from "solid-js";
+import { useRectObserver } from "./rectObserver";
 import { useDisposal, useUnmounted } from "./zombie";
 
 export interface ViewTransitionOptions {
@@ -51,6 +52,7 @@ function makeViewTransition(
 	>();
 	const unmounted = useUnmounted();
 	const releaseDisposal = useDisposal();
+	const rectObserver = useRectObserver();
 
 	const createOnAnimationFinished = (fn: () => void) => {
 		createEffect(() => {
@@ -98,6 +100,9 @@ function makeViewTransition(
 		on(
 			unmounted,
 			() => {
+				rectObserver.getRect(element).then((rect) => {
+					setInert(element, rect);
+				});
 				matcher.attemptExit(untrack(animation), onExitSuccess, onExitFailure);
 			},
 			{ defer: true },

@@ -8,12 +8,16 @@ export function makeRectObserver(
 	callback: (entries: RectObserverEntry[]) => void,
 ): {
 	invalidate(element: HTMLElement): Promise<void>;
+	getRect(element: HTMLElement): Promise<Rect>;
 	observe(target: HTMLElement): void;
 	unobserve(target: HTMLElement): void;
 } {
 	if (isServer) {
 		return {
 			async invalidate() {},
+			async getRect() {
+				return new Promise<Rect>(() => {});
+			},
 			observe() {},
 			unobserve() {},
 		};
@@ -24,6 +28,7 @@ export function makeRectObserver(
 		});
 		return {
 			invalidate: observer.invalidate.bind(observer),
+			getRect: observer.getRect.bind(observer),
 			observe: observer.observe.bind(observer),
 			unobserve: observer.unobserve.bind(observer),
 		};
@@ -42,6 +47,7 @@ export const useRectObserver = createHydratableSingletonRoot(() => {
 
 	return {
 		invalidate: observer.invalidate,
+		getRect: observer.getRect,
 		use(element: HTMLElement) {
 			map.set(element, null);
 			observer.observe(element);

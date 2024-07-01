@@ -66,6 +66,15 @@ export class RectObserver {
 		});
 	}
 
+	async getRect(element: HTMLElement) {
+		let rect: Rect;
+		return this.#batcher
+			.task(() => {
+				rect = getRect(element);
+			})
+			.then(() => rect);
+	}
+
 	observe(target: HTMLElement) {
 		this.#elements.add(target);
 		this.#resizeObserver.observe(target);
