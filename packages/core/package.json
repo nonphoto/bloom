@@ -1,80 +1,65 @@
 {
-  "name": "@chloranthy/core",
-  "version": "0.0.1",
-  "description": "",
-  "license": "MIT",
-  "author": "Jonas Luebbers",
-  "contributors": [],
-  "homepage": "https://github.com/nonphoto/chloranthy#readme",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/nonphoto/chloranthy.git"
-  },
-  "bugs": {
-    "url": "https://github.com/nonphoto/chloranthy/issues"
-  },
-  "keywords": [
-    "solid"
-  ],
-  "private": true,
-  "sideEffects": false,
-  "publishConfig": {
-    "access": "public"
-  },
-  "files": [
-    "dist"
-  ],
-  "type": "module",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js",
-      "dev": "./src/index.ts"
-    },
-    "./body1d": {
-      "types": "./dist/body1d.d.ts",
-      "default": "./dist/body1d.js",
-      "dev": "./src/body1d.ts"
-    },
-    "./body2d": {
-      "types": "./dist/body2d.d.ts",
-      "default": "./dist/body2d.js",
-      "dev": "./src/body2d.ts"
-    },
-    "./bodyQuad2d": {
-      "types": "./dist/bodyQuad2d.d.ts",
-      "default": "./dist/bodyQuad2d.js",
-      "dev": "./src/bodyQuad2d.ts"
-    },
-    "./quad2d": {
-      "types": "./dist/quad2d.d.ts",
-      "default": "./dist/quad2d.js",
-      "dev": "./src/quad2d.ts"
-    },
-    "./rect": {
-      "types": "./dist/rect.d.ts",
-      "default": "./dist/rect.js",
-      "dev": "./src/rect.ts"
-    }
-  },
-  "browser": {},
-  "typesVersions": {},
-  "scripts": {
-    "dev": "tsup --watch",
-    "build": "tsup",
-    "docs": "typedoc src/index.ts",
-    "test": "concurrently pnpm:test:*",
-    "test:client": "vitest -c ../../configs/vitest.config.ts",
-    "test:ssr": "pnpm run test:client --mode ssr",
-    "typecheck": "tsc --noEmit"
-  },
-  "dependencies": {
-    "@nonphoto/spring": "0.0.5",
-    "iterator-helpers-polyfill": "2.3.3"
-  },
-  "devDependencies": {
-    "typedoc": "0.25.0"
-  }
+	"name": "@chloranthy/core",
+	"version": "0.0.1",
+	"description": "",
+	"license": "MIT",
+	"author": "Jonas Luebbers",
+	"contributors": [],
+	"homepage": "https://github.com/nonphoto/chloranthy#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/nonphoto/chloranthy.git"
+	},
+	"bugs": {
+		"url": "https://github.com/nonphoto/chloranthy/issues"
+	},
+	"keywords": [
+		"solid"
+	],
+	"private": true,
+	"sideEffects": false,
+	"publishConfig": {
+		"access": "public"
+	},
+	"files": [
+		"dist"
+	],
+	"type": "module",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js",
+			"dev": "./src/index.ts"
+		},
+		"./quad2d": {
+			"types": "./dist/quad2d.d.ts",
+			"default": "./dist/quad2d.js",
+			"dev": "./src/quad2d.ts"
+		},
+		"./rect": {
+			"types": "./dist/rect.d.ts",
+			"default": "./dist/rect.js",
+			"dev": "./src/rect.ts"
+		}
+	},
+	"browser": {},
+	"typesVersions": {},
+	"scripts": {
+		"dev": "tsup --watch",
+		"build": "tsup",
+		"docs": "typedoc src/index.ts",
+		"test": "concurrently pnpm:test:*",
+		"test:client": "vitest -c ../../configs/vitest.config.ts",
+		"test:ssr": "pnpm run test:client --mode ssr",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@nonphoto/spring": "0.0.5",
+		"iterator-helpers-polyfill": "2.3.3"
+	},
+	"devDependencies": {
+		"typedoc": "0.25.0"
+	}
 }
