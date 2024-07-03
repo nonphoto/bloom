@@ -1,13 +1,13 @@
 import {
 	ARRAY_TYPE,
 	EPSILON,
-	IndexedCollection,
+	type IndexedCollection,
 	RANDOM,
 	round,
 } from "./common";
-import { ReadonlyMat3 } from "./mat3";
-import { ReadonlyMat4 } from "./mat4";
-import { ReadonlyQuat } from "./quat";
+import type { ReadonlyMat3 } from "./mat3";
+import type { ReadonlyMat4 } from "./mat4";
+import type { ReadonlyQuat } from "./quat";
 
 export type Vec3 = [number, number, number] | IndexedCollection;
 export type ReadonlyVec3 =

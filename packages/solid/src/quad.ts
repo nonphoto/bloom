@@ -4,12 +4,12 @@ import {
 	mat2dInvert,
 	mat2dMultiply,
 	maybe,
-	Quad2d,
+	type Quad2d,
 	quad2dCreate,
 	quad2dFromRect,
 	quad2dUntransformMat2d,
 } from "@chloranthy/core";
-import { access, Directive, MaybeAccessor } from "@solid-primitives/utils";
+import { access, Directive, type MaybeAccessor } from "@solid-primitives/utils";
 import { createMemo } from "solid-js";
 import { useMatrix, useRect } from "./layout";
 import { createSetTransform } from "./transform";

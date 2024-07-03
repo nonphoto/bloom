@@ -2,7 +2,7 @@ import { Matcher, Rect } from "@chloranthy/core";
 import { createSubRoot } from "@solid-primitives/rootless";
 import { Directive, MaybeAccessor, access } from "@solid-primitives/utils";
 import {
-	Accessor,
+	type Accessor,
 	createComputed,
 	createEffect,
 	createSignal,

@@ -21,21 +21,21 @@
 		"update-deps": "pnpm up -Lri"
 	},
 	"devDependencies": {
-		"@changesets/cli": "^2.26.2",
-		"@types/node": "^20.10.0",
+		"@changesets/cli": "^2.27.7",
+		"@types/node": "^20.14.9",
 		"concurrently": "^8.2.2",
-		"jsdom": "^22.1.0",
-		"prettier": "3.1.0",
-		"tsup": "^7.2.0",
-		"tsup-preset-solid": "^2.1.0",
-		"turbo": "^1.10.16",
-		"typedoc": "0.25.3",
-		"typescript": "5.2.2",
-		"vite": "^4.3.9",
-		"vite-plugin-solid": "^2.7.2",
-		"vitest": "^0.34.6"
+		"jsdom": "^24.1.0",
+		"prettier": "3.3.2",
+		"tsup": "^8.1.0",
+		"tsup-preset-solid": "^2.2.0",
+		"turbo": "^2.0.6",
+		"typedoc": "0.26.3",
+		"typescript": "5.5.3",
+		"vite": "^5.3.3",
+		"vite-plugin-solid": "^2.10.2",
+		"vitest": "^1.6.0"
 	},
-	"packageManager": "pnpm@7.22.0",
+	"packageManager": "pnpm@9.4.0+sha512.f549b8a52c9d2b8536762f99c0722205efc5af913e77835dbccc3b0b0b2ca9e7dc8022b78062c17291c48e88749c70ce88eb5a74f1fa8c4bf5e18bb46c8bd83a",
 	"engines": {
 		"node": ">=17.0.0"
 	}

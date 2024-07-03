@@ -1,6 +1,6 @@
 import { ReactiveMap } from "@solid-primitives/map";
 import { createSingletonRoot } from "@solid-primitives/rootless";
-import { Owner, createRoot, getOwner, onCleanup, untrack } from "solid-js";
+import { type Owner, createRoot, getOwner, onCleanup, untrack } from "solid-js";
 
 type SingletonMapFactory<T, U, V> = (key: T, args?: V) => U;
 

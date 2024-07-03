@@ -1,6 +1,10 @@
 import { mix } from "./common";
-import { Mat2d } from "./mat2d";
-import { ReadonlyVec2, Vec2, vec2Set } from "./vec2";
+import type { Mat2d } from "./mat2d";
+import { 
+	type ReadonlyVec2, 
+	type Vec2, 
+	vec2Set 
+} from "./vec2";
 
 /**
  * A rectangle in 2-dimensional space. The rectangle cannot rotate and thus its edges are always axis-aligned. A Rect is a subRect of DOMRect.

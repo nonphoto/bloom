@@ -2,13 +2,13 @@ import {
 	ANGLE_ORDER,
 	ARRAY_TYPE,
 	EPSILON,
-	IndexedCollection,
+	type IndexedCollection,
 	RANDOM,
 } from "./common";
-import { ReadonlyMat3, mat3Create } from "./mat3";
+import { type ReadonlyMat3, mat3Create } from "./mat3";
 import {
-	ReadonlyVec3,
-	Vec3,
+	type ReadonlyVec3,
+	type Vec3,
 	vec3Create,
 	vec3Cross,
 	vec3Dot,

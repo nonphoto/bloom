@@ -1,8 +1,8 @@
-import { ARRAY_TYPE, EPSILON, IndexedCollection } from "./common";
-import { ReadonlyMat4, mat4GetRotation, mat4GetTranslation } from "./mat4";
+import { ARRAY_TYPE, EPSILON, type IndexedCollection } from "./common";
+import { type ReadonlyMat4, mat4GetRotation, mat4GetTranslation } from "./mat4";
 import {
-	Quat,
-	ReadonlyQuat,
+	type Quat,
+	type ReadonlyQuat,
 	quatCopy,
 	quatCreate,
 	quatDot,
@@ -12,7 +12,7 @@ import {
 	quatRotateZ,
 	quatSquaredLength,
 } from "./quat";
-import { ReadonlyVec3, Vec3 } from "./vec3";
+import type { ReadonlyVec3, Vec3 } from "./vec3";
 
 export type Quat2 =
 	| [number, number, number, number, number, number, number, number]

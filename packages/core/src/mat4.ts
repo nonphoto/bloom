@@ -1,7 +1,7 @@
-import { ARRAY_TYPE, EPSILON, IndexedCollection } from "./common";
-import { Quat, ReadonlyQuat } from "./quat";
-import { ReadonlyQuat2 } from "./quat2";
-import { ReadonlyVec3, Vec3 } from "./vec3";
+import { ARRAY_TYPE, EPSILON, type IndexedCollection } from "./common";
+import type { Quat, ReadonlyQuat } from "./quat";
+import type { ReadonlyQuat2 } from "./quat2";
+import type { ReadonlyVec3, Vec3 } from "./vec3";
 
 // prettier-ignore
 export type Mat4 =

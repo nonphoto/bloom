@@ -1,7 +1,7 @@
 import {
-	Layout,
-	Mat2d,
-	Rect,
+	type Layout,
+	type Mat2d,
+	type Rect,
 	catchMaybe,
 	layoutCreate,
 	mat2dClone,
@@ -10,8 +10,8 @@ import {
 } from "@chloranthy/core";
 import { ReactiveMap } from "@solid-primitives/map";
 import { createHydratableSingletonRoot } from "@solid-primitives/rootless";
-import { MaybeAccessor, access } from "@solid-primitives/utils";
-import { Accessor, createComputed, createMemo, createRoot } from "solid-js";
+import { type MaybeAccessor, access } from "@solid-primitives/utils";
+import { type Accessor, createComputed, createMemo, createRoot } from "solid-js";
 import { usePositioningObserver } from "./positioningObserver";
 import { useRectObserver } from "./rectObserver";
 import { SingletonMap } from "./singletonMap";

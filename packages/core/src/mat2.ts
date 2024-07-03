@@ -1,5 +1,5 @@
-import { ARRAY_TYPE, EPSILON, IndexedCollection } from "./common";
-import { ReadonlyVec2 } from "./vec2";
+import { ARRAY_TYPE, EPSILON, type IndexedCollection } from "./common";
+import { type ReadonlyVec2 } from "./vec2";
 
 // prettier-ignore
 export type Mat2 =

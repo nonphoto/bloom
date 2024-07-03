@@ -1,6 +1,6 @@
-import { Vec2, safeWindow, vec2Create, vec2Set } from "@chloranthy/core";
+import { type Vec2, safeWindow, vec2Create, vec2Set } from "@chloranthy/core";
 import { createMousePosition as createMousePositionStore } from "@solid-primitives/mouse";
-import { Accessor, createMemo } from "solid-js";
+import { type Accessor, createMemo } from "solid-js";
 
 /**
  * Creates a signal for the position of the mouse on screen.

@@ -1,5 +1,5 @@
 import {
-	Rect,
+	type Rect,
 	catchMaybe,
 	mat2dCreate,
 	mat2dInvert,
@@ -7,7 +7,7 @@ import {
 	maybe,
 	rectUntransformMat2d,
 } from "@chloranthy/core";
-import { Directive, MaybeAccessor, access } from "@solid-primitives/utils";
+import { type Directive, type MaybeAccessor, access } from "@solid-primitives/utils";
 import { createMemo } from "solid-js";
 import { useMatrix, useRect } from "./layout";
 import { createSetTransform } from "./transform";

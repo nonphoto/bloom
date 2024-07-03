@@ -1,6 +1,6 @@
-import { Mat2d } from "./mat2d";
-import { Rect } from "./rect";
-import { Vec2 } from "./vec2";
+import type { Mat2d } from "./mat2d";
+import type { Rect } from "./rect";
+import type { Vec2 } from "./vec2";
 
 export function styleTransformMat2d(transform: Mat2d): string {
 	let result = "matrix(";

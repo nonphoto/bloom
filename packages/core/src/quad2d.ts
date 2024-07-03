@@ -1,16 +1,20 @@
 import {
-	Mat2,
+	type Mat2,
 	mat2Create,
 	mat2Equals,
 	mat2Invert,
 	mat2Multiply,
 	mat2Rotate,
 } from "./mat2";
-import { Mat2d, ReadonlyMat2d, mat2dIdentity } from "./mat2d.js";
-import { ReadonlyRect, Rect } from "./rect.js";
+import { 
+	type Mat2d, 
+	type ReadonlyMat2d, 
+	mat2dIdentity 
+} from "./mat2d.js";
+import type { ReadonlyRect, Rect } from "./rect.js";
 import {
-	ReadonlyVec2,
-	Vec2,
+	type ReadonlyVec2,
+	type Vec2,
 	vec2Copy,
 	vec2Create,
 	vec2Equals,

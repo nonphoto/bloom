@@ -1,5 +1,5 @@
-import { Mat2d } from "@chloranthy/core";
-import { access, Directive, MaybeAccessor } from "@solid-primitives/utils";
+import { type Mat2d } from "@chloranthy/core";
+import { access, type Directive, type MaybeAccessor } from "@solid-primitives/utils";
 import { createComputed } from "solid-js";
 import { useLayoutTree } from "./layout";
 

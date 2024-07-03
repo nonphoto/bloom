@@ -1,9 +1,9 @@
 import {
-	Behavior,
-	Quad2d,
-	Spring,
-	SpringOptions,
-	Vec2,
+	type Behavior,
+	type Quad2d,
+	type Spring,
+	type SpringOptions,
+	type Vec2,
 	catchMaybe,
 	maybe,
 	quad2dCreate,
@@ -16,8 +16,8 @@ import {
 	vec2Set,
 	withValue,
 } from "@chloranthy/core";
-import { MaybeAccessor, access } from "@solid-primitives/utils";
-import { Accessor, createMemo } from "solid-js";
+import { type MaybeAccessor, access } from "@solid-primitives/utils";
+import { type Accessor, createMemo } from "solid-js";
 import { Clock } from "./time";
 
 export type CreateSpringOptions = Partial<
@@ -51,7 +51,7 @@ export function createSpringBehavior(
 ): Behavior<number | undefined> {
 	const spring = createSpring(target, options);
 	const memo = createMemo(catchMaybe(() => springBehavior(maybe(spring()))));
-	return (t) => memo()?.(t);
+	return (t?: number) => memo()?.(t);
 }
 
 export function createSpringBehaviorVec2(
@@ -60,11 +60,12 @@ export function createSpringBehaviorVec2(
 ): Behavior<Vec2 | undefined> {
 	const x = createSpringBehavior(() => access(target)?.[0], options);
 	const y = createSpringBehavior(() => access(target)?.[1], options);
-	return catchMaybe(
-		withValue(vec2Create(), (value, t: number) =>
-			vec2Set(value, maybe(x(t)), maybe(y(t))),
+	return (t) => catchMaybe(
+		withValue(
+			vec2Create(), 
+			(value, t: number) => vec2Set(value, maybe(x(t)), maybe(y(t))),
 		),
-	);
+	)(t!);
 }
 
 export function createSpringBehaviorQuad2d(
@@ -81,7 +82,7 @@ export function createSpringBehaviorQuad2d(
 		),
 		options,
 	);
-	return catchMaybe(
+	return (t) => catchMaybe(
 		withValue(quad2dCreate(), (value, t: number) =>
 			quad2dFromPositionSizeRotationValues(
 				value,
@@ -92,5 +93,5 @@ export function createSpringBehaviorQuad2d(
 				maybe(r(t)),
 			),
 		),
-	);
+	)(t!);
 }

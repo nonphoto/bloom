@@ -1,4 +1,4 @@
-import { Rect, RectObserver, RectObserverEntry } from "@chloranthy/core";
+import { type Rect, RectObserver, type RectObserverEntry } from "@chloranthy/core";
 import { ReactiveMap } from "@solid-primitives/map";
 import { createHydratableSingletonRoot } from "@solid-primitives/rootless";
 import { onCleanup } from "solid-js";

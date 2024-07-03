@@ -1,15 +1,15 @@
 import {
-	IndexedCollection,
+	type IndexedCollection,
 	round,
 	ARRAY_TYPE,
 	EPSILON,
 	RANDOM,
 } from "./common";
-import { ReadonlyMat2 } from "./mat2";
-import { ReadonlyMat2d } from "./mat2d";
-import { ReadonlyMat3 } from "./mat3";
-import { ReadonlyMat4 } from "./mat4";
-import { Vec3 } from "./vec3";
+import type { ReadonlyMat2 } from "./mat2";
+import type { ReadonlyMat2d } from "./mat2d";
+import type { ReadonlyMat3 } from "./mat3";
+import type { ReadonlyMat4 } from "./mat4";
+import type { Vec3 } from "./vec3";
 
 export type Vec2 = [number, number] | IndexedCollection;
 export type ReadonlyVec2 = readonly [number, number] | IndexedCollection;

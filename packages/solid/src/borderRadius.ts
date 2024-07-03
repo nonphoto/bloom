@@ -6,8 +6,8 @@ import {
 	styleBorderRadiusRect,
 } from "@chloranthy/core";
 import {
-	Directive,
-	MaybeAccessor,
+	type Directive,
+	type MaybeAccessor,
 	access,
 	withAccess,
 } from "@solid-primitives/utils";

@@ -1,6 +1,6 @@
 import { Batcher } from "./batcher";
 import { walkAncestors, walkDescendants } from "./dom";
-import { Rect } from "./rect";
+import type { Rect } from "./rect";
 
 function getRect(element: HTMLElement): Rect {
 	const rect = element.getBoundingClientRect();

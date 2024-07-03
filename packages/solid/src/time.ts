@@ -1,5 +1,5 @@
 import { createRAF } from "@solid-primitives/raf";
-import { Accessor, batch, createEffect, createSignal } from "solid-js";
+import { type Accessor, batch, createEffect, createSignal } from "solid-js";
 
 /**
  * A callback for an animation frame.

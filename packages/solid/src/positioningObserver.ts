@@ -1,6 +1,6 @@
 import {
 	PositioningObserver,
-	PositioningObserverEntry,
+	type PositioningObserverEntry,
 } from "@chloranthy/core";
 import { ReactiveMap } from "@solid-primitives/map";
 import { createHydratableSingletonRoot } from "@solid-primitives/rootless";

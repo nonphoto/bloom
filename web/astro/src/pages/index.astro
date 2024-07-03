@@ -1,0 +1,27 @@
+---
+import { DynamicIsland } from "../components/DynamicIsland/DynamicIsland";
+import { DynamicIslandButtons } from "../components/DynamicIsland/Buttons";
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Astro</title>
+	</head>
+	<body class="flex justify-center px-2 py-24">
+		<div class="w-full max-w-[65ch] flex flex-col gap-2">
+			<h1>Dynamic Island</h1>
+
+			<div class="bg-gray-200/30 rounded w-full md:rounded-xl">
+				<div class="flex w-full px-4 py-6 h-[200px] items-start justify-center pb-32">
+					<DynamicIsland client:load />
+				</div>
+
+				<DynamicIslandButtons client:load />
+			</div>
+		</div>
+	</body>
+</html>

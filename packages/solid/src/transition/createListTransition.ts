@@ -1,6 +1,6 @@
 import {
 	$TRACK,
-	Accessor,
+	type Accessor,
 	createComputed,
 	createSignal,
 	untrack,

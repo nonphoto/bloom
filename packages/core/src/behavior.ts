@@ -1,8 +1,9 @@
 import { safeDocument } from "./dom";
 import type { Range } from "./range";
-import { Spring, springDuration, springPosition } from "./spring";
+import type { Spring } from "./spring";
+import { springDuration, springPosition } from "./spring";
 
-export type Behavior<T> = (t: number) => T;
+export type Behavior<T> = (t?: number) => T;
 export type MaybeBehavior<T> = Behavior<T> | T;
 
 const maxDuration = 10_000;

@@ -11,7 +11,7 @@ import {
 	ReactiveAnimation,
 	ViewTransitionMatch,
 	createSetQuad,
-	createSpringQuad2d,
+	createSpringBehaviorQuad2d,
 	useRect,
 } from "@chloranthy/solid";
 import { createMemo, createSignal, untrack } from "solid-js";
@@ -33,7 +33,7 @@ export function onEnterMatch(
 		quad2dCreate(),
 		{ equals: false },
 	);
-	const quad = createSpringQuad2d(targetQuad, { halflife: 300 });
+	const quad = createSpringBehaviorQuad2d(targetQuad, { halflife: 300 });
 	// TODO: Implement isFinished
 	const isFinished = () => quad() != null && false;
 	createSetQuad(element, () => body().p);

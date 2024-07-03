@@ -1,7 +1,7 @@
 import { createSubRoot } from "@solid-primitives/rootless";
 import {
-	Accessor,
-	Owner,
+	type Accessor,
+	type Owner,
 	createComputed,
 	getOwner,
 	on,

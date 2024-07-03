@@ -1,0 +1,46 @@
+{
+  "name": "astro",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/solid-js": "^4.4.0",
+    "@astrojs/tailwind": "^5.1.0",
+    "@chloranthy/core": "workspace:*",
+    "@chloranthy/solid": "workspace:*",
+    "@nonphoto/css": "1.0.4",
+    "@solid-devtools/logger": "0.8.4",
+    "@solid-primitives/context": "0.2.3",
+    "@solid-primitives/event-listener": "2.3.3",
+    "@solid-primitives/map": "^0.4.11",
+    "@solid-primitives/mouse": "2.0.19",
+    "@solid-primitives/raf": "2.2.0",
+    "@solid-primitives/refs": "^1.0.8",
+    "@solid-primitives/resize-observer": "2.0.25",
+    "@solid-primitives/rootless": "1.4.5",
+    "@solid-primitives/transition-group": "^1.0.5",
+    "@solid-primitives/utils": "6.2.3",
+    "@solidjs/meta": "^0.29.4",
+    "@solidjs/router": "^0.13.6",
+    "astro": "^4.11.3",
+    "clsx": "2.1.1",
+    "gl-matrix": "3.4.3",
+    "motion": "10.18.0",
+    "ramda": "0.30.1",
+    "solid-js": "^1.8.18",
+    "solid-transition-group": "0.2.3",
+    "tailwindcss": "^3.4.4"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.7.0",
+    "@types/node": "^20.14.9",
+    "typescript": "^5.5.3",
+    "undici": "^6.19.2"
+  }
+}

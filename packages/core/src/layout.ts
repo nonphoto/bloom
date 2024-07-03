@@ -1,6 +1,6 @@
 import { withValue } from "./common";
 import {
-	Mat2d,
+	type Mat2d,
 	mat2dCopy,
 	mat2dCreate,
 	mat2dFromTranslation,
@@ -8,8 +8,8 @@ import {
 	mat2dTranslate,
 	mat2dTranslateNegative,
 } from "./mat2d";
-import { Rect, rectCenter } from "./rect";
-import { Vec2, vec2Create, vec2Sub } from "./vec2";
+import { type Rect, rectCenter } from "./rect";
+import { type Vec2, vec2Create, vec2Sub } from "./vec2";
 
 export type Layout = {
 	offsetCenter: Vec2;

@@ -1,12 +1,12 @@
 import {
 	ARRAY_TYPE,
 	EPSILON,
-	IndexedCollection,
+	type IndexedCollection,
 	RANDOM,
 	round,
 } from "./common";
-import { ReadonlyMat4 } from "./mat4";
-import { ReadonlyQuat } from "./quat";
+import type { ReadonlyMat4 } from "./mat4";
+import type { ReadonlyQuat } from "./quat";
 
 declare type Vec4 = [number, number, number, number] | IndexedCollection;
 declare type ReadonlyVec4 =

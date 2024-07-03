@@ -1,8 +1,8 @@
-import { ARRAY_TYPE, EPSILON, IndexedCollection } from "./common";
-import { ReadonlyMat2d } from "./mat2d";
-import { ReadonlyMat4 } from "./mat4";
-import { ReadonlyQuat } from "./quat";
-import { ReadonlyVec2 } from "./vec2";
+import { ARRAY_TYPE, EPSILON, type IndexedCollection } from "./common";
+import type { ReadonlyMat2d } from "./mat2d";
+import type { ReadonlyMat4 } from "./mat4";
+import type { ReadonlyQuat } from "./quat";
+import type { ReadonlyVec2 } from "./vec2";
 
 // prettier-ignore
 export type ReadonlyMat3 =
