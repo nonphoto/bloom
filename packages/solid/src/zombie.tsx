@@ -36,14 +36,14 @@ interface ZombieContextValue {
 const ZombieBoundaryContext = createContext<ZombieBoundaryContextValue>();
 const ZombieContext = createContext<ZombieContextValue>();
 
-export function useDisposal() {
+export function useDisposal(): () => void {
 	const context = useContext(ZombieContext);
 	return context?.useDisposal() ?? noop;
 }
 
-export function useUnmounted() {
+export function useUnmounted(): Accessor<boolean> {
 	const context = useContext(ZombieContext);
-	return () => context?.unmounted();
+	return () => context?.unmounted() ?? false;
 }
 
 export function ZombieBoundary(props: ParentProps) {
