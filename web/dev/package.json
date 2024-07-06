@@ -8,10 +8,11 @@
 		"version": "vinxi version"
 	},
 	"dependencies": {
+		"@solid-primitives/event-listener": "2.3.3",
 		"@solidjs/meta": "^0.29.4",
 		"@solidjs/router": "^0.13.6",
 		"@solidjs/start": "^1.0.2",
-		"solid-js": "^1.8.17",
+		"solid-js": "^1.8.18",
 		"vinxi": "^0.3.12"
 	},
 	"engines": {
