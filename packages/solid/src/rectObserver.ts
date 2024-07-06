@@ -1,19 +1,24 @@
 import { type Rect, RectObserver, type RectObserverEntry } from "@chloranthy/core";
 import { ReactiveMap } from "@solid-primitives/map";
 import { createHydratableSingletonRoot } from "@solid-primitives/rootless";
-import { onCleanup } from "solid-js";
+import { MaybeAccessor, access } from "@solid-primitives/utils";
+import { createEffect, onCleanup } from "solid-js";
 import { isServer } from "solid-js/web";
 
 export function makeRectObserver(
 	callback: (entries: RectObserverEntry[]) => void,
 ): {
 	invalidate(element: HTMLElement): Promise<void>;
+	getRect(element: HTMLElement): Promise<Rect>;
 	observe(target: HTMLElement): void;
 	unobserve(target: HTMLElement): void;
 } {
 	if (isServer) {
 		return {
 			async invalidate() {},
+			async getRect() {
+				return new Promise<Rect>(() => {});
+			},
 			observe() {},
 			unobserve() {},
 		};
@@ -24,6 +29,7 @@ export function makeRectObserver(
 		});
 		return {
 			invalidate: observer.invalidate.bind(observer),
+			getRect: observer.getRect.bind(observer),
 			observe: observer.observe.bind(observer),
 			unobserve: observer.unobserve.bind(observer),
 		};
@@ -42,16 +48,25 @@ export const useRectObserver = createHydratableSingletonRoot(() => {
 
 	return {
 		invalidate: observer.invalidate,
-		use(element: HTMLElement) {
-			map.set(element, null);
-			observer.observe(element);
+		getRect: observer.getRect,
+		use(element: MaybeAccessor<HTMLElement | undefined>) {
+			createEffect(() => {
+				const elementValue = access(element);
+				if (elementValue) {
+					map.set(elementValue, null);
+					observer.observe(elementValue);
 
-			onCleanup(() => {
-				map.delete(element);
-				observer.unobserve(element);
+					onCleanup(() => {
+						map.delete(elementValue);
+						observer.unobserve(elementValue);
+					});
+				}
 			});
 
-			return () => map.get(element) ?? undefined;
+			return () => {
+				const elementValue = access(element);
+				return elementValue ? map.get(elementValue) ?? undefined : undefined;
+			};
 		},
 	};
 });

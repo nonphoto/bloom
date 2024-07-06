@@ -1,7 +1,5 @@
-import { behaviorDelay, toControls, toGenerator } from "@chloranthy/core";
 import { createSpringBehavior } from "@chloranthy/solid";
 import { createEventListener } from "@solid-primitives/event-listener";
-import { createEffect, onCleanup } from "solid-js";
 import { createStore } from "solid-js/store";
 
 function safeDocument() {
@@ -18,7 +16,10 @@ export default function () {
 		},
 	);
 
-	const element = (
+	const x = createSpringBehavior(() => mousePosition.x, { halflife: 100 });
+	const y = createSpringBehavior(() => mousePosition.y, { halflife: 100 });
+
+	return (
 		<div
 			style={{
 				width: "100px",
@@ -26,29 +27,26 @@ export default function () {
 				background: "skyblue",
 			}}
 		></div>
-	) as Element;
+	);
 
-	const x = createSpringBehavior(() => mousePosition.x, { halflife: 100 });
-	const y = createSpringBehavior(() => mousePosition.y, { halflife: 100 });
+	// createEffect(() => {
+	// 	const controls = toControls(
+	// 		toGenerator(
+	// 			element,
+	// 			"transform",
+	// 			behaviorDelay(performance.now(), (t) => {
+	// 				return `translate(${x(t)}px, ${y(t)}px)`;
+	// 			}),
+	// 			{ fill: "forwards" },
+	// 		),
+	// 	);
 
-	createEffect(() => {
-		const controls = toControls(
-			toGenerator(
-				element,
-				"transform",
-				behaviorDelay(performance.now(), (t) => {
-					return `translate(${x(t)}px, ${y(t)}px)`;
-				}),
-				{ fill: "forwards" },
-			),
-		);
+	// 	controls.play();
 
-		controls.play();
-
-		onCleanup(() => {
-			controls.cancel();
-		});
-	});
+	// 	onCleanup(() => {
+	// 		controls.cancel();
+	// 	});
+	// });
 
 	return element;
 }
