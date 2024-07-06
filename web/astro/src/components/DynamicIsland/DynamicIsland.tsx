@@ -1,5 +1,5 @@
 import { toControls, toGenerator, behaviorDelay } from "@chloranthy/core";
-import { createSpringBehavior } from "@chloranthy/solid";
+import { createSpringBehavior } from "@chloranthy/solid/src/index.ts";
 
 import { createEventListener } from "@solid-primitives/event-listener";
 import { createEffect, createSignal, onCleanup } from "solid-js";
@@ -27,7 +27,6 @@ export function DynamicIsland() {
 	// const y = createSpringBehavior(() => state.height, { halflife: 100 });
 	// const rad = createSpringBehavior(() => state.radius, { halflife: 100 });
 
-	function directive(el: HTMLElement, property: string) {
 	createEffect(() => {
 		if (!ref()) return;
 		const controls = toControls(
@@ -47,7 +46,9 @@ export function DynamicIsland() {
 			controls.cancel();
 		});
 	});
-}
+
+	// function directive(el: HTMLElement, property: string) {
+	// }
 
 	return (
 		<div class="relative">
