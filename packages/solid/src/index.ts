@@ -1,3 +1,4 @@
+export * from "./behavior";
 export * from "./borderRadius";
 export * from "./layout";
 export * from "./mouse";

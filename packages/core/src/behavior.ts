@@ -1,3 +1,4 @@
+import type * as CSS from "csstype";
 import { safeDocument } from "./dom";
 import type { Range } from "./range";
 import { Spring, springDuration, springPosition } from "./spring";
@@ -32,11 +33,16 @@ export function withRanges<T>(
 	};
 }
 
-export function toGenerator(
+export type BehaviorAnimateProperties = CSS.Properties;
+export type BehaviorAnimateOptions =
+	| Omit<KeyframeAnimationOptions, "duration" | "easing" | "timeline">
+	| undefined;
+
+export function behaviorAnimate<T extends keyof BehaviorAnimateProperties>(
 	element: Element,
-	prop: string,
-	behavior: Behavior<string>,
-	options?: Pick<KeyframeAnimationOptions, "timeline" | "fill">,
+	property: T,
+	behavior: Behavior<BehaviorAnimateProperties[T]>,
+	options: BehaviorAnimateOptions,
 ): () => Generator<Animation> {
 	return function* () {
 		let t = performance.now();
@@ -61,7 +67,7 @@ export function toGenerator(
 					const end = Math.min(range[1], t + maxDuration);
 					const duration = end - t;
 					while (t < end) {
-						keyframes.push({ [prop]: behavior(t) });
+						keyframes.push({ [property]: behavior(t) });
 						t += frameDuration;
 					}
 					yield element.animate(keyframes, {
@@ -76,7 +82,9 @@ export function toGenerator(
 	};
 }
 
-export function toControls(generator: () => Generator<Animation>) {
+export function animationGeneratorControls(
+	generator: () => Generator<Animation>,
+) {
 	let animation: Animation;
 
 	return {
