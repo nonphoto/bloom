@@ -1,8 +1,10 @@
 import { createSubRoot } from "@solid-primitives/rootless";
 import {
 	Accessor,
+	EffectFunction,
 	Owner,
 	createComputed,
+	createMemo,
 	getOwner,
 	on,
 	runWithOwner,
@@ -46,3 +48,16 @@ export function createOnce<T>(
 		);
 	});
 }
+
+export const createObject =
+	<T>(create: () => T) =>
+	(fn: EffectFunction<T>): Accessor<T> => {
+		return createMemo(fn, create(), { equals: false });
+	};
+
+export const createMaybeObject =
+	<T>(create: () => T) =>
+	(fn: EffectFunction<T | undefined>): Accessor<T | undefined> => {
+		const v = create();
+		return createMemo(() => fn(v), undefined, { equals: false });
+	};
