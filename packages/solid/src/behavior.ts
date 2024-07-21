@@ -53,9 +53,13 @@ export function createAnimations<T extends BehaviorAnimateProperties>(
 	createEffect(() => {
 		const elementValue = access(element);
 		if (elementValue) {
-			const entries = Object.entries(behaviors);
-			for (const [property, behavior] of entries) {
-				makeAnimation(elementValue, property, behavior, options);
+			for (const [property, behavior] of Object.entries(behaviors)) {
+				makeAnimation(
+					elementValue,
+					property as keyof BehaviorAnimateProperties,
+					behavior,
+					options,
+				);
 			}
 		}
 	});
