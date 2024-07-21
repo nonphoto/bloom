@@ -1,4 +1,4 @@
-import { Vec2, safeWindow, vec2Create, vec2Set } from "@chloranthy/core";
+import { Vec2, safeWindow, vec2Create, vec2Set } from "@chloranthy/core/src/index.ts";
 import { createMousePosition as createMousePositionStore } from "@solid-primitives/mouse";
 import { Accessor, createMemo } from "solid-js";
 

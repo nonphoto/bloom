@@ -1,7 +1,7 @@
 import {
 	PositioningObserver,
 	PositioningObserverEntry,
-} from "@chloranthy/core";
+} from "@chloranthy/core/src/index.ts";
 import { ReactiveMap } from "@solid-primitives/map";
 import { createHydratableSingletonRoot } from "@solid-primitives/rootless";
 import { onCleanup } from "solid-js";

@@ -8,7 +8,7 @@ import {
 	quad2dCreate,
 	quad2dFromRect,
 	quad2dUntransformMat2d,
-} from "@chloranthy/core";
+} from "@chloranthy/core/src/index.ts";
 import { access, Directive, MaybeAccessor } from "@solid-primitives/utils";
 import { createMemo } from "solid-js";
 import { useMatrix, useRect } from "./layout";

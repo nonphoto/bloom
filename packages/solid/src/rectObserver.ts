@@ -1,4 +1,4 @@
-import { Rect, RectObserver, RectObserverEntry } from "@chloranthy/core";
+import { Rect, RectObserver, RectObserverEntry } from "@chloranthy/core/src/index.ts";
 import { ReactiveMap } from "@solid-primitives/map";
 import { createHydratableSingletonRoot } from "@solid-primitives/rootless";
 import { MaybeAccessor, access } from "@solid-primitives/utils";

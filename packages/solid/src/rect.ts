@@ -6,7 +6,7 @@ import {
 	mat2dMultiply,
 	maybe,
 	rectUntransformMat2d,
-} from "@chloranthy/core";
+} from "@chloranthy/core/src/index.ts";
 import { Directive, MaybeAccessor, access } from "@solid-primitives/utils";
 import { createMemo } from "solid-js";
 import { useMatrix, useRect } from "./layout";

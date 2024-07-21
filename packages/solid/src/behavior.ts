@@ -5,7 +5,7 @@ import {
 	animationGeneratorControls,
 	behaviorAnimate,
 	behaviorDelay,
-} from "@chloranthy/core";
+} from "@chloranthy/core/src/index.ts";
 import { MaybeAccessor, access } from "@solid-primitives/utils";
 import { createEffect, onCleanup } from "solid-js";
 

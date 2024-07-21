@@ -1,4 +1,4 @@
-import { Matcher, Rect } from "@chloranthy/core";
+import { Matcher, Rect } from "@chloranthy/core/src/index.ts";
 import { createSubRoot } from "@solid-primitives/rootless";
 import { Directive, MaybeAccessor, access } from "@solid-primitives/utils";
 import {

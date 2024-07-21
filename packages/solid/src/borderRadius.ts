@@ -4,7 +4,7 @@ import {
 	mat2dMultiply,
 	maybe,
 	styleBorderRadiusRect,
-} from "@chloranthy/core";
+} from "@chloranthy/core/src/index.ts";
 import {
 	Directive,
 	MaybeAccessor,
