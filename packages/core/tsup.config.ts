@@ -1,7 +1,7 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-	entry: ["src/index.ts", "src/rect.ts", "src/vec2.ts"],
+	entry: ["src/index.ts"],
 	format: "esm",
 	dts: true,
 });
