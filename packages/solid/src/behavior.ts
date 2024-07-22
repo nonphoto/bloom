@@ -5,7 +5,7 @@ import {
 	animationGeneratorControls,
 	behaviorAnimate,
 	behaviorDelay,
-} from "@bloom/core/src/index.ts";
+} from "@bloom-motion/core/src/index.ts";
 import { MaybeAccessor, access } from "@solid-primitives/utils";
 import { createEffect, onCleanup } from "solid-js";
 

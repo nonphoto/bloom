@@ -4,7 +4,7 @@ import {
 	mat2dMultiply,
 	maybe,
 	styleBorderRadiusRect,
-} from "@bloom/core/src/index.ts";
+} from "@bloom-motion/core/src/index.ts";
 import {
 	Directive,
 	MaybeAccessor,

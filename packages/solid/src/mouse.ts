@@ -3,7 +3,7 @@ import {
 	safeWindow,
 	vec2Create,
 	vec2Set,
-} from "@bloom/core/src/index.ts";
+} from "@bloom-motion/core/src/index.ts";
 import { createMousePosition as createMousePositionStore } from "@solid-primitives/mouse";
 import { Accessor, createMemo } from "solid-js";
 

@@ -15,14 +15,14 @@
 		"format": "prettier --ignore-path .gitignore -w \"packages/**/*.{js,ts,json,css,tsx,jsx,md}\" \"web/**/*.{js,ts,json,css,tsx,jsx,md}\""
 	},
 	"devDependencies": {
-		"@bloom/core": "workspace:*",
-		"@bloom/solid": "workspace:*",
+		"@bloom-motion/core": "workspace:*",
+		"@bloom-motion/solid": "workspace:*",
 		"@types/node": "^20.10.0",
 		"concurrently": "^8.2.2",
 		"prettier": "3.1.0",
 		"tsup": "^7.2.0",
 		"tsup-preset-solid": "^2.1.0",
-		"turbo": "^1.10.16",
+		"turbo": "^2.0.9",
 		"typescript": "5.2.2",
 		"vite": "^4.3.9",
 		"vite-plugin-solid": "^2.7.2",

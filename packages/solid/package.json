@@ -1,5 +1,5 @@
 {
-	"name": "@bloom/solid",
+	"name": "@bloom-motion/solid",
 	"version": "0.0.1",
 	"description": "",
 	"license": "MIT",
@@ -28,13 +28,10 @@
 	"module": "./dist/index.js",
 	"types": "./dist/index.d.ts",
 	"exports": {
-		".": {
-			"import": {
-				"types": "./dist/index.d.ts",
-				"default": "./dist/index.js"
-			}
-		},
-		"./src/*": "./src/*"
+		"import": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
 	},
 	"browser": {},
 	"typesVersions": {},
@@ -44,7 +41,7 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@bloom/core": "workspace:*",
+		"@bloom-motion/core": "workspace:*",
 		"@solid-primitives/map": "^0.4.11",
 		"@solid-primitives/mouse": "2.0.19",
 		"@solid-primitives/raf": "2.2.0",
@@ -53,5 +50,6 @@
 	},
 	"peerDependencies": {
 		"solid-js": "^1.8.18"
-	}
+	},
+	"main": "./dist/index.js"
 }

@@ -1,7 +1,7 @@
 import {
 	PositioningObserver,
 	PositioningObserverEntry,
-} from "@bloom/core/src/index.ts";
+} from "@bloom-motion/core/src/index.ts";
 import { ReactiveMap } from "@solid-primitives/map";
 import { createHydratableSingletonRoot } from "@solid-primitives/rootless";
 import { onCleanup } from "solid-js";
