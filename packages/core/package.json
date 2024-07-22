@@ -1,17 +1,17 @@
 {
-	"name": "@chloranthy/core",
+	"name": "@bloom/core",
 	"version": "0.0.1",
 	"description": "",
 	"license": "MIT",
 	"author": "Jonas Luebbers",
 	"contributors": [],
-	"homepage": "https://github.com/nonphoto/chloranthy#readme",
+	"homepage": "https://github.com/nonphoto/bloom#readme",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/nonphoto/chloranthy.git"
+		"url": "git+https://github.com/nonphoto/bloom.git"
 	},
 	"bugs": {
-		"url": "https://github.com/nonphoto/chloranthy/issues"
+		"url": "https://github.com/nonphoto/bloom/issues"
 	},
 	"keywords": [
 		"solid"

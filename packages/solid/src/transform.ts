@@ -1,4 +1,4 @@
-import { Mat2d } from "@chloranthy/core/src/index.ts";
+import { Mat2d } from "@bloom/core/src/index.ts";
 import { access, Directive, MaybeAccessor } from "@solid-primitives/utils";
 import { createComputed } from "solid-js";
 import { useLayoutTree } from "./layout";

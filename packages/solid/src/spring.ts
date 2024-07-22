@@ -15,7 +15,7 @@ import {
 	vec2Create,
 	vec2Set,
 	withValue,
-} from "@chloranthy/core/src/index.ts";
+} from "@bloom/core/src/index.ts";
 import { MaybeAccessor, access } from "@solid-primitives/utils";
 import { Accessor, createMemo } from "solid-js";
 import { Clock } from "./time";

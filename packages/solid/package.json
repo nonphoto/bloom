@@ -1,17 +1,17 @@
 {
-	"name": "@chloranthy/solid",
+	"name": "@bloom/solid",
 	"version": "0.0.1",
 	"description": "",
 	"license": "MIT",
 	"author": "Jonas Luebbers",
 	"contributors": [],
-	"homepage": "https://github.com/nonphoto/chloranthy#readme",
+	"homepage": "https://github.com/nonphoto/bloom#readme",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/nonphoto/chloranthy.git"
+		"url": "git+https://github.com/nonphoto/bloom.git"
 	},
 	"bugs": {
-		"url": "https://github.com/nonphoto/chloranthy/issues"
+		"url": "https://github.com/nonphoto/bloom/issues"
 	},
 	"keywords": [
 		"solid"
@@ -44,7 +44,7 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@chloranthy/core": "workspace:*",
+		"@bloom/core": "workspace:*",
 		"@solid-primitives/map": "^0.4.11",
 		"@solid-primitives/mouse": "2.0.19",
 		"@solid-primitives/raf": "2.2.0",

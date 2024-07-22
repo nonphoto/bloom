@@ -1,5 +1,5 @@
-import { behaviorDelay, toControls, toGenerator } from "@chloranthy/core";
-import { createSpringBehavior } from "@chloranthy/solid/src/index.ts";
+import { behaviorDelay, toControls, toGenerator } from "@bloom/core";
+import { createSpringBehavior } from "@bloom/solid/src/index.ts";
 import { createEventListener } from "@solid-primitives/event-listener";
 import { createEffect, onCleanup } from "solid-js";
 import { createStore } from "solid-js/store";
