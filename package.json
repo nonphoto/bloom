@@ -12,32 +12,23 @@
 		"test": "turbo run test --filter=./packages/*",
 		"typecheck": "turbo run typecheck --filter=./packages/*",
 		"build-test": "turbo run build test typecheck --filter=./packages/*",
-		"format": "prettier --ignore-path .gitignore -w \"packages/**/*.{js,ts,json,css,tsx,jsx,md}\" \"web/**/*.{js,ts,json,css,tsx,jsx,md}\"",
-		"docs": "turbo run docs && typedoc",
-		"changeset": "changeset",
-		"version-packages": "changeset version && pnpm i",
-		"ci:version": "changeset version && pnpm i --no-frozen-lockfile && git add .",
-		"release": "pnpm build && changeset publish",
-		"update-deps": "pnpm up -Lri"
+		"format": "prettier --ignore-path .gitignore -w \"packages/**/*.{js,ts,json,css,tsx,jsx,md}\" \"web/**/*.{js,ts,json,css,tsx,jsx,md}\""
 	},
 	"devDependencies": {
-		"@changesets/cli": "^2.26.2",
 		"@chloranthy/core": "workspace:*",
 		"@chloranthy/solid": "workspace:*",
 		"@types/node": "^20.10.0",
 		"concurrently": "^8.2.2",
-		"jsdom": "^22.1.0",
 		"prettier": "3.1.0",
 		"tsup": "^7.2.0",
 		"tsup-preset-solid": "^2.1.0",
 		"turbo": "^1.10.16",
-		"typedoc": "0.25.3",
 		"typescript": "5.2.2",
 		"vite": "^4.3.9",
 		"vite-plugin-solid": "^2.7.2",
 		"vitest": "^0.34.6"
 	},
-	"packageManager": "pnpm@7.22.0",
+	"packageManager": "pnpm@9.5.0",
 	"engines": {
 		"node": ">=17.0.0"
 	}

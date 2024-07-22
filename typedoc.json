@@ -1,6 +1,0 @@
-{
-  "entryPoints": ["packages/*"],
-  "name": "Chloranthy",
-  "entryPointStrategy": "packages",
-  "includeVersion": true
-}
