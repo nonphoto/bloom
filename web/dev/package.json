@@ -11,6 +11,7 @@
 		"@bloom-motion/core": "workspace:*",
 		"@bloom-motion/solid": "workspace:*",
 		"@solid-primitives/event-listener": "2.3.3",
+		"@solid-primitives/resize-observer": "2.0.26",
 		"@solidjs/meta": "^0.29.4",
 		"@solidjs/router": "^0.14.1",
 		"@solidjs/start": "^1.0.6",

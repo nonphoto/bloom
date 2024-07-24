@@ -67,7 +67,8 @@ export function springCreate(options: Partial<SpringOptions>): Spring {
 	const amplitude =
 		Math.sign(delta) *
 		Math.sqrt(square(velocityDelta) / square(dampedFrequency) + square(delta));
-	const phase = Math.atan(velocityDelta / (-delta * dampedFrequency));
+	const phase =
+		delta === 0 ? 0 : Math.atan(velocityDelta / (-delta * dampedFrequency));
 
 	return {
 		start,
