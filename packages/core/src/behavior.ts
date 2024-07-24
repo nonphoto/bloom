@@ -43,7 +43,7 @@ export function behaviorAnimate<T extends keyof BehaviorAnimateProperties>(
 			ranges.push([-Infinity, Infinity]);
 		}
 		for (const range of ranges) {
-			let delay = Math.min(range[0] - t, 0);
+			let delay = Math.max(range[0] - t, 0);
 			while (t < range[1]) {
 				const keyframes = [];
 				const end = Math.min(range[1], t + maxDuration);

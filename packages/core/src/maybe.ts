@@ -1,21 +1,21 @@
-export class MaybeError extends Error {}
+const maybeError = new Error();
 
-export function maybe<T>(value: T | undefined) {
+export function maybe<T>(value: T | undefined): T {
 	if (value) {
 		return value;
 	} else {
-		throw new MaybeError();
+		throw maybeError;
 	}
 }
 
-export function catchMaybe<F extends (...args: any[]) => any>(
-	fn: F,
-): (...args: Parameters<F>) => ReturnType<F> | undefined {
+export function catchMaybe<T extends any[], U>(
+	fn: (...args: T) => U,
+): (...args: T) => U | undefined {
 	return (...args) => {
 		try {
 			return fn(...args);
 		} catch (error) {
-			if (error instanceof MaybeError) {
+			if (error === maybeError) {
 				return undefined;
 			} else {
 				throw error;

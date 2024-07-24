@@ -13,7 +13,7 @@ export function makeAnimation<T extends keyof BehaviorAnimateProperties>(
 	element: Element,
 	property: T,
 	behavior: Behavior<BehaviorAnimateProperties[T]>,
-	options: BehaviorAnimateOptions,
+	options?: BehaviorAnimateOptions,
 ) {
 	createEffect(() => {
 		const controls = animationGeneratorControls(
@@ -35,7 +35,7 @@ export function createAnimation<T extends keyof BehaviorAnimateProperties>(
 	element: MaybeAccessor<Element | null | undefined>,
 	property: T,
 	behavior: Behavior<BehaviorAnimateProperties[T]>,
-	options: BehaviorAnimateOptions,
+	options?: BehaviorAnimateOptions,
 ) {
 	createEffect(() => {
 		const elementValue = access(element);
@@ -48,7 +48,7 @@ export function createAnimation<T extends keyof BehaviorAnimateProperties>(
 export function createAnimations<T extends BehaviorAnimateProperties>(
 	element: MaybeAccessor<Element | null | undefined>,
 	behaviors: { [P in keyof T]: Behavior<T[P]> },
-	options: BehaviorAnimateOptions,
+	options?: BehaviorAnimateOptions,
 ) {
 	createEffect(() => {
 		const elementValue = access(element);

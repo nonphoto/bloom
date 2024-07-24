@@ -1,12 +1,14 @@
 import { createSubRoot } from "@solid-primitives/rootless";
+import { access, MaybeAccessor } from "@solid-primitives/utils";
 import {
 	Accessor,
-	EffectFunction,
-	Owner,
 	createComputed,
 	createMemo,
+	createRenderEffect,
+	EffectFunction,
 	getOwner,
 	on,
+	Owner,
 	runWithOwner,
 } from "solid-js";
 
@@ -25,7 +27,7 @@ export function awaitWithOwner<T>(
 		onRejected
 			? () => {
 					runWithOwner(owner, onRejected);
-			  }
+				}
 			: undefined,
 	);
 }
@@ -61,3 +63,9 @@ export const createMaybeObject =
 		const v = create();
 		return createMemo(() => fn(v), undefined, { equals: false });
 	};
+
+export function createLog<T>(value: MaybeAccessor<T>, ...args: any[]) {
+	createRenderEffect(() => {
+		console.log(access(value), ...args);
+	});
+}

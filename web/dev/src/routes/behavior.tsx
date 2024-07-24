@@ -1,30 +1,28 @@
 import {
-	behaviorDelay,
-	toControls,
-	toGenerator,
-} from "@bloom-motion/core/src/index.ts";
-import { createSpringBehavior } from "@bloom-motion/solid/src/index.ts";
-import { createEventListener } from "@solid-primitives/event-listener";
-import { createEffect, onCleanup } from "solid-js";
-import { createStore } from "solid-js/store";
+	Vec2,
+	vec2Create,
+	vec2FromValues,
+} from "@bloom-motion/core/src/vec2.js";
+import {
+	createAnimation,
+	createSpringBehaviorVec2,
+} from "@bloom-motion/solid/src/index.ts";
+import { createSignal } from "solid-js";
 
-function safeDocument() {
-	return typeof document != "undefined" ? document : undefined;
+function styleTranslate(v: Vec2): string {
+	return `translate(${v[0]}px, ${v[1]}px)`;
 }
 
 export default function () {
-	const [mousePosition, setMousePosition] = createStore({ x: 0, y: 0 });
-	createEventListener(
-		() => safeDocument()?.body,
-		"click",
-		(event: MouseEvent) => {
-			setMousePosition({ x: event.clientX, y: event.clientY });
-		},
-	);
+	const [mousePosition, setMousePosition] = createSignal(vec2Create(), {
+		equals: false,
+	});
 
 	const element = (
 		<div
 			style={{
+				position: "fixed",
+				inset: "0 auto auto 0",
 				width: "100px",
 				height: "100px",
 				background: "skyblue",
@@ -32,27 +30,18 @@ export default function () {
 		></div>
 	) as Element;
 
-	const x = createSpringBehavior(() => mousePosition.x, { halflife: 100 });
-	const y = createSpringBehavior(() => mousePosition.y, { halflife: 100 });
+	const position = createSpringBehaviorVec2(mousePosition, { halflife: 100 });
 
-	createEffect(() => {
-		const controls = toControls(
-			toGenerator(
-				element,
-				"transform",
-				behaviorDelay(performance.now(), (t) => {
-					return `translate(${x(t)}px, ${y(t)}px)`;
-				}),
-				{ fill: "forwards" },
-			),
-		);
+	createAnimation(element, "transform", (t) => styleTranslate(position(t)));
 
-		controls.play();
-
-		onCleanup(() => {
-			controls.cancel();
-		});
-	});
-
-	return element;
+	return (
+		<div
+			style={{ height: "100svh" }}
+			onClick={(event: MouseEvent) => {
+				setMousePosition(vec2FromValues(event.screenX, event.screenY));
+			}}
+		>
+			{element}
+		</div>
+	);
 }

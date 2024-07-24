@@ -14,6 +14,11 @@ export let ARRAY_TYPE: Float32ArrayConstructor | ArrayConstructor = Array;
 export const RANDOM = Math.random;
 export const ANGLE_ORDER = "zyx";
 
+export function log<T>(value: T, ...rest: any): T {
+	console.log(value, ...rest);
+	return value;
+}
+
 /**
  * Symmetric round
  * see https://www.npmjs.com/package/round-half-up-symmetric#user-content-detailed-background
