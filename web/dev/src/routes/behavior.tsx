@@ -27,8 +27,8 @@ export default function Behaviour () {
 		);
 	});
 
-	const x = createSpringBehavior(() => mousePosition.x, { halflife: 100 });
-	const y = createSpringBehavior(() => mousePosition.y, { halflife: 100 });
+	const [x] = createSpringBehavior(() => mousePosition.x, { halflife: 100 });
+	const [y] = createSpringBehavior(() => mousePosition.y, { halflife: 100 });
 
 	const [element, setElement] = createSignal<HTMLDivElement | null>(null);
 

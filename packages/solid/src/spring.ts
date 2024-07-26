@@ -8,14 +8,15 @@ import {
 	maybe,
 	quad2dCreate,
 	quad2dFromPositionSizeRotationValues,
-	springBehavior,
+	springPositionBehavior,
+	springVelocityBehavior,
 	springCreate,
 	springPosition,
 	springVelocity,
 	vec2Create,
 	vec2Set,
 	withValue,
-} from "@chloranthy/core";
+} from "@chloranthy/core/src/index.ts";
 import { type MaybeAccessor, access } from "@solid-primitives/utils";
 import { type Accessor, createMemo } from "solid-js";
 import { Clock } from "./time";
@@ -48,10 +49,14 @@ export function createSpring(
 export function createSpringBehavior(
 	target: MaybeAccessor<number | undefined>,
 	options: CreateSpringOptions,
-): Behavior<number | undefined> {
+): [Behavior<number | undefined>, Behavior<number | undefined>] {
 	const spring = createSpring(target, options);
-	const memo = createMemo(catchMaybe(() => springBehavior(maybe(spring()))));
-	return (t?: number) => memo()?.(t);
+	const positionMemo = createMemo(catchMaybe(() => springPositionBehavior(maybe(spring()))));
+	const velocityMemo = createMemo(catchMaybe(() => springVelocityBehavior(maybe(spring()))));
+	return [
+		(t?: number) => positionMemo()?.(t),
+		(t?: number) => velocityMemo()?.(t),
+	];
 }
 
 export function createSpringBehaviorVec2(

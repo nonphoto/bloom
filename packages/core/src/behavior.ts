@@ -1,7 +1,7 @@
 import { safeDocument } from "./dom";
 import type { Range } from "./range";
 import type { Spring } from "./spring";
-import { springDuration, springPosition } from "./spring";
+import { springDuration, springPosition, springVelocity } from "./spring";
 
 export type Behavior<T> = (t?: number) => T;
 export type MaybeBehavior<T> = Behavior<T> | T;
@@ -103,10 +103,17 @@ export function toControls(generator: () => Generator<Animation>) {
 	};
 }
 
-export function springBehavior(spring: Spring): Behavior<number> {
+export function springPositionBehavior(spring: Spring): Behavior<number> {
 	return withRanges(
 		() => [[0, springDuration(spring, 0.1)]],
 		(t) => springPosition(spring, time(t)),
+	);
+}
+
+export function springVelocityBehavior(spring: Spring): Behavior<number> {
+	return withRanges(
+		() => [[0, springDuration(spring, 0.1)]],
+		(t) => springVelocity(spring, time(t)),
 	);
 }
 

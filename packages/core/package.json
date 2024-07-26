@@ -42,7 +42,8 @@
 			"types": "./dist/rect.d.ts",
 			"default": "./dist/rect.js",
 			"dev": "./src/rect.ts"
-		}
+		},
+		"./src/*": "./src/*"
 	},
 	"browser": {},
 	"typesVersions": {},
