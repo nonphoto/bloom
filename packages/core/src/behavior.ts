@@ -35,20 +35,19 @@ function nextStart(t: number, starts: number[]) {
 			min = Math.min(starts[i]!, min);
 		}
 	}
-	return min === Infinity ? 0 : min;
+	return min === Infinity ? t : min;
 }
 
 export function behaviorAnimate<T extends keyof BehaviorAnimateProperties>(
 	element: Element,
 	property: T,
 	behavior: Behavior<BehaviorAnimateProperties[T]>,
-	options: BehaviorAnimateOptions,
+	options: BehaviorAnimateOptions = {},
 ): () => Generator<Animation> {
 	return function* () {
 		const starts: number[] = [];
 		const ends: number[] = [];
 		let i = 0;
-		let delay = 0;
 		let t = performance.now();
 
 		useRange = (dt, duration) => {
@@ -58,25 +57,28 @@ export function behaviorAnimate<T extends keyof BehaviorAnimateProperties>(
 		};
 
 		while (ends.length === 0 || ends.some(isPositive)) {
+			let delay = 0;
 			if (!isInProgress(t, starts, ends)) {
 				delay = nextStart(t, starts) - t;
 				t += delay;
 			}
 
 			const keyframes = [];
+			const start = t;
 			const end = t + maxDuration;
-			const duration = end - t;
 
-			while (t < duration) {
+			while (t < end) {
 				i = 0;
 				keyframes.push({ [property]: behavior(t) });
 				starts.length = ends.length = i;
 				t += frameDuration;
 			}
 
+			console.log({ duration: t - start });
+
 			yield element.animate(keyframes, {
-				...(options ?? {}),
-				duration,
+				...options,
+				duration: t - start,
 				delay,
 				easing: "linear",
 			});

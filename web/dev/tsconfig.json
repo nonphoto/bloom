@@ -3,6 +3,7 @@
 	"compilerOptions": {
 		"jsx": "preserve",
 		"jsxImportSource": "solid-js",
+		"sourceMap": true,
 		"allowJs": true,
 		"types": ["vinxi/types/client"],
 		"paths": {

@@ -1,7 +1,7 @@
 const maybeError = new Error();
 
 export function maybe<T>(value: T | undefined): T {
-	if (value) {
+	if (value != null) {
 		return value;
 	} else {
 		throw maybeError;
