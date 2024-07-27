@@ -38,7 +38,7 @@ export default function () {
 		<div
 			style={{ height: "100svh" }}
 			onClick={(event: MouseEvent) => {
-				setMousePosition(vec2FromValues(event.screenX, event.screenY));
+				setMousePosition(vec2FromValues(event.clientX, event.clientY));
 			}}
 		>
 			{element}
