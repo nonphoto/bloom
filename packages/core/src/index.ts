@@ -14,7 +14,6 @@ export * from "./positioningObserver";
 export * from "./quad2d";
 export * from "./quat";
 export * from "./quat2";
-export * from "./range";
 export * from "./rect";
 export * from "./rectObserver";
 export * from "./spring";

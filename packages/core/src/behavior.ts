@@ -1,6 +1,5 @@
 import type * as CSS from "csstype";
 import { clamp } from "./common";
-import { Range, rangeUnion } from "./range";
 import { Spring, springDuration, springPosition } from "./spring";
 
 export type Behavior<T> = (t: number) => T;
@@ -16,8 +15,26 @@ export type BehaviorAnimateOptions =
 	| Omit<KeyframeAnimationOptions, "duration" | "delay" | "easing">
 	| undefined;
 
-function notDone([, end]: Range): boolean {
+function notDone([, end]: [number, number]): boolean {
 	return end > 0;
+}
+
+function normalizeRanges(ranges: [number, number][]): [number, number][] {
+	ranges = ranges
+		.map(([start, end]): [number, number] =>
+			start <= end ? [start, end] : [end, start],
+		)
+		.sort((a, b) => a[0] - b[0]);
+	const result = [ranges[0]!];
+	for (const [start, end] of ranges.slice(1)) {
+		const [lastStart, lastEnd] = result.at(-1)!;
+		if (start <= lastEnd) {
+			result[result.length - 1] = [lastStart, Math.max(end, lastEnd)];
+		} else {
+			result.push([start, end]);
+		}
+	}
+	return result;
 }
 
 export function behaviorAnimate<T extends keyof BehaviorAnimateProperties>(
@@ -27,21 +44,21 @@ export function behaviorAnimate<T extends keyof BehaviorAnimateProperties>(
 	options: BehaviorAnimateOptions = {},
 ): () => Generator<Animation> {
 	return function* () {
-		let ranges: Range[] = [];
+		let ranges: [number, number][] = [];
 		let t = performance.now();
 
 		useRange = (dt, duration) => {
-			ranges.push([-dt, -dt + duration] as Range);
+			ranges.push([-dt, -dt + duration]);
 		};
 
 		const firstValue = behavior(t);
 
 		while (ranges.length === 0 || ranges.some(notDone)) {
-			const normalizedRanges = rangeUnion(ranges);
+			const normalized = normalizeRanges(ranges);
 			let delay: number = 0;
 			let duration: number = 0;
-			for (let j = 0; j < normalizedRanges.length; j++) {
-				const [rangeStart, rangeEnd] = normalizedRanges[j]!;
+			for (let j = 0; j < normalized.length; j++) {
+				const [rangeStart, rangeEnd] = normalized[j]!;
 				if (
 					(rangeStart > 0 && rangeStart < delay) ||
 					(rangeStart <= 0 && rangeEnd >= 0)
