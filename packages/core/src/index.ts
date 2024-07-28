@@ -10,6 +10,7 @@ export * from "./mat3";
 export * from "./mat4";
 export * from "./matcher";
 export * from "./maybe";
+export * from "./mouse";
 export * from "./positioningObserver";
 export * from "./quad2d";
 export * from "./quat";

@@ -1,15 +1,15 @@
-import { styleTranslate } from "@bloom-motion/core/src/style.js";
-import { vec2Create, vec2FromValues } from "@bloom-motion/core/src/vec2.js";
+import {
+	mousePositionFromEvent,
+	styleTranslate,
+} from "@bloom-motion/core/src/index.js";
 import {
 	createAnimation,
 	createSpringBehaviorVec2,
+	createVec2,
 } from "@bloom-motion/solid/src/index.ts";
-import { createSignal } from "solid-js";
 
 export default function () {
-	const [mousePosition, setMousePosition] = createSignal(vec2Create(), {
-		equals: false,
-	});
+	const [mousePosition, setMousePosition] = createVec2();
 
 	const element = (
 		<div
@@ -31,7 +31,7 @@ export default function () {
 		<div
 			style={{ height: "100svh" }}
 			onClick={(event: MouseEvent) => {
-				setMousePosition(vec2FromValues(event.clientX, event.clientY));
+				setMousePosition((prev) => mousePositionFromEvent(prev, event));
 			}}
 		>
 			{element}

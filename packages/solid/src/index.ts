@@ -11,5 +11,6 @@ export * from "./time";
 export * from "./transform";
 export * from "./transition";
 export * from "./utils";
+export * from "./vec2";
 export * from "./viewTransition";
 export * from "./zombie";
