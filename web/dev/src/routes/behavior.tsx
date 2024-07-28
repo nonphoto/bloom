@@ -1,17 +1,10 @@
-import {
-	Vec2,
-	vec2Create,
-	vec2FromValues,
-} from "@bloom-motion/core/src/vec2.js";
+import { styleTranslate } from "@bloom-motion/core/src/style.js";
+import { vec2Create, vec2FromValues } from "@bloom-motion/core/src/vec2.js";
 import {
 	createAnimation,
 	createSpringBehaviorVec2,
 } from "@bloom-motion/solid/src/index.ts";
 import { createSignal } from "solid-js";
-
-function styleTranslate(v: Vec2): string {
-	return `translate(${v[0]}px, ${v[1]}px)`;
-}
 
 export default function () {
 	const [mousePosition, setMousePosition] = createSignal(vec2Create(), {
@@ -27,7 +20,7 @@ export default function () {
 				height: "100px",
 				background: "skyblue",
 			}}
-		></div>
+		/>
 	) as Element;
 
 	const position = createSpringBehaviorVec2(mousePosition, { halflife: 100 });

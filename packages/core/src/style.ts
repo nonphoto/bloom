@@ -1,22 +1,48 @@
-import { Mat2d } from "./mat2d";
+import { IndexedCollection } from "./common";
+import { Mat2d, ReadonlyMat2d } from "./mat2d";
 import { Rect } from "./rect";
-import { Vec2 } from "./vec2";
+import { ReadonlyVec2 } from "./vec2";
+import { ReadonlyVec3 } from "./vec3";
 
-export function styleTransformMat2d(transform: Mat2d): string {
-	let result = "matrix(";
-	for (let i = 0; i < transform.length; i++) {
-		result += String(transform[i]);
-		if (i !== transform.length - 1) {
-			result += ",";
+function join(
+	collection: IndexedCollection,
+	length: number,
+	unit: string,
+	separator: string,
+): string {
+	let result = "";
+	for (let i = 0; i < length; i++) {
+		result += String(collection[i]) + unit;
+		if (i !== length - 1) {
+			result += separator;
 		}
 	}
-	return result + ")";
+	return result;
+}
+
+export function styleTransformMat2d(transform: ReadonlyMat2d): string {
+	return `matrix(${join(transform, 6, "", ",")})`;
+}
+
+export function styleTranslate(translation: ReadonlyVec2): string {
+	return `translate(${join(translation, 2, "px", ",")})`;
+}
+
+export function styleTranslateScale(
+	translation: ReadonlyVec2,
+	scaling: ReadonlyVec2,
+): string {
+	return `translate(${join(translation, 2, "px", ",")}) scale(${join(scaling, 2, "", ",")})`;
+}
+
+export function styleTranslate3d(translation: ReadonlyVec3): string {
+	return `translate3d(${join(translation, 3, "px", ",")})`;
 }
 
 export function styleBorderRadiusSize(
 	radius: number,
-	size: Vec2,
-	transform: Mat2d,
+	size: ReadonlyVec2,
+	transform: ReadonlyMat2d,
 ) {
 	const x = (radius / (size[0] * transform[0])) * 100;
 	const y = (radius / (size[1] * transform[3])) * 100;
