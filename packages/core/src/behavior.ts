@@ -1,5 +1,6 @@
 import type * as CSS from "csstype";
 import { clamp } from "./common";
+import { Range, rangeUnion } from "./range";
 import { Spring, springDuration, springPosition } from "./spring";
 
 export type Behavior<T> = (t: number) => T;
@@ -15,27 +16,8 @@ export type BehaviorAnimateOptions =
 	| Omit<KeyframeAnimationOptions, "duration" | "delay" | "easing">
 	| undefined;
 
-function isPositive(n: number): boolean {
-	return n > 0;
-}
-
-function isInProgress(t: number, starts: number[], ends: number[]) {
-	for (let i = 0; i < starts.length; i++) {
-		if (t >= starts[i]! && t < ends[i]!) {
-			return true;
-		}
-	}
-	return false;
-}
-
-function nextStart(t: number, starts: number[]) {
-	let min = Infinity;
-	for (let i = 0; i < starts.length; i++) {
-		if (starts[i]! > t) {
-			min = Math.min(starts[i]!, min);
-		}
-	}
-	return min === Infinity ? t : min;
+function notDone([, end]: Range): boolean {
+	return end > 0;
 }
 
 export function behaviorAnimate<T extends keyof BehaviorAnimateProperties>(
@@ -45,45 +27,45 @@ export function behaviorAnimate<T extends keyof BehaviorAnimateProperties>(
 	options: BehaviorAnimateOptions = {},
 ): () => Generator<Animation> {
 	return function* () {
-		const starts: number[] = [];
-		const ends: number[] = [];
-		let i = 0;
+		let ranges: Range[] = [];
 		let t = performance.now();
 
 		useRange = (dt, duration) => {
-			starts[i] = -dt;
-			ends[i] = -dt + duration;
-			i++;
+			ranges.push([-dt, -dt + duration] as Range);
 		};
 
-		while (ends.length === 0 || ends.some(isPositive)) {
-			let delay = 0;
-			if (!isInProgress(t, starts, ends)) {
-				delay = nextStart(t, starts) - t;
-				t += delay;
+		const firstValue = behavior(t);
+
+		while (ranges.length === 0 || ranges.some(notDone)) {
+			const normalizedRanges = rangeUnion(ranges);
+			let delay: number = 0;
+			let duration: number = 0;
+			for (let j = 0; j < normalizedRanges.length; j++) {
+				const [rangeStart, rangeEnd] = normalizedRanges[j]!;
+				if (
+					(rangeStart > 0 && rangeStart < delay) ||
+					(rangeStart <= 0 && rangeEnd >= 0)
+				) {
+					delay = Math.max(rangeStart, 0);
+					duration = rangeEnd - delay;
+				}
 			}
 
-			const keyframes = [];
-			const start = t;
-			const end = t + maxDuration;
-
+			const end = t + Math.min(maxDuration, duration);
+			const keyframes = [{ [property]: firstValue }];
 			while (t < end) {
-				i = 0;
-				keyframes.push({ [property]: behavior(t) });
-				starts.length = ends.length = i;
+				ranges = [];
 				t += frameDuration;
+				keyframes.push({ [property]: behavior(t) });
 			}
-
-			console.log({ duration: t - start });
 
 			yield element.animate(keyframes, {
 				...options,
-				duration: t - start,
+				duration,
 				delay,
 				easing: "linear",
+				fill: "both",
 			});
-
-			delay = 0;
 		}
 	};
 }

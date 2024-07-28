@@ -1,3 +1,4 @@
+// Rename this, it conflicts with built-in
 export type Range = [number, number];
 
 export function rangeNormalize(range: Range): Range {
