@@ -3,29 +3,17 @@ import {
 	styleTranslate,
 } from "@bloom-motion/core/src/index.js";
 import {
-	createAnimation,
+	animate,
 	createSpringBehaviorVec2,
 	createVec2,
 } from "@bloom-motion/solid/src/index.ts";
 
+animate;
+
 export default function () {
 	const [mousePosition, setMousePosition] = createVec2();
 
-	const element = (
-		<div
-			style={{
-				position: "fixed",
-				inset: "0 auto auto 0",
-				width: "100px",
-				height: "100px",
-				background: "skyblue",
-			}}
-		/>
-	) as Element;
-
 	const position = createSpringBehaviorVec2(mousePosition, { halflife: 100 });
-
-	createAnimation(element, "transform", (t) => styleTranslate(position(t)));
 
 	return (
 		<div
@@ -34,7 +22,18 @@ export default function () {
 				setMousePosition((prev) => mousePositionFromEvent(prev, event));
 			}}
 		>
-			{element}
+			<div
+				style={{
+					position: "fixed",
+					inset: "0 auto auto 0",
+					width: "100px",
+					height: "100px",
+					background: "skyblue",
+				}}
+				use:animate={{
+					transform: (t) => styleTranslate(position(t)),
+				}}
+			/>
 		</div>
 	);
 }

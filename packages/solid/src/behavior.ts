@@ -1,18 +1,19 @@
 import {
 	Behavior,
 	BehaviorAnimateOptions,
-	BehaviorAnimateProperties,
+	CSSProperties,
+	CSSPropertyBehaviors,
 	animationGeneratorControls,
 	behaviorAnimate,
 	behaviorDelay,
 } from "@bloom-motion/core/src/index.ts";
-import { MaybeAccessor, access } from "@solid-primitives/utils";
+import { Directive, MaybeAccessor, access } from "@solid-primitives/utils";
 import { createEffect, onCleanup } from "solid-js";
 
-export function makeAnimation<T extends keyof BehaviorAnimateProperties>(
+export function makeAnimation<T extends keyof CSSProperties>(
 	element: Element,
 	property: T,
-	behavior: Behavior<BehaviorAnimateProperties[T]>,
+	behavior: Behavior<CSSProperties[T]>,
 	options?: BehaviorAnimateOptions,
 ) {
 	createEffect(() => {
@@ -31,10 +32,10 @@ export function makeAnimation<T extends keyof BehaviorAnimateProperties>(
 	});
 }
 
-export function createAnimation<T extends keyof BehaviorAnimateProperties>(
+export function createAnimation<T extends keyof CSSProperties>(
 	element: MaybeAccessor<Element | null | undefined>,
 	property: T,
-	behavior: Behavior<BehaviorAnimateProperties[T]>,
+	behavior: Behavior<CSSProperties[T]>,
 	options?: BehaviorAnimateOptions,
 ) {
 	createEffect(() => {
@@ -45,18 +46,18 @@ export function createAnimation<T extends keyof BehaviorAnimateProperties>(
 	});
 }
 
-export function createAnimations<T extends BehaviorAnimateProperties>(
+export function createAnimations(
 	element: MaybeAccessor<Element | null | undefined>,
-	behaviors: { [P in keyof T]: Behavior<T[P]> },
+	behaviors: MaybeAccessor<Partial<CSSPropertyBehaviors>>,
 	options?: BehaviorAnimateOptions,
 ) {
 	createEffect(() => {
 		const elementValue = access(element);
 		if (elementValue) {
-			for (const [property, behavior] of Object.entries(behaviors)) {
+			for (const [property, behavior] of Object.entries(access(behaviors))) {
 				makeAnimation(
 					elementValue,
-					property as keyof BehaviorAnimateProperties,
+					property as keyof CSSProperties,
 					behavior,
 					options,
 				);
@@ -64,3 +65,19 @@ export function createAnimations<T extends BehaviorAnimateProperties>(
 		}
 	});
 }
+
+export type AnimateDirectiveValue = Partial<CSSPropertyBehaviors>;
+
+declare module "solid-js" {
+	namespace JSX {
+		interface Directives {
+			animate: AnimateDirectiveValue;
+		}
+	}
+}
+
+export const animate: Directive<AnimateDirectiveValue> = (target, value) => {
+	if (target instanceof HTMLElement) {
+		return createAnimations(target, value);
+	}
+};

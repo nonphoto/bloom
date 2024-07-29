@@ -10,7 +10,10 @@ const frameDuration = 1_000 / 60;
 
 let useRange: ((dt: number, duration: number) => void) | undefined;
 
-export type BehaviorAnimateProperties = CSS.Properties;
+export type CSSProperties = CSS.Properties;
+export type CSSPropertyBehaviors = {
+	[K in keyof CSSProperties]: Behavior<CSSProperties[K]>;
+};
 export type BehaviorAnimateOptions =
 	| Omit<KeyframeAnimationOptions, "duration" | "delay" | "easing">
 	| undefined;
@@ -37,10 +40,10 @@ function normalizeRanges(ranges: [number, number][]): [number, number][] {
 	return result;
 }
 
-export function behaviorAnimate<T extends keyof BehaviorAnimateProperties>(
+export function behaviorAnimate<T extends keyof CSSProperties>(
 	element: Element,
 	property: T,
-	behavior: Behavior<BehaviorAnimateProperties[T]>,
+	behavior: Behavior<CSSProperties[T]>,
 	options: BehaviorAnimateOptions = {},
 ): () => Generator<Animation> {
 	return function* () {
