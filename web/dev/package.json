@@ -15,10 +15,14 @@
 		"@solidjs/meta": "^0.29.4",
 		"@solidjs/router": "^0.14.1",
 		"@solidjs/start": "^1.0.6",
-		"solid-js": "^1.8.18",
+		"ramda": "0.30.1",
+		"solid-js": "^1.8.19",
 		"vinxi": "^0.4.1"
 	},
 	"engines": {
 		"node": ">=18"
+	},
+	"devDependencies": {
+		"@types/ramda": "0.30.1"
 	}
 }
