@@ -28,6 +28,14 @@ export function styleTranslate(translation: ReadonlyVec2): string {
 	return `translate(${join(translation, 2, "px", ",")})`;
 }
 
+export function styleTranslateX(x: number): string {
+	return `translateX(${x}px)`;
+}
+
+export function styleTranslateY(y: number): string {
+	return `translateY(${y}px)`;
+}
+
 export function styleTranslateScale(
 	translation: ReadonlyVec2,
 	scaling: ReadonlyVec2,

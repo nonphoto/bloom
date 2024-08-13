@@ -1,141 +1,74 @@
+import { partial } from "@thi.ng/compose";
+import { comp, map, partition, range, Transducer } from "@thi.ng/transducers";
+import {
+	AsyncTransducer,
+	comp as compAsync,
+	map as mapAsync,
+	run as runAsync,
+} from "@thi.ng/transducers-async";
 import type * as CSS from "csstype";
-import { clamp } from "./common";
-import { Spring, springDuration, springPosition } from "./spring";
 
-export type Behavior<T> = (t: number) => T;
-export type MaybeBehavior<T> = Behavior<T> | T;
-
-const maxDuration = 10_000;
+const maxKeyframes = 120;
 const frameDuration = 1_000 / 60;
 
-let useRange: ((dt: number, duration: number) => void) | undefined;
-
 export type CSSProperties = CSS.Properties;
-export type CSSPropertyBehaviors = {
-	[K in keyof CSSProperties]: Behavior<CSSProperties[K]>;
+export type CSSPropertyIterables = {
+	[K in keyof CSSProperties]: Iterable<CSSProperties[K]>;
 };
-export type BehaviorAnimateOptions =
+export type AnimateOptions =
 	| Omit<KeyframeAnimationOptions, "duration" | "delay" | "easing">
 	| undefined;
 
-function notDone([, end]: [number, number]): boolean {
-	return end > 0;
-}
-
-function normalizeRanges(ranges: [number, number][]): [number, number][] {
-	ranges = ranges
-		.map(([start, end]): [number, number] =>
-			start <= end ? [start, end] : [end, start],
-		)
-		.sort((a, b) => a[0] - b[0]);
-	const result = [ranges[0]!];
-	for (const [start, end] of ranges.slice(1)) {
-		const [lastStart, lastEnd] = result.at(-1)!;
-		if (start <= lastEnd) {
-			result[result.length - 1] = [lastStart, Math.max(end, lastEnd)];
-		} else {
-			result.push([start, end]);
-		}
-	}
-	return result;
-}
-
-export function behaviorAnimate<T extends keyof CSSProperties>(
-	element: Element,
+export function keyframe<T extends keyof CSSProperties>(
 	property: T,
-	behavior: Behavior<CSSProperties[T]>,
-	options: BehaviorAnimateOptions = {},
-): () => Generator<Animation> {
-	return function* () {
-		let ranges: [number, number][] = [];
-		let t = performance.now();
-
-		useRange = (dt, duration) => {
-			ranges.push([-dt, -dt + duration]);
-		};
-
-		const firstValue = behavior(t);
-
-		while (ranges.length === 0 || ranges.some(notDone)) {
-			const normalized = normalizeRanges(ranges);
-			let delay: number = 0;
-			let duration: number = 0;
-			for (let j = 0; j < normalized.length; j++) {
-				const [rangeStart, rangeEnd] = normalized[j]!;
-				if (
-					(rangeStart > 0 && rangeStart < delay) ||
-					(rangeStart <= 0 && rangeEnd >= 0)
-				) {
-					delay = Math.max(rangeStart, 0);
-					duration = rangeEnd - delay;
-				}
-			}
-
-			const end = t + Math.min(maxDuration, duration);
-			const keyframes = [{ [property]: firstValue }];
-			while (t < end) {
-				ranges = [];
-				t += frameDuration;
-				keyframes.push({ [property]: behavior(t) });
-			}
-
-			yield element.animate(keyframes, {
-				...options,
-				duration,
-				delay,
-				easing: "linear",
-				fill: "both",
-			});
-		}
-	};
+	value: CSSProperties[T],
+): Keyframe {
+	return { [property]: value };
 }
 
-export function animationGeneratorControls(
-	generator: () => Generator<Animation>,
-) {
-	let animation: Animation;
+export function keyframes<T extends keyof CSSProperties>(
+	property: T,
+): Transducer<CSSProperties[T], IterableIterator<Keyframe>> {
+	return comp(
+		partition(maxKeyframes + 1, maxKeyframes),
+		map((values) => map(partial(keyframe, property), values)),
+	);
+}
+
+export function animate(
+	element: Element,
+	options: AnimateOptions = {},
+): Transducer<IterableIterator<Keyframe>, Animation> {
+	return map((keyframes) => {
+		const keyframesArray = [...keyframes];
+		return element.animate(keyframesArray, {
+			...options,
+			duration: keyframesArray.length * frameDuration,
+		});
+	});
+}
+
+export function run(tx: AsyncTransducer<number, Animation>) {
+	let current: Animation;
+
+	runAsync(
+		compAsync(
+			tx,
+			mapAsync((animation) => ((current = animation), animation.finished)),
+		),
+		console.log,
+		range(),
+	);
 
 	return {
 		cancel() {
-			if (animation) {
-				animation.cancel();
-			}
+			current.cancel();
 		},
-		async play() {
-			if (animation) {
-				animation.cancel();
-			}
-			try {
-				for (animation of generator()) {
-					await animation.finished;
-				}
-			} catch (error) {
-				if (!(error instanceof DOMException)) {
-					throw error;
-				}
-			}
+		pause() {
+			current.pause();
+		},
+		play() {
+			current.play();
 		},
 	};
-}
-
-export function springBehavior(spring: Spring): Behavior<number> {
-	const duration = springDuration(spring, 1);
-	return (t) => {
-		useRange?.(t, duration);
-		return springPosition(spring, t);
-	};
-}
-
-export function tweenBehavior(duration: number): Behavior<number> {
-	return (t) => {
-		useRange?.(t, duration);
-		return clamp(0, 1, t / duration);
-	};
-}
-
-export function behaviorDelay<T>(
-	ms: number,
-	behavior: Behavior<T>,
-): Behavior<T> {
-	return (t) => behavior(t - ms);
 }

@@ -44,6 +44,9 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
+		"@thi.ng/compose": "3.0.10",
+		"@thi.ng/transducers": "9.0.12",
+		"@thi.ng/transducers-async": "0.2.13",
 		"csstype": "3.1.3"
 	}
 }
