@@ -1,14 +1,27 @@
-import { animate, keyframes, run } from "@bloom-motion/core/src/behavior.js";
+import {
+	animation,
+	keyframes,
+	run,
+	spring,
+} from "@bloom-motion/core/src/behavior.js";
+import { springCreate } from "@bloom-motion/core/src/spring.js";
 import { styleTranslateX } from "@bloom-motion/core/src/style.js";
-import { map } from "@thi.ng/transducers";
-import { comp } from "@thi.ng/transducers-async";
+import { comp, map } from "@thi.ng/transducers";
 import { createEffect } from "solid-js";
 
 export default function () {
 	let element: HTMLDivElement;
 
 	createEffect(() => {
-		run(comp(map(styleTranslateX), keyframes("transform"), animate(element)));
+		run(
+			comp(
+				spring(springCreate({ end: 100, halflife: 1000 })),
+				map(styleTranslateX),
+				keyframes("transform"),
+				animation(element),
+			),
+			console.log,
+		).then(console.log);
 	});
 
 	return (

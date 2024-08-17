@@ -1,12 +1,15 @@
 import { partial } from "@thi.ng/compose";
-import { comp, map, partition, range, Transducer } from "@thi.ng/transducers";
 import {
-	AsyncTransducer,
-	comp as compAsync,
-	map as mapAsync,
-	run as runAsync,
-} from "@thi.ng/transducers-async";
+	comp,
+	iterator,
+	map,
+	partition,
+	range,
+	takeWhile,
+	Transducer,
+} from "@thi.ng/transducers";
 import type * as CSS from "csstype";
+import { Spring, springDuration, springPosition } from "./spring";
 
 const maxKeyframes = 120;
 const frameDuration = 1_000 / 60;
@@ -28,47 +31,47 @@ export function keyframe<T extends keyof CSSProperties>(
 
 export function keyframes<T extends keyof CSSProperties>(
 	property: T,
-): Transducer<CSSProperties[T], IterableIterator<Keyframe>> {
+): Transducer<CSSProperties[T], Keyframe[]> {
 	return comp(
-		partition(maxKeyframes + 1, maxKeyframes),
-		map((values) => map(partial(keyframe, property), values)),
+		partition(maxKeyframes + 1, maxKeyframes, true),
+		map((values) => [...map(partial(keyframe, property), values)]),
 	);
 }
 
-export function animate(
-	element: Element,
+export function animation(
+	target: Element,
 	options: AnimateOptions = {},
-): Transducer<IterableIterator<Keyframe>, Animation> {
+): Transducer<Keyframe[], Animation> {
 	return map((keyframes) => {
-		const keyframesArray = [...keyframes];
-		return element.animate(keyframesArray, {
+		return target.animate(keyframes, {
 			...options,
-			duration: keyframesArray.length * frameDuration,
+			duration: keyframes.length * frameDuration,
 		});
 	});
 }
 
-export function run(tx: AsyncTransducer<number, Animation>) {
-	let current: Animation;
+export async function run(
+	tx: Transducer<number, Animation>,
+	fnx: (animation: Animation) => void,
+): Promise<void> {
+	for (let animation of iterator(tx, range(0, Infinity, frameDuration))) {
+		fnx(animation);
+		await animation.finished;
+	}
+}
 
-	runAsync(
-		compAsync(
-			tx,
-			mapAsync((animation) => ((current = animation), animation.finished)),
-		),
-		console.log,
-		range(),
+export function delay(ms: number) {
+	return map((t: number) => t - ms);
+}
+
+export function duration(ms: number) {
+	return takeWhile((t: number) => t < ms);
+}
+
+export function spring(s: Spring) {
+	const duration = springDuration(s, 1);
+	return comp(
+		takeWhile((t: number) => t < duration),
+		map((t: number) => springPosition(s, t)),
 	);
-
-	return {
-		cancel() {
-			current.cancel();
-		},
-		pause() {
-			current.pause();
-		},
-		play() {
-			current.play();
-		},
-	};
 }
