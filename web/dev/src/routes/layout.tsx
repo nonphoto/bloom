@@ -1,7 +1,7 @@
-import { xprod } from "ramda";
+import { permutations } from "@thi.ng/transducers";
 import { createSignal } from "solid-js";
 
-const areas = xprod([1, 2, 3], [1, 2, 3]);
+const areas = [...permutations([1, 2, 3], [1, 2, 3])];
 
 export default function Layout() {
 	const [index, setIndex] = createSignal(0);

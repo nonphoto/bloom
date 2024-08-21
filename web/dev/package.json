@@ -16,11 +16,8 @@
 		"@solidjs/router": "^0.14.1",
 		"@solidjs/start": "^1.0.6",
 		"@thi.ng/compose": "3.0.10",
-		"@thi.ng/dsp": "4.7.40",
-		"@thi.ng/transducers": "9.0.12",
-		"@thi.ng/transducers-async": "0.2.13",
+		"@thi.ng/transducers": "9.2.0",
 		"@thi.ng/vectors": "7.11.6",
-		"ramda": "0.30.1",
 		"solid-js": "^1.8.19",
 		"vinxi": "^0.4.1"
 	},

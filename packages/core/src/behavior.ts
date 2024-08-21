@@ -3,13 +3,23 @@ import {
 	comp,
 	iterator,
 	map,
+	multiplex,
 	partition,
 	range,
+	syncTuples,
 	takeWhile,
 	Transducer,
+	TxLike,
 } from "@thi.ng/transducers";
 import type * as CSS from "csstype";
-import { Spring, springDuration, springPosition } from "./spring";
+import {
+	springCreate,
+	springDuration,
+	SpringOptions,
+	springPosition,
+} from "./spring";
+import { Vec2 } from "./vec2";
+import { Vec3 } from "./vec3";
 
 const maxKeyframes = 120;
 const frameDuration = 1_000 / 60;
@@ -50,14 +60,35 @@ export function animation(
 	});
 }
 
+export function time() {
+	return range(0, Infinity, frameDuration);
+}
+
 export async function run(
 	tx: Transducer<number, Animation>,
 	fnx: (animation: Animation) => void,
 ): Promise<void> {
-	for (let animation of iterator(tx, range(0, Infinity, frameDuration))) {
+	for (let animation of iterator(tx, time())) {
 		fnx(animation);
 		await animation.finished;
 	}
+}
+
+export function vector(
+	a: TxLike<number, number>,
+	b: TxLike<number, number>,
+): Transducer<number, Vec2>;
+export function vector(
+	a: TxLike<number, number>,
+	b: TxLike<number, number>,
+	c: TxLike<number, number>,
+): Transducer<number, Vec3>;
+export function vector(...args: any[]): any {
+	return comp(
+		multiplex(...(args as [TxLike<number, number>])),
+		takeWhile((v) => v.some((x) => x != null)),
+		syncTuples(args.length),
+	);
 }
 
 export function delay(ms: number) {
@@ -68,7 +99,8 @@ export function duration(ms: number) {
 	return takeWhile((t: number) => t < ms);
 }
 
-export function spring(s: Spring) {
+export function spring(options: Partial<SpringOptions>) {
+	const s = springCreate(options);
 	const duration = springDuration(s, 1);
 	return comp(
 		takeWhile((t: number) => t < duration),
