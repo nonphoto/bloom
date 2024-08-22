@@ -11,6 +11,7 @@ import {
 	Transducer,
 	TxLike,
 } from "@thi.ng/transducers";
+import { Vec2, Vec3 } from "@thi.ng/vectors";
 import type * as CSS from "csstype";
 import {
 	springCreate,
@@ -18,8 +19,6 @@ import {
 	SpringOptions,
 	springPosition,
 } from "./spring";
-import { Vec2 } from "./vec2";
-import { Vec3 } from "./vec3";
 
 const maxKeyframes = 120;
 const frameDuration = 1_000 / 60;

@@ -1,19 +1,18 @@
 import { Batcher } from "./batcher";
 import { walkAncestors, walkDescendants } from "./dom";
-import { Rect } from "./rect";
 
-function getRect(element: HTMLElement): Rect {
-	const rect = element.getBoundingClientRect();
+function getRect(element: HTMLElement): DOMRect {
+	const r = element.getBoundingClientRect();
 	walkAncestors(element, (ancestor) => {
-		rect.x += ancestor.scrollLeft;
-		rect.y += ancestor.scrollTop;
+		r.x += ancestor.scrollLeft;
+		r.y += ancestor.scrollTop;
 	});
-	return rect;
+	return r;
 }
 
 export type RectObserverEntry = {
 	target: HTMLElement;
-	rect: Rect;
+	rect: DOMRect;
 };
 
 export class RectObserver {
@@ -67,7 +66,7 @@ export class RectObserver {
 	}
 
 	async getRect(element: HTMLElement) {
-		let rect: Rect;
+		let rect: DOMRect;
 		return this.#batcher
 			.task(() => {
 				rect = getRect(element);

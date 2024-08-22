@@ -1,4 +1,3 @@
-import { withValue } from "./common";
 import {
 	Mat2d,
 	mat2dCopy,
@@ -9,6 +8,7 @@ import {
 	mat2dTranslateNegative,
 } from "./mat2d";
 import { Rect, rectCenter } from "./rect";
+import { withValue } from "./utils";
 import { Vec2, vec2Create, vec2Sub } from "./vec2";
 
 export type Layout = {

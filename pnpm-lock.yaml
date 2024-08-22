@@ -16,7 +16,7 @@ importers:
         version: link:packages/solid
       '@types/node':
         specifier: ^20.14.11
-        version: 22.4.1
+        version: 20.16.1
       concurrently:
         specifier: ^8.2.2
         version: 8.2.2
@@ -25,37 +25,52 @@ importers:
         version: 3.3.3
       tsup:
         specifier: ^8.2.1
-        version: 8.2.4(jiti@1.21.6)(postcss@8.4.41)(typescript@5.5.4)(yaml@2.5.0)
+        version: 8.2.4(jiti@1.21.6)(postcss@8.4.41)(typescript@5.5.3)(yaml@2.5.0)
       tsup-preset-solid:
         specifier: ^2.2.0
-        version: 2.2.0(esbuild@0.23.0)(solid-js@1.8.21)(tsup@8.2.4(jiti@1.21.6)(postcss@8.4.41)(typescript@5.5.4)(yaml@2.5.0))
+        version: 2.2.0(esbuild@0.23.0)(solid-js@1.8.21)(tsup@8.2.4(jiti@1.21.6)(postcss@8.4.41)(typescript@5.5.3)(yaml@2.5.0))
       turbo:
         specifier: ^2.0.9
         version: 2.0.14
       typescript:
         specifier: 5.5.3
-        version: 5.5.4
+        version: 5.5.3
       vite:
         specifier: ^5.3.4
-        version: 5.4.1(@types/node@22.4.1)(terser@5.31.6)
+        version: 5.4.2(@types/node@20.16.1)(terser@5.31.6)
       vite-plugin-solid:
         specifier: ^2.10.2
-        version: 2.10.2(solid-js@1.8.21)(vite@5.4.1(@types/node@22.4.1)(terser@5.31.6))
+        version: 2.10.2(solid-js@1.8.21)(vite@5.4.2(@types/node@20.16.1)(terser@5.31.6))
       vitest:
         specifier: ^2.0.3
-        version: 2.0.5(@types/node@22.4.1)(terser@5.31.6)
+        version: 2.0.5(@types/node@20.16.1)(terser@5.31.6)
 
   packages/core:
     dependencies:
+      '@thi.ng/api':
+        specifier: 8.11.9
+        version: 8.11.9
       '@thi.ng/compose':
-        specifier: 3.0.10
+        specifier: 3.0.12
         version: 3.0.12
+      '@thi.ng/geom':
+        specifier: 8.1.4
+        version: 8.1.4
+      '@thi.ng/math':
+        specifier: 5.11.8
+        version: 5.11.8
+      '@thi.ng/matrices':
+        specifier: 2.4.10
+        version: 2.4.10
       '@thi.ng/transducers':
-        specifier: 9.0.12
+        specifier: 9.2.0
         version: 9.2.0
       '@thi.ng/transducers-async':
-        specifier: 0.2.13
+        specifier: 0.2.16
         version: 0.2.16
+      '@thi.ng/vectors':
+        specifier: 7.11.10
+        version: 7.11.10
       csstype:
         specifier: 3.1.3
         version: 3.1.3
@@ -106,7 +121,7 @@ importers:
         version: 0.14.3(solid-js@1.8.21)
       '@solidjs/start':
         specifier: ^1.0.6
-        version: 1.0.6(rollup@4.20.0)(solid-js@1.8.21)(vinxi@0.4.1(@types/node@22.4.1)(ioredis@5.4.1)(terser@5.31.6))(vite@5.4.1(@types/node@22.4.1)(terser@5.31.6))
+        version: 1.0.6(rollup@4.20.0)(solid-js@1.8.21)(vinxi@0.4.1(@types/node@22.4.2)(ioredis@5.4.1)(terser@5.31.6))(vite@5.4.2(@types/node@22.4.2)(terser@5.31.6))
       '@thi.ng/compose':
         specifier: 3.0.10
         version: 3.0.10
@@ -121,7 +136,7 @@ importers:
         version: 1.8.21
       vinxi:
         specifier: ^0.4.1
-        version: 0.4.1(@types/node@22.4.1)(ioredis@5.4.1)(terser@5.31.6)
+        version: 0.4.1(@types/node@22.4.2)(ioredis@5.4.1)(terser@5.31.6)
     devDependencies:
       '@types/ramda':
         specifier: 0.30.1
@@ -1219,6 +1234,10 @@ packages:
   '@solidjs/start@1.0.6':
     resolution: {integrity: sha512-O5knaeqDBx+nKLJRm5ZJurnXZtIYBOwOreQ10APaVtVjKIKKRC5HxJ1Kwqg7atOQNNDgsF0pzhW218KseaZ1UA==}
 
+  '@thi.ng/adjacency@3.0.5':
+    resolution: {integrity: sha512-uJ4/1e2JhW6n8H85bKVvrzIui/1sl2jH1x1cnpRYwlxe4irl/gy8ZbXHsjkBM11n7vOobYf72+8aBiyCTDQMVQ==}
+    engines: {node: '>=18'}
+
   '@thi.ng/api@8.11.9':
     resolution: {integrity: sha512-GV2HZJ+QEdUScK5f47K/n75UqN16qdBxu4sPwv8vWAOlBMT4Wak4AWAtb1Aks/WkXVuJRSVRaIjmevZxfFAStw==}
     engines: {node: '>=18'}
@@ -1231,12 +1250,20 @@ packages:
     resolution: {integrity: sha512-a2wu4J0o7F6jElUorV5z0txzpu+hD4xEOBm9Zc8XjCdwZtrD1TnTx9kNQ8MrJoL9fs+UY+lF55k2o83Vbe+khQ==}
     engines: {node: '>=18'}
 
+  '@thi.ng/bitfield@2.3.50':
+    resolution: {integrity: sha512-Rsveff4WAqd58ix39tCNlukpU8kcEpzsFc4INbPpoznpjzC4uUZDSa8yL0Jc8Sx91hIp6sDL+10PjCn3mihqSA==}
+    engines: {node: '>=18'}
+
   '@thi.ng/buffers@0.1.12':
     resolution: {integrity: sha512-FyNVOHaX0JlR/B0NPx56r3gpRUIG8SEq6Q5RP31OPZL+8HLMw/RfhBR9zOYhEZz2jFWnHxop7rVQ8OhMOzhauA==}
     engines: {node: '>=18'}
 
   '@thi.ng/checks@3.6.11':
     resolution: {integrity: sha512-qR2nmikEibCuHIhHBcuI8/zevBRUQnSxmgktuxywpUjvuUTeBXwt4ofG4ij7bndEH4B1i+MbFfZIubFLJEl5Fg==}
+    engines: {node: '>=18'}
+
+  '@thi.ng/color@5.7.1':
+    resolution: {integrity: sha512-YOC50f/Z5EIgcyG7G543FHA2kjP/kYBovai4eNE9zLXICsC5ylJI7vxgNrl4T91QQ0je+BPIczCbcoPhaxvrQQ==}
     engines: {node: '>=18'}
 
   '@thi.ng/compare@2.4.1':
@@ -1251,6 +1278,22 @@ packages:
     resolution: {integrity: sha512-f/bSa35/4l8m5Kz8opdIXjyjCtQV4nszXNyXSX1MiXX/6/aAJeKLUff/OwMSBOyFeXlHTwjMDEJ+HP07BScOOA==}
     engines: {node: '>=18'}
 
+  '@thi.ng/dcons@3.2.124':
+    resolution: {integrity: sha512-IDlegXqCCVb8l90bxhM415swCjfY5bNHTjo7H0LLj0QHvKqiR1P8Jwn72CfSp3vbjISa2C0qCUSyA/gbejJvAw==}
+    engines: {node: '>=18'}
+
+  '@thi.ng/defmulti@3.0.47':
+    resolution: {integrity: sha512-8z6tyJ7T3eOj+20tU+NWV0FwOOIF+cRJo81dnIBnCo6qIa0pO9OSs8lCiaOz3DnaV+y+BCK2OjownFVYiEpVOQ==}
+    engines: {node: '>=18'}
+
+  '@thi.ng/disjoint-set@1.1.2':
+    resolution: {integrity: sha512-Fp2pTQIF7e+f+icpHsP2B21i/Zv8N+KPqIfaG1/VMjU4t0ZDbxV1g2gsYwfMxEbS1nT1XrOXY7Hi/SLUksxheA==}
+    engines: {node: '>=18'}
+
+  '@thi.ng/distance@2.4.84':
+    resolution: {integrity: sha512-AWJkCqyZmeaLfB4DMZOqMq86DOwjMkFC58RFTsM6KO9zwvoVgWlxlbXObfJ5vJBOAJNONXO+/NLx+/9mdzdiRA==}
+    engines: {node: '>=18'}
+
   '@thi.ng/equiv@2.1.65':
     resolution: {integrity: sha512-pgXCJZMHiI8vUtaNzjWfbTyQilfin5/3Oc23OvL4dh5+uQFE9d9xP8DyNxHwmUD6b+Hio6j5ZteOyP5QgU3ibQ==}
     engines: {node: '>=18'}
@@ -1259,20 +1302,108 @@ packages:
     resolution: {integrity: sha512-vQ0M3yf6UbB8k6rdQMo2zgFpvcvEl95aLA1y5Fhxtm1KU6JfzDO1YZL3eIYPPnzhjUHw9zc0htbeBLI1x2QDnw==}
     engines: {node: '>=18'}
 
+  '@thi.ng/geom-accel@4.1.3':
+    resolution: {integrity: sha512-noSxFZYjPujsiMcfgeZxvpEXyGkjy5Q2sYZW5N3iKLkl9DsiNzKaxKYIaRwa8jmU6QGMQDXB8ftjtD2Yzf0erA==}
+    engines: {node: '>=18'}
+
+  '@thi.ng/geom-arc@2.1.143':
+    resolution: {integrity: sha512-B4nvEqUBtixCQvouUocwgSeiAvdYm4jPYpQyTtkHU9W7WgtKtIwl/DwdRQhZTLbX9sO7iKZdCoL628PVGi+j8g==}
+    engines: {node: '>=18'}
+
+  '@thi.ng/geom-clip-line@2.3.100':
+    resolution: {integrity: sha512-LRq7ywnfrDJ/fbI+5GkWry5lDblRiFCw5TI9C+UKAnj+UIuICTyp/i+kyo4OlEX6EBhCZ07Kb3GhQjlWvjsNJA==}
+    engines: {node: '>=18'}
+
+  '@thi.ng/geom-clip-poly@2.1.142':
+    resolution: {integrity: sha512-0gJyQF83bEY1SGV4yHuk99k/Pq6Y2vpEbalK3MH9stmcRqwLzxHyQh8XttDUrUqtGHtvuPOWS9L/skvgNrtFhQ==}
+    engines: {node: '>=18'}
+
+  '@thi.ng/geom-closest-point@2.1.138':
+    resolution: {integrity: sha512-aRGIv9ltPseCaoLMsV8ONI38gGk61aC+9g+SrrGOo+mUKM5HL0voqmkWXbfC981d4gSNqdhkOjapp29CkzZn2g==}
+    engines: {node: '>=18'}
+
+  '@thi.ng/geom-hull@2.1.138':
+    resolution: {integrity: sha512-ZqP1W4UEwRGUFlnXkeWvDlAroYlByPvrPURw/+3LpuJzRyeqSgUfe34Kx3LpxcV8SvtD56rAi9Pivvoi7iEsNA==}
+    engines: {node: '>=18'}
+
+  '@thi.ng/geom-isec@4.0.10':
+    resolution: {integrity: sha512-jg2MX9cev0C5QdqrrCNVbl+k7cgFF/UL22X4gPnqWmXkWYPDGBIOxXkyGnLsSO+pokBjYLbqkJkB+mPzZj/7Dw==}
+    engines: {node: '>=18'}
+
+  '@thi.ng/geom-poly-utils@3.0.10':
+    resolution: {integrity: sha512-7rvLUvEVHSDBv8u/ykASbG9B/HPN/xf2WfaoXTJl3pS3EzIdPpru8Jr44EzJfwz9R8GUqhj1ABm20QslC9EXZA==}
+    engines: {node: '>=18'}
+
+  '@thi.ng/geom-resample@3.0.10':
+    resolution: {integrity: sha512-CjXvU82Vx+qZXi3v6M7NU6G7ovJGaniAo3ItpmJ7oogvAJJPlsmdSWxQaKBijTZZ9kv0Wf4m10b1Is9djHpYrg==}
+    engines: {node: '>=18'}
+
+  '@thi.ng/geom-splines@2.3.10':
+    resolution: {integrity: sha512-srkgGv92pEfbqdfWXs+ijiNbA1NEcEmRclcITrkofyyj7zQTwWPoYAhFkuVqrqHjKZR4Qvrb4hGdDGzznP/f/A==}
+    engines: {node: '>=18'}
+
+  '@thi.ng/geom-subdiv-curve@3.0.10':
+    resolution: {integrity: sha512-eLAx9GvSBavP+6bjwrYJD6Pk/Z6GypajI59UXSUYIHj2NE2bHmFrXEV4dDWv6TYsmg4j7a1c8L4FBs318uIcrQ==}
+    engines: {node: '>=18'}
+
+  '@thi.ng/geom-tessellate@3.0.10':
+    resolution: {integrity: sha512-fyMAIDH+Wqc3JlLeZa5m4khEFKmyTjbQGfEuXgqBZv2ciFPmy3yyE5xA8tKWxAVOASPJ9FzTPAZy/3CM2xg0Pw==}
+    engines: {node: '>=18'}
+
+  '@thi.ng/geom@8.1.4':
+    resolution: {integrity: sha512-8Uikn+/2Q/cOrd2XhLHy79P97xWPaeRMsxRIarjdpm4iILIsI5sHRkOg+M+7a7GhdH0sV9Qor8YLw/OjbdhOww==}
+    engines: {node: '>=18'}
+
+  '@thi.ng/heaps@2.1.81':
+    resolution: {integrity: sha512-XBMI+Ycch2SU6vCjNebZtXUqg4eu+fLPzSZuIBNRsjn4Gw0EO2sJzzQtzIZdT1FY5rPShzU9zSmP7WQ9BhIwCg==}
+    engines: {node: '>=18'}
+
   '@thi.ng/hex@2.3.53':
     resolution: {integrity: sha512-NmXCvlgnYOZsfuWHoici6dc3w9shw1135L7zrhyml5qXA5vrDrcV/6+9PqRpDOJJXN65NvNezITok0gCXk25Ow==}
+    engines: {node: '>=18'}
+
+  '@thi.ng/hiccup-svg@5.3.11':
+    resolution: {integrity: sha512-z2zJ+ERjFJuzIgmZsC3EFAFu3BEglywZ4XgUb3PiVggvcRnmjSZIV2gO3M303AnuInvgnpiLNLOswsv3qoh8Og==}
+    engines: {node: '>=18'}
+
+  '@thi.ng/hiccup@5.2.10':
+    resolution: {integrity: sha512-U6zsPH4j9l6mvu+Ltzo9VhV2T1aS22qM5WJ3my1uoVvyVrbHx4P+DGhIQA702GpjfCOzgXrJCUTFv2KntRns5w==}
+    engines: {node: '>=18'}
+
+  '@thi.ng/logger@3.0.19':
+    resolution: {integrity: sha512-mFCl7iXa8jfSpVrTG0EAJW66h/zrRQepR5oiIbwVIRifOthoUp+7I6T/KDhodN1Izt76XmK7ziXTvZlFw4vXlQ==}
     engines: {node: '>=18'}
 
   '@thi.ng/math@5.11.8':
     resolution: {integrity: sha512-lmIHdFlz57m08nd+vPTPcOcz5FgBhNVvca706t100NTUY8wATlpnKpzaTeogG+CbFsxKUYKoqNIX6W9LCg6BZA==}
     engines: {node: '>=18'}
 
+  '@thi.ng/matrices@2.4.10':
+    resolution: {integrity: sha512-n7l4vd+y73ScmhBC7QjL8jlSoQvjzxOl/4hAPJLsmyR2K6uCKmDuZZsLBP3p7DtqZuS9kHCNG/XwKbJgEGlYLA==}
+    engines: {node: '>=18'}
+
   '@thi.ng/memoize@3.3.11':
     resolution: {integrity: sha512-FsKa5hn+OggvAxODmy93CVIqYwJpC+Vv2BD3+LCcbH/WRp/KLUk11F7YMqi40Od4ryfTu73fWpnwX/lHzb5jbQ==}
     engines: {node: '>=18'}
 
+  '@thi.ng/morton@3.1.95':
+    resolution: {integrity: sha512-3xpLXMj4gyWrXQMLcV7WsVkpmO73ReAwPfe31FP6W+DAesAhj/kODL+lJ9oOozZ8a21BO89P1ITk2fOIjuGTEA==}
+    engines: {node: '>=18'}
+
+  '@thi.ng/object-utils@1.1.2':
+    resolution: {integrity: sha512-jJTs7QZHydijrufg4u8XeaKpbhHOTSP0H+bg9xWvzujsE7OsSBI8utAOJEwBTmw2VFUqW3dH3zQ2o+6ac774Ng==}
+    engines: {node: '>=18'}
+
+  '@thi.ng/prefixes@2.3.26':
+    resolution: {integrity: sha512-ZwOxHCRZR5f0skCaLSPF96EYFBKN7u6zVpe00VNoGfYgKvWAJoHOlTyK6kq5boVm1KfNc1aR5rO8smmmS4wGPQ==}
+    engines: {node: '>=18'}
+
   '@thi.ng/random@4.0.3':
     resolution: {integrity: sha512-ffHg6qJeGPHvom6mQGXMg4GaMIj1FME9Nx9aqZqm1h9r6tJN7Z2s4MIM4QFdZ1hfhGdErJ378eDROxHZCL1Uyw==}
+    engines: {node: '>=18'}
+
+  '@thi.ng/sparse@0.3.129':
+    resolution: {integrity: sha512-7X/bEet8QFt+SMWMchaMbwlOppRWRGzsChPsq8p7a0iLWi3Y4chQ9ATBQDF28LOgQkrEuhvFY2+90HzlZ3R0bQ==}
     engines: {node: '>=18'}
 
   '@thi.ng/strings@3.8.4':
@@ -1285,6 +1416,10 @@ packages:
 
   '@thi.ng/transducers@9.2.0':
     resolution: {integrity: sha512-S6V20s6LacGA1YD+B4xz6Tg2cVE8/V93nzvuEESH8csfMQ15u8dX9pAK7XhWMpOuAxCId1/kxtYA+crBemVnCA==}
+    engines: {node: '>=18'}
+
+  '@thi.ng/vectors@7.11.10':
+    resolution: {integrity: sha512-a72cojE892uoGk/onSJhxXMU4PEQ8EiKNWci9LgFu5K40/kELoZkY8h1+mzv0HaguOkOP1gXNmGQNzAeYtc61g==}
     engines: {node: '>=18'}
 
   '@thi.ng/vectors@7.11.6':
@@ -1315,8 +1450,11 @@ packages:
   '@types/micromatch@4.0.9':
     resolution: {integrity: sha512-7V+8ncr22h4UoYRLnLXSpTxjQrNUXtWHGeMPRJt1nULXI57G9bIcpyrHlmrQ7QK24EyyuXvYcSSWAM8GA9nqCg==}
 
-  '@types/node@22.4.1':
-    resolution: {integrity: sha512-1tbpb9325+gPnKK0dMm+/LMriX0vKxf6RnB0SZUqfyVkQ4fMgUSySqhxE/y8Jvs4NyF1yHzTfG9KlnkIODxPKg==}
+  '@types/node@20.16.1':
+    resolution: {integrity: sha512-zJDo7wEadFtSyNz5QITDfRcrhqDvQI1xQNQ0VoizPjM/dVAODqqIUWbJPkvsxmTI0MYRGRikcdjMPhOssnPejQ==}
+
+  '@types/node@22.4.2':
+    resolution: {integrity: sha512-nAvM3Ey230/XzxtyDcJ+VjvlzpzoHwLsF7JaDRfoI0ytO0mVheerNmM45CtA0yOILXwXXxOrcUWH3wltX+7PSw==}
 
   '@types/ramda@0.30.1':
     resolution: {integrity: sha512-aoyF/ADPL6N+/NXXfhPWF+Qj6w1Cql59m9wX0Gi15uyF+bpzXeLd63HPdiTDE2bmLXfNcVufsDPKmbfOrOzTBA==}
@@ -3100,8 +3238,8 @@ packages:
   types-ramda@0.30.1:
     resolution: {integrity: sha512-1HTsf5/QVRmLzcGfldPFvkVsAdi1db1BBKzi7iW3KBUlOICg/nKnFS+jGqDJS3YD8VsWbAh7JiHeBvbsw8RPxA==}
 
-  typescript@5.5.4:
-    resolution: {integrity: sha512-Mtq29sKDAEYP7aljRgtPOpTvOfbwRWlS6dPRzwjdE+C0R4brX/GUyhHSecbHMFLNBLcJIPt9nl9yG5TZ1weH+Q==}
+  typescript@5.5.3:
+    resolution: {integrity: sha512-/hreyEujaB0w76zKo6717l3L0o/qEUtRgdvUBvlkhoWeOVMjMuHNHk0BRBzikzuGDqNmPQbg5ifMEqsHLiIUcQ==}
     engines: {node: '>=14.17'}
     hasBin: true
 
@@ -3244,39 +3382,8 @@ packages:
       '@testing-library/jest-dom':
         optional: true
 
-  vite@5.4.0:
-    resolution: {integrity: sha512-5xokfMX0PIiwCMCMb9ZJcMyh5wbBun0zUzKib+L65vAZ8GY9ePZMXxFrHbr/Kyll2+LSCY7xtERPpxkBDKngwg==}
-    engines: {node: ^18.0.0 || >=20.0.0}
-    hasBin: true
-    peerDependencies:
-      '@types/node': ^18.0.0 || >=20.0.0
-      less: '*'
-      lightningcss: ^1.21.0
-      sass: '*'
-      sass-embedded: '*'
-      stylus: '*'
-      sugarss: '*'
-      terser: ^5.4.0
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
-      less:
-        optional: true
-      lightningcss:
-        optional: true
-      sass:
-        optional: true
-      sass-embedded:
-        optional: true
-      stylus:
-        optional: true
-      sugarss:
-        optional: true
-      terser:
-        optional: true
-
-  vite@5.4.1:
-    resolution: {integrity: sha512-1oE6yuNXssjrZdblI9AfBbHCC41nnyoVoEZxQnID6yvQZAFBzxxkqoFLtHUMkYunL8hwOLEjgTuxpkRxvba3kA==}
+  vite@5.4.2:
+    resolution: {integrity: sha512-dDrQTRHp5C1fTFzcSaMxjk6vdpKvT+2/mIdE07Gw2ykehT49O0z/VHS3zZ8iV/Gh8BJJKHWOe5RjaNrW5xf/GA==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
     peerDependencies:
@@ -4340,11 +4447,11 @@ snapshots:
     dependencies:
       solid-js: 1.8.21
 
-  '@solidjs/start@1.0.6(rollup@4.20.0)(solid-js@1.8.21)(vinxi@0.4.1(@types/node@22.4.1)(ioredis@5.4.1)(terser@5.31.6))(vite@5.4.1(@types/node@22.4.1)(terser@5.31.6))':
+  '@solidjs/start@1.0.6(rollup@4.20.0)(solid-js@1.8.21)(vinxi@0.4.1(@types/node@22.4.2)(ioredis@5.4.1)(terser@5.31.6))(vite@5.4.2(@types/node@22.4.2)(terser@5.31.6))':
     dependencies:
-      '@vinxi/plugin-directives': 0.4.1(vinxi@0.4.1(@types/node@22.4.1)(ioredis@5.4.1)(terser@5.31.6))
-      '@vinxi/server-components': 0.4.1(vinxi@0.4.1(@types/node@22.4.1)(ioredis@5.4.1)(terser@5.31.6))
-      '@vinxi/server-functions': 0.4.1(vinxi@0.4.1(@types/node@22.4.1)(ioredis@5.4.1)(terser@5.31.6))
+      '@vinxi/plugin-directives': 0.4.1(vinxi@0.4.1(@types/node@22.4.2)(ioredis@5.4.1)(terser@5.31.6))
+      '@vinxi/server-components': 0.4.1(vinxi@0.4.1(@types/node@22.4.2)(ioredis@5.4.1)(terser@5.31.6))
+      '@vinxi/server-functions': 0.4.1(vinxi@0.4.1(@types/node@22.4.2)(ioredis@5.4.1)(terser@5.31.6))
       defu: 6.1.4
       error-stack-parser: 2.1.4
       glob: 10.4.5
@@ -4355,8 +4462,8 @@ snapshots:
       shikiji: 0.9.19
       source-map-js: 1.2.0
       terracotta: 1.0.5(solid-js@1.8.21)
-      vite-plugin-inspect: 0.7.42(rollup@4.20.0)(vite@5.4.1(@types/node@22.4.1)(terser@5.31.6))
-      vite-plugin-solid: 2.10.2(solid-js@1.8.21)(vite@5.4.1(@types/node@22.4.1)(terser@5.31.6))
+      vite-plugin-inspect: 0.7.42(rollup@4.20.0)(vite@5.4.2(@types/node@22.4.2)(terser@5.31.6))
+      vite-plugin-solid: 2.10.2(solid-js@1.8.21)(vite@5.4.2(@types/node@22.4.2)(terser@5.31.6))
     transitivePeerDependencies:
       - '@nuxt/kit'
       - '@testing-library/jest-dom'
@@ -4365,6 +4472,16 @@ snapshots:
       - supports-color
       - vinxi
       - vite
+
+  '@thi.ng/adjacency@3.0.5':
+    dependencies:
+      '@thi.ng/api': 8.11.9
+      '@thi.ng/arrays': 2.10.0
+      '@thi.ng/bitfield': 2.3.50
+      '@thi.ng/dcons': 3.2.124
+      '@thi.ng/disjoint-set': 1.1.2
+      '@thi.ng/errors': 2.5.15
+      '@thi.ng/sparse': 0.3.129
 
   '@thi.ng/api@8.11.9': {}
 
@@ -4381,6 +4498,13 @@ snapshots:
     dependencies:
       '@thi.ng/api': 8.11.9
 
+  '@thi.ng/bitfield@2.3.50':
+    dependencies:
+      '@thi.ng/api': 8.11.9
+      '@thi.ng/binary': 3.4.32
+      '@thi.ng/errors': 2.5.15
+      '@thi.ng/strings': 3.8.4
+
   '@thi.ng/buffers@0.1.12':
     dependencies:
       '@thi.ng/api': 8.11.9
@@ -4389,6 +4513,22 @@ snapshots:
   '@thi.ng/checks@3.6.11':
     dependencies:
       tslib: 2.6.3
+
+  '@thi.ng/color@5.7.1':
+    dependencies:
+      '@thi.ng/api': 8.11.9
+      '@thi.ng/arrays': 2.10.0
+      '@thi.ng/binary': 3.4.32
+      '@thi.ng/checks': 3.6.11
+      '@thi.ng/compare': 2.4.1
+      '@thi.ng/compose': 3.0.12
+      '@thi.ng/defmulti': 3.0.47
+      '@thi.ng/errors': 2.5.15
+      '@thi.ng/math': 5.11.8
+      '@thi.ng/random': 4.0.3
+      '@thi.ng/strings': 3.8.4
+      '@thi.ng/transducers': 9.2.0
+      '@thi.ng/vectors': 7.11.10
 
   '@thi.ng/compare@2.4.1':
     dependencies:
@@ -4404,24 +4544,224 @@ snapshots:
       '@thi.ng/api': 8.11.9
       '@thi.ng/errors': 2.5.15
 
+  '@thi.ng/dcons@3.2.124':
+    dependencies:
+      '@thi.ng/api': 8.11.9
+      '@thi.ng/checks': 3.6.11
+      '@thi.ng/compare': 2.4.1
+      '@thi.ng/equiv': 2.1.65
+      '@thi.ng/errors': 2.5.15
+      '@thi.ng/random': 4.0.3
+      '@thi.ng/transducers': 9.2.0
+
+  '@thi.ng/defmulti@3.0.47':
+    dependencies:
+      '@thi.ng/api': 8.11.9
+      '@thi.ng/errors': 2.5.15
+      '@thi.ng/logger': 3.0.19
+
+  '@thi.ng/disjoint-set@1.1.2': {}
+
+  '@thi.ng/distance@2.4.84':
+    dependencies:
+      '@thi.ng/api': 8.11.9
+      '@thi.ng/checks': 3.6.11
+      '@thi.ng/errors': 2.5.15
+      '@thi.ng/heaps': 2.1.81
+      '@thi.ng/math': 5.11.8
+      '@thi.ng/vectors': 7.11.10
+
   '@thi.ng/equiv@2.1.65': {}
 
   '@thi.ng/errors@2.5.15': {}
 
+  '@thi.ng/geom-accel@4.1.3':
+    dependencies:
+      '@thi.ng/api': 8.11.9
+      '@thi.ng/arrays': 2.10.0
+      '@thi.ng/checks': 3.6.11
+      '@thi.ng/distance': 2.4.84
+      '@thi.ng/equiv': 2.1.65
+      '@thi.ng/errors': 2.5.15
+      '@thi.ng/geom-isec': 4.0.10
+      '@thi.ng/heaps': 2.1.81
+      '@thi.ng/math': 5.11.8
+      '@thi.ng/transducers': 9.2.0
+      '@thi.ng/vectors': 7.11.10
+
+  '@thi.ng/geom-arc@2.1.143':
+    dependencies:
+      '@thi.ng/checks': 3.6.11
+      '@thi.ng/geom-resample': 3.0.10
+      '@thi.ng/math': 5.11.8
+      '@thi.ng/vectors': 7.11.10
+
+  '@thi.ng/geom-clip-line@2.3.100':
+    dependencies:
+      '@thi.ng/api': 8.11.9
+      '@thi.ng/geom-isec': 4.0.10
+      '@thi.ng/vectors': 7.11.10
+
+  '@thi.ng/geom-clip-poly@2.1.142':
+    dependencies:
+      '@thi.ng/geom-isec': 4.0.10
+      '@thi.ng/geom-poly-utils': 3.0.10
+      '@thi.ng/math': 5.11.8
+      '@thi.ng/vectors': 7.11.10
+
+  '@thi.ng/geom-closest-point@2.1.138':
+    dependencies:
+      '@thi.ng/api': 8.11.9
+      '@thi.ng/math': 5.11.8
+      '@thi.ng/vectors': 7.11.10
+
+  '@thi.ng/geom-hull@2.1.138':
+    dependencies:
+      '@thi.ng/math': 5.11.8
+      '@thi.ng/vectors': 7.11.10
+
+  '@thi.ng/geom-isec@4.0.10':
+    dependencies:
+      '@thi.ng/api': 8.11.9
+      '@thi.ng/geom-closest-point': 2.1.138
+      '@thi.ng/math': 5.11.8
+      '@thi.ng/vectors': 7.11.10
+
+  '@thi.ng/geom-poly-utils@3.0.10':
+    dependencies:
+      '@thi.ng/api': 8.11.9
+      '@thi.ng/errors': 2.5.15
+      '@thi.ng/math': 5.11.8
+      '@thi.ng/vectors': 7.11.10
+
+  '@thi.ng/geom-resample@3.0.10':
+    dependencies:
+      '@thi.ng/api': 8.11.9
+      '@thi.ng/checks': 3.6.11
+      '@thi.ng/geom-closest-point': 2.1.138
+      '@thi.ng/geom-isec': 4.0.10
+      '@thi.ng/math': 5.11.8
+      '@thi.ng/vectors': 7.11.10
+
+  '@thi.ng/geom-splines@2.3.10':
+    dependencies:
+      '@thi.ng/api': 8.11.9
+      '@thi.ng/checks': 3.6.11
+      '@thi.ng/geom-arc': 2.1.143
+      '@thi.ng/geom-resample': 3.0.10
+      '@thi.ng/math': 5.11.8
+      '@thi.ng/vectors': 7.11.10
+
+  '@thi.ng/geom-subdiv-curve@3.0.10':
+    dependencies:
+      '@thi.ng/transducers': 9.2.0
+      '@thi.ng/vectors': 7.11.10
+
+  '@thi.ng/geom-tessellate@3.0.10':
+    dependencies:
+      '@thi.ng/api': 8.11.9
+      '@thi.ng/checks': 3.6.11
+      '@thi.ng/geom-accel': 4.1.3
+      '@thi.ng/geom-isec': 4.0.10
+      '@thi.ng/geom-poly-utils': 3.0.10
+      '@thi.ng/math': 5.11.8
+      '@thi.ng/morton': 3.1.95
+      '@thi.ng/transducers': 9.2.0
+      '@thi.ng/vectors': 7.11.10
+
+  '@thi.ng/geom@8.1.4':
+    dependencies:
+      '@thi.ng/adjacency': 3.0.5
+      '@thi.ng/api': 8.11.9
+      '@thi.ng/arrays': 2.10.0
+      '@thi.ng/checks': 3.6.11
+      '@thi.ng/defmulti': 3.0.47
+      '@thi.ng/equiv': 2.1.65
+      '@thi.ng/errors': 2.5.15
+      '@thi.ng/geom-arc': 2.1.143
+      '@thi.ng/geom-clip-line': 2.3.100
+      '@thi.ng/geom-clip-poly': 2.1.142
+      '@thi.ng/geom-closest-point': 2.1.138
+      '@thi.ng/geom-hull': 2.1.138
+      '@thi.ng/geom-isec': 4.0.10
+      '@thi.ng/geom-poly-utils': 3.0.10
+      '@thi.ng/geom-resample': 3.0.10
+      '@thi.ng/geom-splines': 2.3.10
+      '@thi.ng/geom-subdiv-curve': 3.0.10
+      '@thi.ng/geom-tessellate': 3.0.10
+      '@thi.ng/hiccup': 5.2.10
+      '@thi.ng/hiccup-svg': 5.3.11
+      '@thi.ng/math': 5.11.8
+      '@thi.ng/matrices': 2.4.10
+      '@thi.ng/object-utils': 1.1.2
+      '@thi.ng/random': 4.0.3
+      '@thi.ng/strings': 3.8.4
+      '@thi.ng/transducers': 9.2.0
+      '@thi.ng/vectors': 7.11.10
+
+  '@thi.ng/heaps@2.1.81':
+    dependencies:
+      '@thi.ng/api': 8.11.9
+      '@thi.ng/compare': 2.4.1
+      '@thi.ng/equiv': 2.1.65
+
   '@thi.ng/hex@2.3.53': {}
+
+  '@thi.ng/hiccup-svg@5.3.11':
+    dependencies:
+      '@thi.ng/api': 8.11.9
+      '@thi.ng/checks': 3.6.11
+      '@thi.ng/color': 5.7.1
+      '@thi.ng/prefixes': 2.3.26
+
+  '@thi.ng/hiccup@5.2.10':
+    dependencies:
+      '@thi.ng/api': 8.11.9
+      '@thi.ng/checks': 3.6.11
+      '@thi.ng/errors': 2.5.15
+      '@thi.ng/strings': 3.8.4
+
+  '@thi.ng/logger@3.0.19': {}
 
   '@thi.ng/math@5.11.8':
     dependencies:
       '@thi.ng/api': 8.11.9
 
+  '@thi.ng/matrices@2.4.10':
+    dependencies:
+      '@thi.ng/api': 8.11.9
+      '@thi.ng/checks': 3.6.11
+      '@thi.ng/math': 5.11.8
+      '@thi.ng/vectors': 7.11.10
+
   '@thi.ng/memoize@3.3.11':
     dependencies:
       '@thi.ng/api': 8.11.9
+
+  '@thi.ng/morton@3.1.95':
+    dependencies:
+      '@thi.ng/api': 8.11.9
+      '@thi.ng/binary': 3.4.32
+      '@thi.ng/errors': 2.5.15
+      '@thi.ng/math': 5.11.8
+
+  '@thi.ng/object-utils@1.1.2':
+    dependencies:
+      '@thi.ng/api': 8.11.9
+      '@thi.ng/checks': 3.6.11
+
+  '@thi.ng/prefixes@2.3.26': {}
 
   '@thi.ng/random@4.0.3':
     dependencies:
       '@thi.ng/api': 8.11.9
       '@thi.ng/errors': 2.5.15
+
+  '@thi.ng/sparse@0.3.129':
+    dependencies:
+      '@thi.ng/api': 8.11.9
+      '@thi.ng/errors': 2.5.15
+      '@thi.ng/transducers': 9.2.0
 
   '@thi.ng/strings@3.8.4':
     dependencies:
@@ -4449,6 +4789,19 @@ snapshots:
       '@thi.ng/errors': 2.5.15
       '@thi.ng/math': 5.11.8
       '@thi.ng/random': 4.0.3
+
+  '@thi.ng/vectors@7.11.10':
+    dependencies:
+      '@thi.ng/api': 8.11.9
+      '@thi.ng/binary': 3.4.32
+      '@thi.ng/checks': 3.6.11
+      '@thi.ng/equiv': 2.1.65
+      '@thi.ng/errors': 2.5.15
+      '@thi.ng/math': 5.11.8
+      '@thi.ng/memoize': 3.3.11
+      '@thi.ng/random': 4.0.3
+      '@thi.ng/strings': 3.8.4
+      '@thi.ng/transducers': 9.2.0
 
   '@thi.ng/vectors@7.11.6':
     dependencies:
@@ -4490,15 +4843,20 @@ snapshots:
 
   '@types/http-proxy@1.17.15':
     dependencies:
-      '@types/node': 22.4.1
+      '@types/node': 20.16.1
 
   '@types/micromatch@4.0.9':
     dependencies:
       '@types/braces': 3.0.4
 
-  '@types/node@22.4.1':
+  '@types/node@20.16.1':
     dependencies:
       undici-types: 6.19.8
+
+  '@types/node@22.4.2':
+    dependencies:
+      undici-types: 6.19.8
+    optional: true
 
   '@types/ramda@0.30.1':
     dependencies:
@@ -4546,7 +4904,7 @@ snapshots:
     transitivePeerDependencies:
       - uWebSockets.js
 
-  '@vinxi/plugin-directives@0.4.1(vinxi@0.4.1(@types/node@22.4.1)(ioredis@5.4.1)(terser@5.31.6))':
+  '@vinxi/plugin-directives@0.4.1(vinxi@0.4.1(@types/node@22.4.2)(ioredis@5.4.1)(terser@5.31.6))':
     dependencies:
       '@babel/parser': 7.25.3
       acorn: 8.12.1
@@ -4557,29 +4915,29 @@ snapshots:
       magicast: 0.2.11
       recast: 0.23.9
       tslib: 2.6.3
-      vinxi: 0.4.1(@types/node@22.4.1)(ioredis@5.4.1)(terser@5.31.6)
+      vinxi: 0.4.1(@types/node@22.4.2)(ioredis@5.4.1)(terser@5.31.6)
 
-  '@vinxi/server-components@0.4.1(vinxi@0.4.1(@types/node@22.4.1)(ioredis@5.4.1)(terser@5.31.6))':
+  '@vinxi/server-components@0.4.1(vinxi@0.4.1(@types/node@22.4.2)(ioredis@5.4.1)(terser@5.31.6))':
     dependencies:
-      '@vinxi/plugin-directives': 0.4.1(vinxi@0.4.1(@types/node@22.4.1)(ioredis@5.4.1)(terser@5.31.6))
+      '@vinxi/plugin-directives': 0.4.1(vinxi@0.4.1(@types/node@22.4.2)(ioredis@5.4.1)(terser@5.31.6))
       acorn: 8.12.1
       acorn-loose: 8.4.0
       acorn-typescript: 1.4.13(acorn@8.12.1)
       astring: 1.8.6
       magicast: 0.2.11
       recast: 0.23.9
-      vinxi: 0.4.1(@types/node@22.4.1)(ioredis@5.4.1)(terser@5.31.6)
+      vinxi: 0.4.1(@types/node@22.4.2)(ioredis@5.4.1)(terser@5.31.6)
 
-  '@vinxi/server-functions@0.4.1(vinxi@0.4.1(@types/node@22.4.1)(ioredis@5.4.1)(terser@5.31.6))':
+  '@vinxi/server-functions@0.4.1(vinxi@0.4.1(@types/node@22.4.2)(ioredis@5.4.1)(terser@5.31.6))':
     dependencies:
-      '@vinxi/plugin-directives': 0.4.1(vinxi@0.4.1(@types/node@22.4.1)(ioredis@5.4.1)(terser@5.31.6))
+      '@vinxi/plugin-directives': 0.4.1(vinxi@0.4.1(@types/node@22.4.2)(ioredis@5.4.1)(terser@5.31.6))
       acorn: 8.12.1
       acorn-loose: 8.4.0
       acorn-typescript: 1.4.13(acorn@8.12.1)
       astring: 1.8.6
       magicast: 0.2.11
       recast: 0.23.9
-      vinxi: 0.4.1(@types/node@22.4.1)(ioredis@5.4.1)(terser@5.31.6)
+      vinxi: 0.4.1(@types/node@22.4.2)(ioredis@5.4.1)(terser@5.31.6)
 
   '@vitest/expect@2.0.5':
     dependencies:
@@ -6372,16 +6730,16 @@ snapshots:
 
   tslib@2.6.3: {}
 
-  tsup-preset-solid@2.2.0(esbuild@0.23.0)(solid-js@1.8.21)(tsup@8.2.4(jiti@1.21.6)(postcss@8.4.41)(typescript@5.5.4)(yaml@2.5.0)):
+  tsup-preset-solid@2.2.0(esbuild@0.23.0)(solid-js@1.8.21)(tsup@8.2.4(jiti@1.21.6)(postcss@8.4.41)(typescript@5.5.3)(yaml@2.5.0)):
     dependencies:
       esbuild-plugin-solid: 0.5.0(esbuild@0.23.0)(solid-js@1.8.21)
-      tsup: 8.2.4(jiti@1.21.6)(postcss@8.4.41)(typescript@5.5.4)(yaml@2.5.0)
+      tsup: 8.2.4(jiti@1.21.6)(postcss@8.4.41)(typescript@5.5.3)(yaml@2.5.0)
     transitivePeerDependencies:
       - esbuild
       - solid-js
       - supports-color
 
-  tsup@8.2.4(jiti@1.21.6)(postcss@8.4.41)(typescript@5.5.4)(yaml@2.5.0):
+  tsup@8.2.4(jiti@1.21.6)(postcss@8.4.41)(typescript@5.5.3)(yaml@2.5.0):
     dependencies:
       bundle-require: 5.0.0(esbuild@0.23.0)
       cac: 6.7.14
@@ -6401,7 +6759,7 @@ snapshots:
       tree-kill: 1.2.2
     optionalDependencies:
       postcss: 8.4.41
-      typescript: 5.5.4
+      typescript: 5.5.3
     transitivePeerDependencies:
       - jiti
       - supports-color
@@ -6443,7 +6801,7 @@ snapshots:
     dependencies:
       ts-toolbelt: 9.6.0
 
-  typescript@5.5.4: {}
+  typescript@5.5.3: {}
 
   ufo@1.5.4: {}
 
@@ -6555,7 +6913,7 @@ snapshots:
 
   validate-html-nesting@1.2.2: {}
 
-  vinxi@0.4.1(@types/node@22.4.1)(ioredis@5.4.1)(terser@5.31.6):
+  vinxi@0.4.1(@types/node@22.4.2)(ioredis@5.4.1)(terser@5.31.6):
     dependencies:
       '@babel/core': 7.25.2
       '@babel/plugin-syntax-jsx': 7.24.7(@babel/core@7.25.2)
@@ -6589,7 +6947,7 @@ snapshots:
       unctx: 2.3.1
       unenv: 1.10.0
       unstorage: 1.10.2(ioredis@5.4.1)
-      vite: 5.4.0(@types/node@22.4.1)(terser@5.31.6)
+      vite: 5.4.2(@types/node@22.4.2)(terser@5.31.6)
       zod: 3.23.8
     transitivePeerDependencies:
       - '@azure/app-configuration'
@@ -6623,13 +6981,13 @@ snapshots:
       - uWebSockets.js
       - xml2js
 
-  vite-node@2.0.5(@types/node@22.4.1)(terser@5.31.6):
+  vite-node@2.0.5(@types/node@20.16.1)(terser@5.31.6):
     dependencies:
       cac: 6.7.14
       debug: 4.3.5
       pathe: 1.1.2
       tinyrainbow: 1.2.0
-      vite: 5.4.1(@types/node@22.4.1)(terser@5.31.6)
+      vite: 5.4.2(@types/node@20.16.1)(terser@5.31.6)
     transitivePeerDependencies:
       - '@types/node'
       - less
@@ -6641,7 +6999,7 @@ snapshots:
       - supports-color
       - terser
 
-  vite-plugin-inspect@0.7.42(rollup@4.20.0)(vite@5.4.1(@types/node@22.4.1)(terser@5.31.6)):
+  vite-plugin-inspect@0.7.42(rollup@4.20.0)(vite@5.4.2(@types/node@22.4.2)(terser@5.31.6)):
     dependencies:
       '@antfu/utils': 0.7.10
       '@rollup/pluginutils': 5.1.0(rollup@4.20.0)
@@ -6651,12 +7009,12 @@ snapshots:
       open: 9.1.0
       picocolors: 1.0.1
       sirv: 2.0.4
-      vite: 5.4.1(@types/node@22.4.1)(terser@5.31.6)
+      vite: 5.4.2(@types/node@22.4.2)(terser@5.31.6)
     transitivePeerDependencies:
       - rollup
       - supports-color
 
-  vite-plugin-solid@2.10.2(solid-js@1.8.21)(vite@5.4.1(@types/node@22.4.1)(terser@5.31.6)):
+  vite-plugin-solid@2.10.2(solid-js@1.8.21)(vite@5.4.2(@types/node@20.16.1)(terser@5.31.6)):
     dependencies:
       '@babel/core': 7.24.9
       '@types/babel__core': 7.20.5
@@ -6664,36 +7022,53 @@ snapshots:
       merge-anything: 5.1.7
       solid-js: 1.8.21
       solid-refresh: 0.6.3(solid-js@1.8.21)
-      vite: 5.4.1(@types/node@22.4.1)(terser@5.31.6)
-      vitefu: 0.2.5(vite@5.4.1(@types/node@22.4.1)(terser@5.31.6))
+      vite: 5.4.2(@types/node@20.16.1)(terser@5.31.6)
+      vitefu: 0.2.5(vite@5.4.2(@types/node@20.16.1)(terser@5.31.6))
     transitivePeerDependencies:
       - supports-color
 
-  vite@5.4.0(@types/node@22.4.1)(terser@5.31.6):
+  vite-plugin-solid@2.10.2(solid-js@1.8.21)(vite@5.4.2(@types/node@22.4.2)(terser@5.31.6)):
     dependencies:
-      esbuild: 0.21.5
-      postcss: 8.4.41
-      rollup: 4.19.0
-    optionalDependencies:
-      '@types/node': 22.4.1
-      fsevents: 2.3.3
-      terser: 5.31.6
+      '@babel/core': 7.24.9
+      '@types/babel__core': 7.20.5
+      babel-preset-solid: 1.8.18(@babel/core@7.24.9)
+      merge-anything: 5.1.7
+      solid-js: 1.8.21
+      solid-refresh: 0.6.3(solid-js@1.8.21)
+      vite: 5.4.2(@types/node@22.4.2)(terser@5.31.6)
+      vitefu: 0.2.5(vite@5.4.2(@types/node@22.4.2)(terser@5.31.6))
+    transitivePeerDependencies:
+      - supports-color
 
-  vite@5.4.1(@types/node@22.4.1)(terser@5.31.6):
+  vite@5.4.2(@types/node@20.16.1)(terser@5.31.6):
     dependencies:
       esbuild: 0.21.5
       postcss: 8.4.41
       rollup: 4.20.0
     optionalDependencies:
-      '@types/node': 22.4.1
+      '@types/node': 20.16.1
       fsevents: 2.3.3
       terser: 5.31.6
 
-  vitefu@0.2.5(vite@5.4.1(@types/node@22.4.1)(terser@5.31.6)):
+  vite@5.4.2(@types/node@22.4.2)(terser@5.31.6):
+    dependencies:
+      esbuild: 0.21.5
+      postcss: 8.4.41
+      rollup: 4.20.0
     optionalDependencies:
-      vite: 5.4.1(@types/node@22.4.1)(terser@5.31.6)
+      '@types/node': 22.4.2
+      fsevents: 2.3.3
+      terser: 5.31.6
 
-  vitest@2.0.5(@types/node@22.4.1)(terser@5.31.6):
+  vitefu@0.2.5(vite@5.4.2(@types/node@20.16.1)(terser@5.31.6)):
+    optionalDependencies:
+      vite: 5.4.2(@types/node@20.16.1)(terser@5.31.6)
+
+  vitefu@0.2.5(vite@5.4.2(@types/node@22.4.2)(terser@5.31.6)):
+    optionalDependencies:
+      vite: 5.4.2(@types/node@22.4.2)(terser@5.31.6)
+
+  vitest@2.0.5(@types/node@20.16.1)(terser@5.31.6):
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@vitest/expect': 2.0.5
@@ -6711,11 +7086,11 @@ snapshots:
       tinybench: 2.8.0
       tinypool: 1.0.0
       tinyrainbow: 1.2.0
-      vite: 5.4.1(@types/node@22.4.1)(terser@5.31.6)
-      vite-node: 2.0.5(@types/node@22.4.1)(terser@5.31.6)
+      vite: 5.4.2(@types/node@20.16.1)(terser@5.31.6)
+      vite-node: 2.0.5(@types/node@20.16.1)(terser@5.31.6)
       why-is-node-running: 2.3.0
     optionalDependencies:
-      '@types/node': 22.4.1
+      '@types/node': 20.16.1
     transitivePeerDependencies:
       - less
       - lightningcss

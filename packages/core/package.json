@@ -44,9 +44,14 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@thi.ng/compose": "3.0.10",
-		"@thi.ng/transducers": "9.0.12",
-		"@thi.ng/transducers-async": "0.2.13",
+		"@thi.ng/api": "8.11.9",
+		"@thi.ng/compose": "3.0.12",
+		"@thi.ng/geom": "8.1.4",
+		"@thi.ng/math": "5.11.8",
+		"@thi.ng/matrices": "2.4.10",
+		"@thi.ng/transducers": "9.2.0",
+		"@thi.ng/transducers-async": "0.2.16",
+		"@thi.ng/vectors": "7.11.10",
 		"csstype": "3.1.3"
 	}
 }

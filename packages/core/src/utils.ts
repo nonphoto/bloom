@@ -23,3 +23,10 @@ export function catchMaybe<T extends any[], U>(
 		}
 	};
 }
+
+export function withValue<T, U extends unknown[], V>(
+	value: T,
+	fn: (value: T, ...args: U) => V,
+): (...args: U) => V {
+	return (...args) => fn(value, ...args);
+}

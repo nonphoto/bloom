@@ -1,18 +1,10 @@
-import { IndexedCollection } from "./common";
-import { Mat2d, ReadonlyMat2d } from "./mat2d";
-import { Rect } from "./rect";
-import { ReadonlyVec2 } from "./vec2";
-import { ReadonlyVec3 } from "./vec3";
+import { Mat } from "@thi.ng/matrices";
+import { Vec, Vec2, Vec3 } from "@thi.ng/vectors";
 
-function join(
-	collection: IndexedCollection,
-	length: number,
-	unit: string,
-	separator: string,
-): string {
+function join(v: Vec | Mat, unit: string, separator: string): string {
 	let result = "";
-	for (let i = 0; i < length; i++) {
-		result += String(collection[i]) + unit;
+	for (let i = 0; i < v.length; i++) {
+		result += String(v[i]) + unit;
 		if (i !== length - 1) {
 			result += separator;
 		}
@@ -20,12 +12,12 @@ function join(
 	return result;
 }
 
-export function styleTransformMat2d(transform: ReadonlyMat2d): string {
-	return `matrix(${join(transform, 6, "", ",")})`;
+export function styleTransformMat2d(transform: Mat): string {
+	return `matrix(${join(transform, "", ",")})`;
 }
 
-export function styleTranslate(translation: ReadonlyVec2): string {
-	return `translate(${join(translation, 2, "px", ",")})`;
+export function styleTranslate(translation: Vec2): string {
+	return `translate(${join(translation, "px", ",")})`;
 }
 
 export function styleTranslateX(x: number): string {
@@ -36,39 +28,18 @@ export function styleTranslateY(y: number): string {
 	return `translateY(${y}px)`;
 }
 
-export function styleTranslateScale(
-	translation: ReadonlyVec2,
-	scaling: ReadonlyVec2,
-): string {
-	return `translate(${join(translation, 2, "px", ",")}) scale(${join(scaling, 2, "", ",")})`;
+export function styleTranslateScale(translation: Vec2, scaling: Vec2): string {
+	return `translate(${join(translation, "px", ",")}) scale(${join(scaling, "", ",")})`;
 }
 
-export function styleTranslate3d(translation: ReadonlyVec3): string {
-	return `translate3d(${join(translation, 3, "px", ",")})`;
+export function styleTranslate3d(translation: Vec3): string {
+	return `translate3d(${join(translation, "px", ",")})`;
 }
 
-export function styleBorderRadiusSize(
-	radius: number,
-	size: ReadonlyVec2,
-	transform: ReadonlyMat2d,
-) {
-	const x = (radius / (size[0] * transform[0])) * 100;
-	const y = (radius / (size[1] * transform[3])) * 100;
+export function styleBorderRadius(radius: number, size: Vec2, transform: Mat) {
+	const x = (radius / (size[0] * (transform[0] ?? 1))) * 100;
+	const y = (radius / (size[1] * (transform[3] ?? 1))) * 100;
 	return `${x}% / ${y}%`;
-}
-
-export function styleBorderRadiusRect(
-	radius: number,
-	rect?: Rect,
-	transform?: Mat2d,
-) {
-	if (rect) {
-		const x = (radius / (rect.width * (transform?.[0] ?? 1))) * 100;
-		const y = (radius / (rect.height * (transform?.[3] ?? 1))) * 100;
-		return `${x}% / ${y}%`;
-	} else {
-		return `${radius}px`;
-	}
 }
 
 export function styleBoxShadow(
@@ -78,10 +49,12 @@ export function styleBoxShadow(
 	blurRadius: number,
 	spreadRadius: number,
 	color: string,
-	transform: Mat2d,
+	transform: Mat,
 ) {
-	const meanScale = (transform[0] + transform[3]) / 2;
-	return `${inset ? "inset " : ""}${offsetX / transform[0]}px ${
-		offsetY / transform[3]
+	const x = transform[0] ?? 1;
+	const y = transform[1] ?? 1;
+	const meanScale = (x + y) / 2;
+	return `${inset ? "inset " : ""}${offsetX / x}px ${
+		offsetY / y
 	}px ${blurRadius / meanScale}px ${spreadRadius / meanScale}px ${color}`;
 }

@@ -1,5 +1,5 @@
-import { Vec2, vec2Set } from "./vec2";
+import { setC2, Vec } from "@thi.ng/vectors";
 
-export function mousePositionFromEvent(out: Vec2, event: MouseEvent): Vec2 {
-	return vec2Set(out, event.clientX, event.clientY);
+export function mousePositionFromEvent(out: Vec, event: MouseEvent): Vec {
+	return setC2(out, event.clientX, event.clientY);
 }
