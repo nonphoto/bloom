@@ -1,61 +1,56 @@
-import {
-	Mat2d,
-	mat2dCopy,
-	mat2dCreate,
-	mat2dFromTranslation,
-	mat2dMultiply,
-	mat2dTranslate,
-	mat2dTranslateNegative,
-} from "./mat2d";
-import { Rect, rectCenter } from "./rect";
+import { centroid, Rect } from "@thi.ng/geom";
+import { identity23, Mat, mul23, set23, translation23 } from "@thi.ng/matrices";
+import { neg, sub2, Vec, vec2, Vec2 } from "@thi.ng/vectors";
 import { withValue } from "./utils";
-import { Vec2, vec2Create, vec2Sub } from "./vec2";
 
 export type Layout = {
-	offsetCenter: Vec2;
+	offsetCenter: Vec;
 	rect: Rect;
-	intermediateMatrix: () => Mat2d;
-	matrix: () => Mat2d;
-	transform: () => Mat2d | undefined;
+	intermediateMatrix: () => Mat;
+	matrix: () => Mat;
+	transform: () => Mat | undefined;
 	scroll: () => Vec2;
 };
 
 export function layoutCreate(
 	parent: Layout | null,
 	rect: Rect,
-	transform: () => Mat2d | undefined,
+	transform: () => Mat | undefined,
 	scroll: () => Vec2,
 ): Layout {
-	const offsetCenter = rectCenter(vec2Create(), rect);
-
-	const layoutDelta = parent
-		? vec2Sub(vec2Create(), offsetCenter, parent.offsetCenter)
-		: offsetCenter;
-
-	const offsetMatrix = withValue(mat2dCreate(), (offsetMatrix) => {
+	const offsetCenter = centroid(rect)!;
+	const layoutDelta =
+		parent && offsetCenter
+			? sub2(vec2(), offsetCenter, parent.offsetCenter)
+			: offsetCenter;
+	const offsetTranslation = translation23([], neg([], offsetCenter));
+	const layoutTranslation = translation23([], layoutDelta);
+	const scrollTranslation = identity23([]);
+	const offsetMatrix = withValue([], (offsetMatrix: Mat) => {
 		if (parent) {
-			return mat2dTranslate(
+			return mul23(
 				offsetMatrix,
 				parent.intermediateMatrix(),
-				layoutDelta,
+				layoutTranslation,
 			);
 		} else {
-			return mat2dFromTranslation(offsetMatrix, layoutDelta);
+			return set23(offsetMatrix, layoutTranslation);
 		}
 	});
-
-	const intermediateMatrix = withValue(mat2dCreate(), (intermediateMatrix) => {
-		mat2dCopy(intermediateMatrix, offsetMatrix());
+	const intermediateMatrix = withValue([], (intermediateMatrix: Mat) => {
 		const transformValue = transform();
 		if (transformValue) {
-			mat2dMultiply(intermediateMatrix, intermediateMatrix, transformValue);
+			mul23(intermediateMatrix, offsetMatrix(), transformValue);
+		} else {
+			set23(intermediateMatrix, offsetMatrix());
 		}
-		return mat2dTranslate(intermediateMatrix, intermediateMatrix, scroll());
+		translation23(scrollTranslation, scroll());
+		return mul23(null, intermediateMatrix, scroll());
 	});
 
-	const matrix = withValue(mat2dCreate(), (matrix) => {
-		mat2dTranslateNegative(matrix, matrix, offsetCenter);
-		return mat2dMultiply(matrix, matrix, offsetMatrix());
+	const matrix = withValue([], (matrix: Mat) => {
+		mul23(null, matrix, offsetTranslation);
+		return mul23(null, matrix, offsetMatrix());
 	});
 
 	return {
