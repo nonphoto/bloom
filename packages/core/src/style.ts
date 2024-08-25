@@ -5,7 +5,7 @@ function join(v: Vec | Mat, unit: string, separator: string): string {
 	let result = "";
 	for (let i = 0; i < v.length; i++) {
 		result += String(v[i]) + unit;
-		if (i !== length - 1) {
+		if (i < v.length - 1) {
 			result += separator;
 		}
 	}

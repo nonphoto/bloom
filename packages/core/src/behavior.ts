@@ -1,3 +1,9 @@
+import {
+	create as springCreate,
+	duration as springDuration,
+	SpringOptions,
+	position as springPosition,
+} from "@nonphoto/spring";
 import { partial } from "@thi.ng/compose";
 import {
 	comp,
@@ -13,12 +19,6 @@ import {
 } from "@thi.ng/transducers";
 import { Vec2, Vec3 } from "@thi.ng/vectors";
 import type * as CSS from "csstype";
-import {
-	springCreate,
-	springDuration,
-	SpringOptions,
-	springPosition,
-} from "./spring";
 
 const maxKeyframes = 120;
 const frameDuration = 1_000 / 60;
@@ -100,9 +100,9 @@ export function duration(ms: number) {
 
 export function spring(options: Partial<SpringOptions>) {
 	const s = springCreate(options);
-	const duration = springDuration(s, 1);
+	const ms = springDuration(s);
 	return comp(
-		takeWhile((t: number) => t < duration),
+		takeWhile((t: number) => t < ms),
 		map((t: number) => springPosition(s, t)),
 	);
 }

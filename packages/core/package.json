@@ -44,6 +44,7 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
+		"@nonphoto/spring": "1.1.0",
 		"@thi.ng/api": "8.11.9",
 		"@thi.ng/compose": "3.0.12",
 		"@thi.ng/geom": "8.1.4",

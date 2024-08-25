@@ -26,6 +26,7 @@ export function layoutCreate(
 	const offsetTranslation = translation23([], neg([], offsetCenter));
 	const layoutTranslation = translation23([], layoutDelta);
 	const scrollTranslation = identity23([]);
+
 	const offsetMatrix = withValue([], (offsetMatrix: Mat) => {
 		if (parent) {
 			return mul23(
@@ -37,6 +38,7 @@ export function layoutCreate(
 			return set23(offsetMatrix, layoutTranslation);
 		}
 	});
+
 	const intermediateMatrix = withValue([], (intermediateMatrix: Mat) => {
 		const transformValue = transform();
 		if (transformValue) {
