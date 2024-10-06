@@ -1,5 +1,5 @@
 import { Mat } from "@thi.ng/matrices";
-import { Vec, Vec2, Vec3 } from "@thi.ng/vectors";
+import { Vec, Vec2Like, Vec3Like } from "@thi.ng/vectors";
 
 function join(v: Vec | Mat, unit: string, separator: string): string {
 	let result = "";
@@ -16,7 +16,7 @@ export function styleTransformMat2d(transform: Mat): string {
 	return `matrix(${join(transform, "", ",")})`;
 }
 
-export function styleTranslate(translation: Vec2): string {
+export function styleTranslate(translation: Vec2Like): string {
 	return `translate(${join(translation, "px", ",")})`;
 }
 
@@ -28,17 +28,20 @@ export function styleTranslateY(y: number): string {
 	return `translateY(${y}px)`;
 }
 
-export function styleTranslateScale(translation: Vec2, scaling: Vec2): string {
+export function styleTranslateScale(
+	translation: Vec2Like,
+	scaling: Vec2Like,
+): string {
 	return `translate(${join(translation, "px", ",")}) scale(${join(scaling, "", ",")})`;
 }
 
-export function styleTranslate3d(translation: Vec3): string {
+export function styleTranslate3d(translation: Vec3Like): string {
 	return `translate3d(${join(translation, "px", ",")})`;
 }
 
-export function styleBorderRadius(radius: number, size: Vec2, transform: Mat) {
-	const x = (radius / (size[0] * (transform[0] ?? 1))) * 100;
-	const y = (radius / (size[1] * (transform[3] ?? 1))) * 100;
+export function styleBorderRadius(radius: number, size: Vec, transform: Mat) {
+	const x = (radius / ((size[0] ?? 0) * (transform[0] ?? 1))) * 100;
+	const y = (radius / ((size[1] ?? 0) * (transform[3] ?? 1))) * 100;
 	return `${x}% / ${y}%`;
 }
 

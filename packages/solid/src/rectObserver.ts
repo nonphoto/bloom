@@ -1,11 +1,11 @@
 import {
-	Rect,
 	RectObserver,
 	RectObserverEntry,
 } from "@bloom-motion/core/src/index.ts";
 import { ReactiveMap } from "@solid-primitives/map";
 import { createHydratableSingletonRoot } from "@solid-primitives/rootless";
 import { MaybeAccessor, access } from "@solid-primitives/utils";
+import { Rect } from "@thi.ng/geom";
 import { createEffect, onCleanup } from "solid-js";
 import { isServer } from "solid-js/web";
 
@@ -69,7 +69,7 @@ export const useRectObserver = createHydratableSingletonRoot(() => {
 
 			return () => {
 				const elementValue = access(element);
-				return elementValue ? map.get(elementValue) ?? undefined : undefined;
+				return elementValue ? (map.get(elementValue) ?? undefined) : undefined;
 			};
 		},
 	};

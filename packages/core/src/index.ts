@@ -1,7 +1,6 @@
 export * from "./batcher";
 export * from "./behavior";
 export * from "./dom";
-export * from "./layout";
 export * from "./matcher";
 export * from "./mouse";
 export * from "./positioningObserver";

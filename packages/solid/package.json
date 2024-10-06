@@ -45,11 +45,16 @@
 	},
 	"dependencies": {
 		"@bloom-motion/core": "workspace:*",
-		"@solid-primitives/map": "^0.4.11",
-		"@solid-primitives/mouse": "2.0.19",
+		"@nonphoto/spring": "3.0.1",
+		"@nonphoto/spring-vector": "3.0.1",
+		"@solid-primitives/map": "^0.4.13",
+		"@solid-primitives/mouse": "2.0.20",
 		"@solid-primitives/raf": "2.2.0",
 		"@solid-primitives/rootless": "1.4.5",
-		"@solid-primitives/utils": "6.2.3"
+		"@solid-primitives/utils": "6.2.3",
+		"@thi.ng/geom": "8.1.11",
+		"@thi.ng/matrices": "2.4.15",
+		"@thi.ng/vectors": "7.12.3"
 	},
 	"peerDependencies": {
 		"solid-js": "^1.8.18"

@@ -1,6 +1,7 @@
-import { Matcher, Rect } from "@bloom-motion/core/src/index.ts";
+import { Matcher } from "@bloom-motion/core/src/index.ts";
 import { createSubRoot } from "@solid-primitives/rootless";
 import { Directive, MaybeAccessor, access } from "@solid-primitives/utils";
+import { Rect } from "@thi.ng/geom";
 import {
 	Accessor,
 	createComputed,
@@ -31,8 +32,8 @@ export interface ReactiveAnimation {
 }
 
 export function setInert(element: HTMLElement, rect: Rect) {
-	element.style.width = rect?.width + "px";
-	element.style.height = rect?.height + "px";
+	element.style.width = rect.size[0] + "px";
+	element.style.height = rect.size[1] + "px";
 	element.style.position = "absolute";
 	element.inert = true;
 }

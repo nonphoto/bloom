@@ -1,18 +1,20 @@
+import { Rect } from "@thi.ng/geom";
 import { Batcher } from "./batcher";
 import { walkAncestors, walkDescendants } from "./dom";
+import { rectFromDOMRect } from "./rect";
 
-function getRect(element: HTMLElement): DOMRect {
+function getRect(element: HTMLElement): Rect {
 	const r = element.getBoundingClientRect();
 	walkAncestors(element, (ancestor) => {
 		r.x += ancestor.scrollLeft;
 		r.y += ancestor.scrollTop;
 	});
-	return r;
+	return rectFromDOMRect(r);
 }
 
 export type RectObserverEntry = {
 	target: HTMLElement;
-	rect: DOMRect;
+	rect: Rect;
 };
 
 export class RectObserver {
@@ -66,7 +68,7 @@ export class RectObserver {
 	}
 
 	async getRect(element: HTMLElement) {
-		let rect: DOMRect;
+		let rect: Rect;
 		return this.#batcher
 			.task(() => {
 				rect = getRect(element);

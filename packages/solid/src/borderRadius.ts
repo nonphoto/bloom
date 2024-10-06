@@ -1,9 +1,7 @@
 import {
 	catchMaybe,
-	mat2dCreate,
-	mat2dMultiply,
 	maybe,
-	styleBorderRadiusRect,
+	styleBorderRadius,
 } from "@bloom-motion/core/src/index.ts";
 import {
 	Directive,
@@ -12,26 +10,24 @@ import {
 	withAccess,
 } from "@solid-primitives/utils";
 import { createEffect } from "solid-js";
-import { useMatrix, useRect, useTransform } from "./layout.js";
+import { useRectObserver } from "./rectObserver";
+import { useTransforms } from "./transform";
 
 export function createSetBorderRadius(
 	element: MaybeAccessor<HTMLElement | undefined>,
 	value: MaybeAccessor<number | undefined>,
 ) {
-	const rect = useRect(element);
-	const matrix = useMatrix(element);
-	const transform = useTransform(element);
-	const totalTransform = mat2dCreate();
+	const rect = useRectObserver().use(element);
+	const transforms = useTransforms();
 
 	createEffect(() => {
 		withAccess(element, (element) => {
 			element.style.borderRadius =
 				catchMaybe(() => {
-					mat2dMultiply(totalTransform, maybe(matrix()), maybe(transform()));
-					return styleBorderRadiusRect(
+					return styleBorderRadius(
 						maybe(access(value)),
-						maybe(rect()),
-						totalTransform,
+						maybe(rect()).size,
+						maybe(transforms.get(element)),
 					);
 				})() ?? "";
 		});
