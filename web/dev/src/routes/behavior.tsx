@@ -1,12 +1,14 @@
-// import { multiplex } from "@bloom-motion/core/src/behavior.js";
 import {
 	animation,
 	keyframes,
 	run,
-	spring,
-	vector,
+	tuples,
 } from "@bloom-motion/core/src/behavior.js";
-import { styleTranslate } from "@bloom-motion/core/src/style.js";
+import {
+	springPosition,
+	styleTranslate,
+} from "@bloom-motion/core/src/index.js";
+import { fromValues, halflifeToDamping } from "@nonphoto/spring";
 import { comp, map } from "@thi.ng/transducers";
 import { createEffect } from "solid-js";
 
@@ -16,9 +18,9 @@ export default function () {
 	createEffect(() => {
 		run(
 			comp(
-				vector(
-					spring({ end: 100, halflife: 100 }),
-					spring({ end: 200, halflife: 200 }),
+				tuples(
+					springPosition(fromValues(0, 0, 100, halflifeToDamping(100))),
+					springPosition(fromValues(0, 0, 200, halflifeToDamping(200))),
 				),
 				map(styleTranslate),
 				keyframes("transform"),

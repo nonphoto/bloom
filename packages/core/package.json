@@ -44,15 +44,16 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@nonphoto/spring": "1.1.0",
-		"@thi.ng/api": "8.11.9",
-		"@thi.ng/compose": "3.0.12",
-		"@thi.ng/geom": "8.1.4",
-		"@thi.ng/math": "5.11.8",
-		"@thi.ng/matrices": "2.4.10",
-		"@thi.ng/transducers": "9.2.0",
-		"@thi.ng/transducers-async": "0.2.16",
-		"@thi.ng/vectors": "7.11.10",
+		"@nonphoto/spring": "3.0.1",
+		"@nonphoto/spring-vector": "3.1.1",
+		"@thi.ng/api": "8.11.11",
+		"@thi.ng/compose": "3.0.14",
+		"@thi.ng/geom": "8.1.11",
+		"@thi.ng/math": "5.11.11",
+		"@thi.ng/matrices": "2.4.15",
+		"@thi.ng/transducers": "9.2.5",
+		"@thi.ng/transducers-async": "0.2.21",
+		"@thi.ng/vectors": "7.12.3",
 		"csstype": "3.1.3"
 	}
 }

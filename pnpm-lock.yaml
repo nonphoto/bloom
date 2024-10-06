@@ -48,32 +48,35 @@ importers:
   packages/core:
     dependencies:
       '@nonphoto/spring':
-        specifier: 1.1.0
-        version: 1.1.0
+        specifier: 3.0.1
+        version: 3.0.1
+      '@nonphoto/spring-vector':
+        specifier: 3.1.1
+        version: 3.1.1
       '@thi.ng/api':
-        specifier: 8.11.9
-        version: 8.11.9
+        specifier: 8.11.11
+        version: 8.11.11
       '@thi.ng/compose':
-        specifier: 3.0.12
-        version: 3.0.12
+        specifier: 3.0.14
+        version: 3.0.14
       '@thi.ng/geom':
-        specifier: 8.1.4
-        version: 8.1.4
+        specifier: 8.1.11
+        version: 8.1.11
       '@thi.ng/math':
-        specifier: 5.11.8
-        version: 5.11.8
+        specifier: 5.11.11
+        version: 5.11.11
       '@thi.ng/matrices':
-        specifier: 2.4.10
-        version: 2.4.10
+        specifier: 2.4.15
+        version: 2.4.15
       '@thi.ng/transducers':
-        specifier: 9.2.0
-        version: 9.2.0
+        specifier: 9.2.5
+        version: 9.2.5
       '@thi.ng/transducers-async':
-        specifier: 0.2.16
-        version: 0.2.16
+        specifier: 0.2.21
+        version: 0.2.21
       '@thi.ng/vectors':
-        specifier: 7.11.10
-        version: 7.11.10
+        specifier: 7.12.3
+        version: 7.12.3
       csstype:
         specifier: 3.1.3
         version: 3.1.3
@@ -125,6 +128,12 @@ importers:
       '@bloom-motion/solid':
         specifier: workspace:*
         version: link:../../packages/solid
+      '@nonphoto/spring':
+        specifier: 3.0.1
+        version: 3.0.1
+      '@nonphoto/spring-vector':
+        specifier: 3.1.0
+        version: 3.1.0
       '@solid-primitives/event-listener':
         specifier: 2.3.3
         version: 2.3.3(solid-js@1.9.1)
@@ -877,8 +886,12 @@ packages:
     resolution: {integrity: sha512-psIHqQbMcDenIJRk5jjFKBSgFA9OkxlnjO+hYr/CnlII5CiR8gnO3ciybmte+0kmEh3hgsORTpVzVb+ajLBW2Q==}
     engines: {node: '>=20', pnpm: '>=9'}
 
-  '@nonphoto/spring@1.1.0':
-    resolution: {integrity: sha512-a6YES6X0g/SoL6eGZxjrlqvVnQvYVu+CbY3G4XxWwUG5iPqyHrVv5aRbmTSQtrtye7jZ92bzrEsCPYfByDl1DA==}
+  '@nonphoto/spring-vector@3.1.0':
+    resolution: {integrity: sha512-sSOtUZ9SsMgMKkutwNw0pixG8/EQOaQHfTgpUsfp8a8DWWJIEZptarJO2l0k6N/sIw2hmcWOYJXdibJ2u/IeKQ==}
+    engines: {node: '>=20', pnpm: '>=9'}
+
+  '@nonphoto/spring-vector@3.1.1':
+    resolution: {integrity: sha512-3AYU4C+xxo1RUeKZK5utzIBKddhNu5ZSXYai94C6DvQlAzWYx+IhNisWoF0vOw+XDgC5n6C9Fh26NzumO/iK/w==}
     engines: {node: '>=20', pnpm: '>=9'}
 
   '@nonphoto/spring@3.0.1':
@@ -1283,10 +1296,6 @@ packages:
     resolution: {integrity: sha512-/GKDIgyQXA7JKxwgJ6W5xgQVHIWXmoPnWHsNqfg7aIyYNpfMYtjLjao2+nXmZhwjizullMahJPH7Xrrm6o/vyg==}
     engines: {node: '>=18'}
 
-  '@thi.ng/api@8.11.9':
-    resolution: {integrity: sha512-GV2HZJ+QEdUScK5f47K/n75UqN16qdBxu4sPwv8vWAOlBMT4Wak4AWAtb1Aks/WkXVuJRSVRaIjmevZxfFAStw==}
-    engines: {node: '>=18'}
-
   '@thi.ng/arrays@2.10.2':
     resolution: {integrity: sha512-Es0K9AKv2TlroKHZgC1lZxgNuYZ93diIpEwuGqAy6pTpIzPsb9a4Y30Wdxq/+srl9paeBvI57H2hvi3W4NU27A==}
     engines: {node: '>=18'}
@@ -1317,10 +1326,6 @@ packages:
 
   '@thi.ng/compose@3.0.10':
     resolution: {integrity: sha512-H6vexrXvo3U0KTzDWBcRs9ozGDwzL9mqah+9VVIZLImtwLABqmyA6N0JVOcNJ9tKMlC1fenmS2vqdbqfmqLStA==}
-    engines: {node: '>=18'}
-
-  '@thi.ng/compose@3.0.12':
-    resolution: {integrity: sha512-f/bSa35/4l8m5Kz8opdIXjyjCtQV4nszXNyXSX1MiXX/6/aAJeKLUff/OwMSBOyFeXlHTwjMDEJ+HP07BScOOA==}
     engines: {node: '>=18'}
 
   '@thi.ng/compose@3.0.14':
@@ -1403,10 +1408,6 @@ packages:
     resolution: {integrity: sha512-VyZgxIDkE+XsuiRBi7VwGqng1ijQ88sZJUH7gEp7PZf6ean9mxaWdp9+CNOk8A5YJKgJrJNFHwWLLHU7I30cdA==}
     engines: {node: '>=18'}
 
-  '@thi.ng/geom@8.1.4':
-    resolution: {integrity: sha512-8Uikn+/2Q/cOrd2XhLHy79P97xWPaeRMsxRIarjdpm4iILIsI5sHRkOg+M+7a7GhdH0sV9Qor8YLw/OjbdhOww==}
-    engines: {node: '>=18'}
-
   '@thi.ng/heaps@2.1.83':
     resolution: {integrity: sha512-HpvCNHC0iT5PxanjCSW0H94t+F6bv/JURIDdhQvLpmmmDISE8neEESHDYfVIUYFJexVWjspZ7MivxFGxz/RRdA==}
     engines: {node: '>=18'}
@@ -1431,16 +1432,8 @@ packages:
     resolution: {integrity: sha512-0XBmBf80+9JlLGqFR6Ci2bpVoyE5lhl0MwZv4PAgClBXjYz4SPr7fkScOia9TQ6lS56gRggxJiXDQA1kiso59g==}
     engines: {node: '>=18'}
 
-  '@thi.ng/math@5.11.8':
-    resolution: {integrity: sha512-lmIHdFlz57m08nd+vPTPcOcz5FgBhNVvca706t100NTUY8wATlpnKpzaTeogG+CbFsxKUYKoqNIX6W9LCg6BZA==}
-    engines: {node: '>=18'}
-
   '@thi.ng/math@5.11.9':
     resolution: {integrity: sha512-yag1n1XUUgyqtF0Pg1ncsJRepk6annvrCsGa1+a+6/63qFLvSSv/i/PJ/Kq/kAmhcvMZnaCinwNd80TY+fQk7A==}
-    engines: {node: '>=18'}
-
-  '@thi.ng/matrices@2.4.10':
-    resolution: {integrity: sha512-n7l4vd+y73ScmhBC7QjL8jlSoQvjzxOl/4hAPJLsmyR2K6uCKmDuZZsLBP3p7DtqZuS9kHCNG/XwKbJgEGlYLA==}
     engines: {node: '>=18'}
 
   '@thi.ng/matrices@2.4.15':
@@ -1475,8 +1468,8 @@ packages:
     resolution: {integrity: sha512-y7Sauz16rBGMWNxvP4iVWivk+v2JPVU7mxbyEgH7olhMljHG7UaFh2XlgdC1mqFZ3TzEAHybjfkRrLXBH4DOWw==}
     engines: {node: '>=18'}
 
-  '@thi.ng/transducers-async@0.2.16':
-    resolution: {integrity: sha512-E+P+lXyM2ePfht0Mx7Q2sjuOTt/dY1epl+FAuOuL/1so3LTvOvIdt0pM0uZPEfqKFPis7bZKOI0aYtHaB3Hlpg==}
+  '@thi.ng/transducers-async@0.2.21':
+    resolution: {integrity: sha512-5vuCUN2+aiaYoMaJzi/MCCvCddoT3C1DZBxgharJWIEP2DKtkDo8VLWCDOgrHYztS4xgCZcR9kbG8F6rtgdrxg==}
     engines: {node: '>=18'}
 
   '@thi.ng/transducers@9.2.0':
@@ -1485,10 +1478,6 @@ packages:
 
   '@thi.ng/transducers@9.2.5':
     resolution: {integrity: sha512-80odRuDyEL1XOIKT9iCl1a/tcO+Yu/xEIplhLiFrOpnhQkxluCwWxT7kTh049qxQFFf3gi/GrV2ynAcZB9W/FA==}
-    engines: {node: '>=18'}
-
-  '@thi.ng/vectors@7.11.10':
-    resolution: {integrity: sha512-a72cojE892uoGk/onSJhxXMU4PEQ8EiKNWci9LgFu5K40/kELoZkY8h1+mzv0HaguOkOP1gXNmGQNzAeYtc61g==}
     engines: {node: '>=18'}
 
   '@thi.ng/vectors@7.11.6':
@@ -4193,7 +4182,15 @@ snapshots:
       '@nonphoto/spring': 3.0.1
       '@thi.ng/vectors': 7.12.0
 
-  '@nonphoto/spring@1.1.0': {}
+  '@nonphoto/spring-vector@3.1.0':
+    dependencies:
+      '@nonphoto/spring': 3.0.1
+      '@thi.ng/vectors': 7.12.0
+
+  '@nonphoto/spring-vector@3.1.1':
+    dependencies:
+      '@nonphoto/spring': 3.0.1
+      '@thi.ng/vectors': 7.12.0
 
   '@nonphoto/spring@3.0.1':
     dependencies:
@@ -4529,8 +4526,6 @@ snapshots:
 
   '@thi.ng/api@8.11.11': {}
 
-  '@thi.ng/api@8.11.9': {}
-
   '@thi.ng/arrays@2.10.2':
     dependencies:
       '@thi.ng/api': 8.11.11
@@ -4582,12 +4577,7 @@ snapshots:
 
   '@thi.ng/compose@3.0.10':
     dependencies:
-      '@thi.ng/api': 8.11.9
-      '@thi.ng/errors': 2.5.17
-
-  '@thi.ng/compose@3.0.12':
-    dependencies:
-      '@thi.ng/api': 8.11.9
+      '@thi.ng/api': 8.11.11
       '@thi.ng/errors': 2.5.17
 
   '@thi.ng/compose@3.0.14':
@@ -4750,36 +4740,6 @@ snapshots:
       '@thi.ng/transducers': 9.2.5
       '@thi.ng/vectors': 7.12.3
 
-  '@thi.ng/geom@8.1.4':
-    dependencies:
-      '@thi.ng/adjacency': 3.0.10
-      '@thi.ng/api': 8.11.9
-      '@thi.ng/arrays': 2.10.2
-      '@thi.ng/checks': 3.6.13
-      '@thi.ng/defmulti': 3.0.49
-      '@thi.ng/equiv': 2.1.67
-      '@thi.ng/errors': 2.5.17
-      '@thi.ng/geom-arc': 2.1.148
-      '@thi.ng/geom-clip-line': 2.3.105
-      '@thi.ng/geom-clip-poly': 2.1.147
-      '@thi.ng/geom-closest-point': 2.1.143
-      '@thi.ng/geom-hull': 2.1.143
-      '@thi.ng/geom-isec': 4.0.15
-      '@thi.ng/geom-poly-utils': 3.0.15
-      '@thi.ng/geom-resample': 3.0.15
-      '@thi.ng/geom-splines': 2.3.15
-      '@thi.ng/geom-subdiv-curve': 3.0.15
-      '@thi.ng/geom-tessellate': 3.0.15
-      '@thi.ng/hiccup': 5.2.14
-      '@thi.ng/hiccup-svg': 5.4.2
-      '@thi.ng/math': 5.11.8
-      '@thi.ng/matrices': 2.4.15
-      '@thi.ng/object-utils': 1.1.4
-      '@thi.ng/random': 4.1.0
-      '@thi.ng/strings': 3.8.6
-      '@thi.ng/transducers': 9.2.0
-      '@thi.ng/vectors': 7.12.3
-
   '@thi.ng/heaps@2.1.83':
     dependencies:
       '@thi.ng/api': 8.11.11
@@ -4808,20 +4768,9 @@ snapshots:
     dependencies:
       '@thi.ng/api': 8.11.11
 
-  '@thi.ng/math@5.11.8':
-    dependencies:
-      '@thi.ng/api': 8.11.9
-
   '@thi.ng/math@5.11.9':
     dependencies:
-      '@thi.ng/api': 8.11.9
-
-  '@thi.ng/matrices@2.4.10':
-    dependencies:
-      '@thi.ng/api': 8.11.9
-      '@thi.ng/checks': 3.6.13
-      '@thi.ng/math': 5.11.8
-      '@thi.ng/vectors': 7.12.3
+      '@thi.ng/api': 8.11.11
 
   '@thi.ng/matrices@2.4.15':
     dependencies:
@@ -4866,24 +4815,24 @@ snapshots:
       '@thi.ng/hex': 2.3.55
       '@thi.ng/memoize': 3.3.13
 
-  '@thi.ng/transducers-async@0.2.16':
+  '@thi.ng/transducers-async@0.2.21':
     dependencies:
-      '@thi.ng/api': 8.11.9
+      '@thi.ng/api': 8.11.11
       '@thi.ng/buffers': 0.1.14
       '@thi.ng/checks': 3.6.13
-      '@thi.ng/compose': 3.0.12
+      '@thi.ng/compose': 3.0.14
       '@thi.ng/errors': 2.5.17
-      '@thi.ng/transducers': 9.2.0
+      '@thi.ng/transducers': 9.2.5
 
   '@thi.ng/transducers@9.2.0':
     dependencies:
-      '@thi.ng/api': 8.11.9
+      '@thi.ng/api': 8.11.11
       '@thi.ng/arrays': 2.10.2
       '@thi.ng/checks': 3.6.13
       '@thi.ng/compare': 2.4.3
-      '@thi.ng/compose': 3.0.12
+      '@thi.ng/compose': 3.0.14
       '@thi.ng/errors': 2.5.17
-      '@thi.ng/math': 5.11.8
+      '@thi.ng/math': 5.11.11
       '@thi.ng/random': 4.1.0
 
   '@thi.ng/transducers@9.2.5':
@@ -4897,35 +4846,22 @@ snapshots:
       '@thi.ng/math': 5.11.11
       '@thi.ng/random': 4.1.0
 
-  '@thi.ng/vectors@7.11.10':
-    dependencies:
-      '@thi.ng/api': 8.11.9
-      '@thi.ng/binary': 3.4.34
-      '@thi.ng/checks': 3.6.13
-      '@thi.ng/equiv': 2.1.67
-      '@thi.ng/errors': 2.5.17
-      '@thi.ng/math': 5.11.8
-      '@thi.ng/memoize': 3.3.13
-      '@thi.ng/random': 4.1.0
-      '@thi.ng/strings': 3.8.6
-      '@thi.ng/transducers': 9.2.0
-
   '@thi.ng/vectors@7.11.6':
     dependencies:
-      '@thi.ng/api': 8.11.9
+      '@thi.ng/api': 8.11.11
       '@thi.ng/binary': 3.4.34
       '@thi.ng/checks': 3.6.13
       '@thi.ng/equiv': 2.1.67
       '@thi.ng/errors': 2.5.17
-      '@thi.ng/math': 5.11.8
+      '@thi.ng/math': 5.11.11
       '@thi.ng/memoize': 3.3.13
       '@thi.ng/random': 4.1.0
       '@thi.ng/strings': 3.8.6
-      '@thi.ng/transducers': 9.2.0
+      '@thi.ng/transducers': 9.2.5
 
   '@thi.ng/vectors@7.12.0':
     dependencies:
-      '@thi.ng/api': 8.11.9
+      '@thi.ng/api': 8.11.11
       '@thi.ng/binary': 3.4.34
       '@thi.ng/checks': 3.6.13
       '@thi.ng/equiv': 2.1.67

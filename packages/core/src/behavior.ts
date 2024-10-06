@@ -1,8 +1,14 @@
 import {
+	defaultEpsilon,
 	Spring,
 	duration as springDuration,
-	position as springPosition,
+	positionAt as springPositionAt,
 } from "@nonphoto/spring";
+import {
+	duration2 as springDuration2,
+	positionAt2 as springPositionAt2,
+	VectorSpring,
+} from "@nonphoto/spring-vector";
 import { partial } from "@thi.ng/compose";
 import {
 	comp,
@@ -17,7 +23,7 @@ import {
 	Transducer,
 	TxLike,
 } from "@thi.ng/transducers";
-import { Vec2Like, Vec3Like } from "@thi.ng/vectors";
+import { Vec, Vec2Like, Vec3Like } from "@thi.ng/vectors";
 import { Properties } from "csstype";
 
 const maxKeyframes = 120;
@@ -126,16 +132,16 @@ export async function run(
 	}
 }
 
-export function vector(
+export function tuples(
 	a: TxLike<number, number>,
 	b: TxLike<number, number>,
 ): Transducer<number, Vec2Like>;
-export function vector(
+export function tuples(
 	a: TxLike<number, number>,
 	b: TxLike<number, number>,
 	c: TxLike<number, number>,
 ): Transducer<number, Vec3Like>;
-export function vector(...args: any[]): any {
+export function tuples(...args: any[]): any {
 	return comp(
 		multiplex(...(args as [TxLike<number, number>])),
 		takeWhile((v) => v.some((x) => x != null)),
@@ -143,21 +149,30 @@ export function vector(...args: any[]): any {
 	);
 }
 
-export function delay(ms: number) {
-	return map((t: number) => t - ms);
+export function delay(ms: number): Transducer<number, number> {
+	return map((t) => t - ms);
 }
 
-export function duration(ms: number) {
-	return takeWhile((t: number) => t < ms);
+export function duration(ms: number): Transducer<number, number> {
+	return takeWhile((t) => t < ms);
 }
 
-export function springB(s: Spring): Behavior<number> {
-	const ms = springDuration(s);
-	return [
-		comp(
-			takeWhile((t: number) => t < ms),
-			map((t: number) => springPosition(s, t)),
-		),
-		document.timeline,
-	];
+export function springPosition(
+	s: Spring,
+	epsilon?: number,
+): Transducer<number, number> {
+	return comp(
+		duration(springDuration(...s, epsilon)),
+		map((t) => springPositionAt(...s, t)),
+	);
+}
+
+export function springPosition2(
+	s: VectorSpring,
+	epsilon?: number,
+): Transducer<number, Vec> {
+	return comp(
+		duration(Math.max(...springDuration2([], ...s, epsilon ?? defaultEpsilon))),
+		map((t) => springPositionAt2([], ...s, t)),
+	);
 }

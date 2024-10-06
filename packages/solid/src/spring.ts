@@ -1,6 +1,8 @@
+import { Behavior } from "@bloom-motion/core/src/behavior.js";
 import { fromValues, positionAt, setValues, Spring } from "@nonphoto/spring";
 import { velocityAt } from "@nonphoto/spring/src/spring.js";
 import { access, MaybeAccessor } from "@solid-primitives/utils";
+import { Vec } from "@thi.ng/vectors";
 import { Accessor, createMemo } from "solid-js";
 import { Clock } from "./time";
 
@@ -30,5 +32,14 @@ export function createSpring(
 					access(damping),
 					access(criticality),
 				);
+	});
+}
+
+export function createSpringPosition(
+	s: MaybeAccessor<Spring>,
+	epsilon?: number,
+): Accessor<Behavior<Vec>> {
+	return createMemo(() => {
+		const
 	});
 }
