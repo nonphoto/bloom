@@ -1,42 +1,54 @@
 import { Mat } from "@thi.ng/matrices";
-import { Vec, Vec2Like, Vec3Like } from "@thi.ng/vectors";
+import { Vec } from "@thi.ng/vectors";
 
-function join(v: Vec | Mat, unit: string, separator: string): string {
+function join(
+	v: Vec | Mat,
+	length: number,
+	unit: string,
+	separator: string,
+): string {
 	let result = "";
-	for (let i = 0; i < v.length; i++) {
-		result += String(v[i]) + unit;
-		if (i < v.length - 1) {
+	for (let i = 0; i < length; i++) {
+		result += String(v[i] ?? 0) + unit;
+		if (i < length - 1) {
 			result += separator;
 		}
 	}
 	return result;
 }
 
-export function styleTransformMat2d(transform: Mat): string {
-	return `matrix(${join(transform, "", ",")})`;
+export function styleTransformMat2d(transform: Mat): string;
+export function styleTransformMat2d(transform?: Mat): string | undefined;
+export function styleTransformMat2d(transform?: Mat): string | undefined {
+	return transform ? `matrix(${join(transform, 6, "", ",")})` : undefined;
 }
 
-export function styleTranslate(translation: Vec2Like): string {
-	return `translate(${join(translation, "px", ",")})`;
+export function styleTranslate(translation: Vec): string;
+export function styleTranslate(translation?: Vec): string | undefined;
+export function styleTranslate(translation?: Vec): string | undefined {
+	return translation
+		? `translate(${join(translation, 2, "px", ",")})`
+		: undefined;
 }
 
-export function styleTranslateX(x: number): string {
-	return `translateX(${x}px)`;
+export function styleTranslateX(x: number): string;
+export function styleTranslateX(x?: number): string | undefined;
+export function styleTranslateX(x?: number): string | undefined {
+	return x != null ? `translateX(${x}px)` : undefined;
 }
 
-export function styleTranslateY(y: number): string {
-	return `translateY(${y}px)`;
+export function styleTranslateY(y: number): string;
+export function styleTranslateY(y?: number): string | undefined;
+export function styleTranslateY(y?: number): string | undefined {
+	return y != null ? `translateY(${y}px)` : undefined;
 }
 
-export function styleTranslateScale(
-	translation: Vec2Like,
-	scaling: Vec2Like,
-): string {
-	return `translate(${join(translation, "px", ",")}) scale(${join(scaling, "", ",")})`;
+export function styleTranslateScale(translation: Vec, scaling: Vec): string {
+	return `translate(${join(translation, 2, "px", ",")}) scale(${join(scaling, 2, "", ",")})`;
 }
 
-export function styleTranslate3d(translation: Vec3Like): string {
-	return `translate3d(${join(translation, "px", ",")})`;
+export function styleTranslate3d(translation: Vec): string {
+	return `translate3d(${join(translation, 3, "px", ",")})`;
 }
 
 export function styleBorderRadius(radius: number, size: Vec, transform: Mat) {

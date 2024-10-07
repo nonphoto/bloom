@@ -11,7 +11,7 @@
 		"@bloom-motion/core": "workspace:*",
 		"@bloom-motion/solid": "workspace:*",
 		"@nonphoto/spring": "3.0.1",
-		"@nonphoto/spring-vector": "3.1.0",
+		"@nonphoto/spring-vector": "3.1.1",
 		"@solid-primitives/event-listener": "2.3.3",
 		"@solid-primitives/resize-observer": "2.0.26",
 		"@solidjs/meta": "^0.29.4",

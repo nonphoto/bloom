@@ -1,63 +1,57 @@
 import {
-	springCreate,
-	springDuration,
-	springPosition,
-} from "@bloom-motion/core/src/index.ts";
-import { createWindowSize } from "@solid-primitives/resize-observer";
-import { createEffect } from "solid-js";
+	animation,
+	keyframes,
+	run,
+	safeDocument,
+	styleTranslate,
+} from "@bloom-motion/core/src/index.js";
+import {
+	createMousePosition,
+	createSpring2,
+	createSpringPosition2,
+} from "@bloom-motion/solid/src/index.js";
+import { createEventListener } from "@solid-primitives/event-listener";
+import { comp, map } from "@thi.ng/transducers";
+import { set2, Vec } from "@thi.ng/vectors";
+import { createEffect, createSignal } from "solid-js";
 
-export default function () {
-	const size = createWindowSize();
-	const canvas = (
-		<canvas
-			style={{
-				width: "100svw",
-				height: "100svh",
-			}}
-		/>
-	) as HTMLCanvasElement;
-
-	const w = () => size.width * 2;
-	const h = () => size.height * 2;
-
-	createEffect(() => {
-		canvas.width = w();
-		canvas.height = h();
-
-		const step = 2;
-
-		const spring = springCreate({
-			start: h(),
-			end: h() / 3,
-			halflife: w() * 0.1,
-			dampingRatio: 1,
-		});
-
-		const context = canvas.getContext("2d")!;
-		context.lineWidth = 2;
-
-		context.beginPath();
-		context.moveTo(0, spring.end);
-		context.lineTo(w(), spring.end);
-		context.strokeStyle = "lightgray";
-		context.stroke();
-
-		context.beginPath();
-		context.moveTo(0, h());
-		for (let x = 0; x < w(); x += step) {
-			const y = springPosition(spring, x);
-			context.lineTo(x, y);
-		}
-		context.strokeStyle = "#0000ff";
-		context.stroke();
-
-		context.beginPath();
-		const x = springDuration(spring, 1);
-		context.moveTo(x, 0);
-		context.lineTo(x, h());
-		context.strokeStyle = "#ff0000";
-		context.stroke();
+export default function SpringRoute() {
+	let element: HTMLDivElement;
+	const mousePosition = createMousePosition();
+	const [target, setTarget] = createSignal<Vec | undefined>(undefined, {
+		equals: false,
 	});
 
-	return canvas;
+	const spring = createSpring2(undefined, undefined, target);
+	const springPosition = createSpringPosition2(spring);
+
+	createEventListener(safeDocument()?.body, "click", () => {
+		setTarget((prev) => set2(prev ?? [], mousePosition()));
+	});
+
+	createEffect(() => {
+		run(
+			comp(
+				springPosition(),
+				map(styleTranslate),
+				keyframes("transform"),
+				animation(element),
+			),
+			console.log,
+		).then(console.log);
+	});
+
+	return (
+		<div
+			ref={element!}
+			style={{
+				position: "fixed",
+				inset: "0 auto auto 0",
+				background: "skyblue",
+				width: "4rem",
+				height: "4rem",
+				transform: styleTranslate(target()),
+			}}
+		/>
+	);
 }
