@@ -1,4 +1,3 @@
-export * from "./behavior";
 export * from "./borderRadius";
 export * from "./mouse";
 export * from "./positioningObserver";

@@ -1,0 +1,18 @@
+{
+	"compilerOptions": {
+		"allowJs": true,
+		"strict": true,
+		"allowSyntheticDefaultImports": true,
+		"esModuleInterop": true,
+		"isolatedModules": true,
+		"jsx": "preserve",
+		"jsxImportSource": "solid-js",
+		"lib": ["DOM", "ESNext"],
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"noEmit": true,
+		"paths": { "~/*": ["./dev/*"] },
+		"target": "ESNext",
+		"types": ["vinxi/types/client"]
+	}
+}

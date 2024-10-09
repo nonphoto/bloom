@@ -1,19 +1,17 @@
-import {
-	animation,
-	keyframes,
-	run,
-	safeDocument,
-	styleTranslate,
-} from "@bloom-motion/core/src/index.js";
-import {
-	createMousePosition,
-	createSpring2,
-	createSpringPosition2,
-} from "@bloom-motion/solid/src/index.js";
 import { createEventListener } from "@solid-primitives/event-listener";
 import { comp, map } from "@thi.ng/transducers";
 import { set2, Vec } from "@thi.ng/vectors";
 import { createEffect, createSignal } from "solid-js";
+import {
+	animation,
+	createMousePosition,
+	createSpring2,
+	createSpringPosition2,
+	keyframes,
+	run,
+	safeDocument,
+	styleTranslate,
+} from "~/../src";
 
 export default function SpringRoute() {
 	let element: HTMLDivElement;

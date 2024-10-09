@@ -5,5 +5,6 @@ export * from "./matcher";
 export * from "./mouse";
 export * from "./positioningObserver";
 export * from "./rectObserver";
+export * from "./solid";
 export * from "./style";
 export * from "./utils";
