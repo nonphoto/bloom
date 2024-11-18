@@ -1,55 +1,42 @@
 import { createEventListener } from "@solid-primitives/event-listener";
 import { comp, map } from "@thi.ng/transducers";
-import { set2, Vec } from "@thi.ng/vectors";
-import { createEffect, createSignal } from "solid-js";
+import { Vec } from "@thi.ng/vectors";
+import { createSignal } from "solid-js";
 import {
-	animation,
-	createMousePosition,
-	createSpring2,
-	createSpringPosition2,
-	keyframes,
-	run,
-	safeDocument,
-	styleTranslate,
+  createSpring2,
+  mousePositionFromEvent,
+  safeDocument,
+  springPosition2,
+  styleTranslate,
 } from "~/../src";
+import { createAnimation } from "../../src/solid/animation";
 
 export default function SpringRoute() {
-	let element: HTMLDivElement;
-	const mousePosition = createMousePosition();
-	const [target, setTarget] = createSignal<Vec | undefined>(undefined, {
-		equals: false,
-	});
+  const [element, setElement] = createSignal<HTMLElement>();
+  const [target, setTarget] = createSignal<Vec | undefined>(undefined, {
+    equals: false,
+  });
 
-	const spring = createSpring2(undefined, undefined, target);
-	const springPosition = createSpringPosition2(spring);
+  createEventListener(safeDocument()?.body, "click", (event) => {
+    setTarget(() => mousePositionFromEvent([], event));
+  });
 
-	createEventListener(safeDocument()?.body, "click", () => {
-		setTarget((prev) => set2(prev ?? [], mousePosition()));
-	});
+  const spring = createSpring2(undefined, undefined, target, 0.001, 0.01);
 
-	createEffect(() => {
-		run(
-			comp(
-				springPosition(),
-				map(styleTranslate),
-				keyframes("transform"),
-				animation(element),
-			),
-			console.log,
-		).then(console.log);
-	});
+  createAnimation(element, "transform", () =>
+    comp(springPosition2(spring()), map(styleTranslate)),
+  );
 
-	return (
-		<div
-			ref={element!}
-			style={{
-				position: "fixed",
-				inset: "0 auto auto 0",
-				background: "skyblue",
-				width: "4rem",
-				height: "4rem",
-				transform: styleTranslate(target()),
-			}}
-		/>
-	);
+  return (
+    <div
+      ref={setElement}
+      style={{
+        position: "fixed",
+        inset: "0 auto auto 0",
+        background: "skyblue",
+        width: "4rem",
+        height: "4rem",
+      }}
+    />
+  );
 }

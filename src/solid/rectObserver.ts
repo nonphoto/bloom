@@ -50,7 +50,7 @@ export const useRectObserver = createHydratableSingletonRoot(() => {
   return {
     invalidate: observer.invalidate,
     getRect: observer.getRect,
-    use(element: MaybeAccessor<HTMLElement | undefined>) {
+    rect(element: MaybeAccessor<HTMLElement | undefined>) {
       createEffect(() => {
         const elementValue = access(element);
         if (elementValue) {
