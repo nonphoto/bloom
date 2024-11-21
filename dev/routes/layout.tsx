@@ -1,6 +1,6 @@
 import { permutations } from "@thi.ng/transducers";
 import { createSignal } from "solid-js";
-import { createLog, useRectObserver } from "../../src";
+import { createLog, createRect } from "../../src";
 
 const areas = [...permutations([1, 2, 3], [1, 2, 3])];
 
@@ -8,7 +8,7 @@ export default function Layout() {
   const [index, setIndex] = createSignal(0);
   const [element, setElement] = createSignal<HTMLElement>();
 
-  const rect = useRectObserver().rect(element);
+  const rect = createRect(element);
 
   createLog(rect);
 

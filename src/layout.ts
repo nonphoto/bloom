@@ -4,35 +4,38 @@ import { neg, sub2, Vec } from "@thi.ng/vectors";
 import { withValue } from "./utils";
 
 export interface Layout {
-  offsetCenter: Vec;
-  rect: Rect;
+  offsetCenter: () => Vec;
   accMatrix: () => Mat;
   worldMatrix: () => Mat;
+}
+
+interface LayoutCreateOptions {
+  parent?: Layout;
+  rect: () => Rect;
   matrix: () => Mat | undefined;
   scroll: () => Vec;
 }
 
-export function layoutCreate(
-  parent: Layout | null,
-  rect: Rect,
-  matrix: () => Mat | undefined,
-  scroll: () => Vec,
-): Layout {
-  const offsetCenter = centroid(rect, [])!;
+export function layoutCreate({
+  parent,
+  rect,
+  matrix,
+  scroll,
+}: LayoutCreateOptions): Layout {
+  const offsetCenter = () => centroid(rect(), [])!;
 
-  const layoutDelta = parent
-    ? sub2([], offsetCenter, parent.offsetCenter)
-    : offsetCenter;
+  const offsetDelta = () =>
+    parent ? sub2([], offsetCenter(), parent.offsetCenter()) : offsetCenter();
 
   const offsetMatrix = withValue([], (offsetMatrix) => {
     if (parent) {
       return mul23(
         offsetMatrix,
         parent.accMatrix(),
-        translation23([], layoutDelta),
+        translation23([], offsetDelta()),
       );
     } else {
-      return translation23(offsetMatrix, layoutDelta);
+      return translation23(offsetMatrix, offsetDelta());
     }
   });
 
@@ -46,16 +49,13 @@ export function layoutCreate(
   });
 
   const worldMatrix = withValue([], (worldMatrix) => {
-    mul23(worldMatrix, worldMatrix, translation23([], neg([], offsetCenter)));
+    mul23(worldMatrix, worldMatrix, translation23([], neg([], offsetCenter())));
     return mul23(worldMatrix, worldMatrix, offsetMatrix());
   });
 
   return {
-    rect,
     offsetCenter,
     accMatrix,
     worldMatrix,
-    matrix,
-    scroll,
   };
 }
