@@ -1,71 +1,70 @@
 import { createSubRoot } from "@solid-primitives/rootless";
 import { access, MaybeAccessor } from "@solid-primitives/utils";
+import { Vec } from "@thi.ng/vectors";
 import {
-	Accessor,
-	createComputed,
-	createMemo,
-	createRenderEffect,
-	EffectFunction,
-	getOwner,
-	on,
-	Owner,
-	runWithOwner,
+  Accessor,
+  createComputed,
+  createMemo,
+  createRenderEffect,
+  EffectFunction,
+  getOwner,
+  on,
+  Owner,
+  runWithOwner,
 } from "solid-js";
+import { catchMaybe } from "../utils";
 
 export function awaitWithOwner<T>(
-	promise: Promise<T>,
-	onFulfilled: (value: T) => void,
-	onRejected?: () => void,
-	owner: Owner | null = getOwner(),
+  promise: Promise<T>,
+  onFulfilled: (value: T) => void,
+  onRejected?: () => void,
+  owner: Owner | null = getOwner(),
 ): Promise<void> {
-	return promise.then(
-		(value) => {
-			runWithOwner(owner, () => {
-				onFulfilled(value);
-			});
-		},
-		onRejected
-			? () => {
-					runWithOwner(owner, onRejected);
-				}
-			: undefined,
-	);
+  return promise.then(
+    (value) => {
+      runWithOwner(owner, () => {
+        onFulfilled(value);
+      });
+    },
+    onRejected
+      ? () => {
+          runWithOwner(owner, onRejected);
+        }
+      : undefined,
+  );
 }
 
 export function createOnce<T>(
-	dep: Accessor<T>,
-	fn: (value: NonNullable<T>) => void,
+  dep: Accessor<T>,
+  fn: (value: NonNullable<T>) => void,
 ) {
-	const owner = getOwner();
-	createSubRoot((dispose) => {
-		createComputed(
-			on(dep, (value) => {
-				if (value) {
-					createSubRoot(() => {
-						fn(value);
-					}, owner);
-					dispose();
-				}
-			}),
-		);
-	});
+  const owner = getOwner();
+  createSubRoot((dispose) => {
+    createComputed(
+      on(dep, (value) => {
+        if (value) {
+          createSubRoot(() => {
+            fn(value);
+          }, owner);
+          dispose();
+        }
+      }),
+    );
+  });
 }
 
-export const createObject =
-	<T>(create: () => T) =>
-	(fn: EffectFunction<T>): Accessor<T> => {
-		return createMemo(fn, create(), { equals: false });
-	};
+export function createVec(fn: EffectFunction<Vec>): Accessor<Vec> {
+  return createMemo(fn, [], { equals: false });
+}
 
-export const createMaybeObject =
-	<T>(create: () => T) =>
-	(fn: EffectFunction<T | undefined>): Accessor<T | undefined> => {
-		const v = create();
-		return createMemo(() => fn(v), undefined, { equals: false });
-	};
+export function createMaybeVec(
+  fn: EffectFunction<Vec | undefined>,
+): Accessor<Vec | undefined> {
+  return createMemo(catchMaybe(fn), undefined, { equals: false });
+}
 
 export function createLog<T>(value: MaybeAccessor<T>, ...args: any[]) {
-	createRenderEffect(() => {
-		console.log(access(value), ...args);
-	});
+  createRenderEffect(() => {
+    console.log(access(value), ...args);
+  });
 }

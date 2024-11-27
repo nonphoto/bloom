@@ -7,17 +7,18 @@ import { animation, keyframes, run } from "../behavior";
 export function createAnimation<T extends keyof Properties>(
   element: MaybeAccessor<Element | undefined>,
   propName: MaybeAccessor<T>,
-  tx: MaybeAccessor<Transducer<number, Properties[T]>>,
+  tx: MaybeAccessor<Transducer<number, Properties[T]> | undefined>,
   timeline?: MaybeAccessor<AnimationTimeline | undefined>,
 ) {
   const [current, setCurrent] = createSignal<Animation>();
   const memo = createMemo(() => {
     untrack(current)?.cancel();
+    const txValue = access(tx);
     const elementValue = access(element);
-    if (elementValue) {
+    if (txValue && elementValue) {
       return run(
         comp(
-          access(tx) as Transducer<number, any>,
+          txValue as Transducer<number, any>,
           keyframes(access(propName)),
           animation(elementValue, { timeline: access(timeline) }),
         ),

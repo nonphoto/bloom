@@ -16,7 +16,6 @@ import {
 } from "@nonphoto/spring-vector";
 import { velocityAt } from "@nonphoto/spring/src/spring.js";
 import { access, MaybeAccessor } from "@solid-primitives/utils";
-import { Rect } from "@thi.ng/geom";
 import { Vec } from "@thi.ng/vectors";
 import { Accessor, createMemo } from "solid-js";
 import { Clock } from "./time";
@@ -151,30 +150,4 @@ export function createSpring4(
     undefined,
     { equals: false },
   );
-}
-
-type RectSpring = { pos: VectorSpring; size: VectorSpring };
-
-export function createSpringRect(
-  position?: MaybeAccessor<Rect | undefined>,
-  velocity?: MaybeAccessor<Rect | undefined>,
-  target?: MaybeAccessor<Rect | undefined>,
-  damping?: MaybeAccessor<number | undefined>,
-  criticality?: MaybeAccessor<number | undefined>,
-): Accessor<RectSpring> {
-  const pos = createSpring2(
-    () => access(position)?.pos,
-    () => access(velocity)?.pos,
-    () => access(target)?.pos,
-    damping,
-    criticality,
-  );
-  const size = createSpring2(
-    () => access(position)?.size,
-    () => access(velocity)?.size,
-    () => access(target)?.size,
-    damping,
-    criticality,
-  );
-  return () => ({ pos: pos(), size: size() });
 }
