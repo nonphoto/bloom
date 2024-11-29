@@ -16,14 +16,19 @@ export function createAnimation<T extends keyof Properties>(
     const txValue = access(tx);
     const elementValue = access(element);
     if (txValue && elementValue) {
+      // Animation cancel needs to happen in measurement batch
+      for (const animation of elementValue.getAnimations()) {
+        animation.cancel();
+      }
       return run(
         comp(
           txValue as Transducer<number, any>,
           keyframes(access(propName)),
-          animation(elementValue, { timeline: access(timeline) }),
+          animation(elementValue, { fill: "both", timeline: access(timeline) }),
         ),
         setCurrent,
       ).catch((error) => {
+        console.log(error.name);
         if (error.name !== "AbortError") {
           throw error;
         }

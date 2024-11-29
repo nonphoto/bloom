@@ -4,7 +4,6 @@ import { Vec } from "@thi.ng/vectors";
 import { createSignal } from "solid-js";
 import {
   createSpring2,
-  mousePositionFromEvent,
   safeDocument,
   springPosition2,
   styleTranslate,
@@ -17,11 +16,14 @@ export default function SpringRoute() {
     equals: false,
   });
 
-  createEventListener(safeDocument()?.body, "click", (event) => {
-    setTarget(() => mousePositionFromEvent([], event));
+  createEventListener(safeDocument()?.body, "click", () => {
+    setTarget(() => [
+      window.innerWidth * Math.random(),
+      window.innerHeight * Math.random(),
+    ]);
   });
 
-  const spring = createSpring2(undefined, undefined, target, 0.001, 0.01);
+  const spring = createSpring2(undefined, undefined, target, 0.01, 0.01);
 
   createAnimation(element, "transform", () =>
     comp(springPosition2(spring()), map(styleTranslate)),
