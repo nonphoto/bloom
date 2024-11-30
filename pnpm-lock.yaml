@@ -14,6 +14,9 @@ importers:
       '@nonphoto/spring-vector':
         specifier: 3.1.1
         version: 3.1.1
+      '@okikio/animate':
+        specifier: 2.3.1
+        version: 2.3.1
       '@solid-primitives/map':
         specifier: 0.4.13
         version: 0.4.13(solid-js@1.9.2)
@@ -790,6 +793,15 @@ packages:
 
   '@octokit/types@13.6.1':
     resolution: {integrity: sha512-PHZE9Z+kWXb23Ndik8MKPirBPziOc0D2/3KH1P+6jK5nGWe96kadZuE4jev2/Jq7FvIfTlT2Ltg8Fv2x1v0a5g==}
+
+  '@okikio/animate@2.3.1':
+    resolution: {integrity: sha512-+O4jsFr/bNI9u3TAiOeWW12E8FkyDuPzSHfWgEtZ2RAfGZ/AbQlbXiNCfdJssM8xcU8iAgRvMyxFQywtIsiNRA==}
+
+  '@okikio/emitter@2.1.7':
+    resolution: {integrity: sha512-Ta87D0uTN/RclDm3zNwzKaPm2jES58uh3MW3OlRBJ7MNn/c6jIz/I3i01HF3T4qKWjqjNj7OdyT6ndg5P972qw==}
+
+  '@okikio/manager@2.1.7':
+    resolution: {integrity: sha512-fle8woS2vX4Im8wPekQOxYT00ITA5lABqEGoE12Tj7Mb6HdMsQBVxujMLVJ7OobMTmZHdT949A4yc35MC/uTEA==}
 
   '@parcel/watcher-android-arm64@2.4.1':
     resolution: {integrity: sha512-LOi/WTbbh3aTn2RYddrO8pnapixAziFl6SMxHM69r3tvdSm94JtCenaKgk1GRg5FJ5wpMCpHeW+7yqPlvZv7kg==}
@@ -4398,6 +4410,17 @@ snapshots:
   '@octokit/types@13.6.1':
     dependencies:
       '@octokit/openapi-types': 22.2.0
+
+  '@okikio/animate@2.3.1':
+    dependencies:
+      '@okikio/emitter': 2.1.7
+      '@okikio/manager': 2.1.7
+
+  '@okikio/emitter@2.1.7':
+    dependencies:
+      '@okikio/manager': 2.1.7
+
+  '@okikio/manager@2.1.7': {}
 
   '@parcel/watcher-android-arm64@2.4.1':
     optional: true

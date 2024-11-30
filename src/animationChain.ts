@@ -1,11 +1,3 @@
-function interruptAnimation(animation: Animation): Animation {
-  const { startTime, currentTime, timeline, effect } = animation;
-  const next = new Animation(effect, timeline);
-  animation.startTime = startTime;
-  animation.currentTime = currentTime;
-  return next;
-}
-
 function iteratorUnshift<T>(
   iterator: IterableIterator<T>,
   value: T,

@@ -14,13 +14,6 @@ function getRect(element: HTMLElement): Rect {
   return rectFromDOMRect(r);
 }
 
-interface AnimationOptions {
-  startTime: CSSNumberish | null;
-  currentTime: CSSNumberish | null;
-  effect: AnimationEffect | null;
-  timeline: AnimationTimeline | null;
-}
-
 export type RectObserverEntry = {
   target: HTMLElement;
   rect: Rect;
@@ -47,24 +40,14 @@ export class RectObserver {
     this.#batcher = new Batcher<RectObserverEntry[]>({
       onRun: (run) => {
         const transforms = new WeakMap<HTMLElement, string>();
-        const animations = new SetWeakMap<HTMLElement, AnimationOptions>();
+        const animations = new SetWeakMap<HTMLElement, Animation>();
 
         walkDescendants(root, (element) => {
           transforms.set(element, element.style.transform);
           element.style.transform = "";
           for (const animation of element.getAnimations()) {
-            if (
-              !(animation instanceof CSSAnimation) &&
-              animation.playState !== "finished"
-            ) {
-              const { startTime, currentTime, timeline, effect } = animation;
-              animations.add(element, {
-                startTime,
-                currentTime,
-                timeline,
-                effect,
-              });
-              animation.cancel();
+            if (animation.playState !== "finished") {
+              animations.add(element, interruptAnimation(animation));
             }
           }
         });
@@ -78,15 +61,7 @@ export class RectObserver {
             element.style.transform = transform;
           }
 
-          for (const {
-            effect,
-            timeline,
-            currentTime,
-            startTime,
-          } of animations.get(element) ?? []) {
-            const animation = new Animation(effect, timeline);
-            animation.startTime = startTime;
-            animation.currentTime = currentTime;
+          for (const animation of animations.get(element) ?? []) {
             animation.play();
           }
         });
