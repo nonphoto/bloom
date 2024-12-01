@@ -20,28 +20,27 @@ export type RectObserverEntry = {
 };
 
 export class RectObserver {
-  #batcher: Batcher<RectObserverEntry[]>;
-  #elements: Set<HTMLElement>;
-  #resizeObserver: ResizeObserver;
+  #batcher = new Batcher();
+  #entries: RectObserverEntry[] = [];
+  #elements = new Set<HTMLElement>();
+  #resizeObserver = new ResizeObserver((entries) => {
+    for (const { target } of entries) {
+      if (target instanceof HTMLElement) {
+        this.invalidate(target);
+      }
+    }
+  });
 
   constructor(
     root: HTMLElement,
     callback: (entries: RectObserverEntry[]) => void,
   ) {
-    this.#elements = new Set<HTMLElement>();
-    this.#resizeObserver = new ResizeObserver((entries) => {
-      for (const { target } of entries) {
-        if (target instanceof HTMLElement) {
-          this.invalidate(target);
-        }
-      }
-    });
+    let transforms = new WeakMap<HTMLElement, string>();
+    let animations = new SetWeakMap<HTMLElement, Animation>();
 
-    this.#batcher = new Batcher<RectObserverEntry[]>({
-      onRun: (run) => {
-        const transforms = new WeakMap<HTMLElement, string>();
-        const animations = new SetWeakMap<HTMLElement, Animation>();
-
+    this.#batcher.addEventListener(
+      "prerun",
+      () => {
         walkDescendants(root, (element) => {
           transforms.set(element, element.style.transform);
           element.style.transform = "";
@@ -51,10 +50,13 @@ export class RectObserver {
             }
           }
         });
+      },
+      { passive: true },
+    );
 
-        const entries: RectObserverEntry[] = [];
-        run(entries);
-
+    this.#batcher.addEventListener(
+      "postrun",
+      () => {
         walkDescendants(root, (element) => {
           const transform = transforms.get(element);
           if (transform) {
@@ -66,36 +68,47 @@ export class RectObserver {
           }
         });
 
-        callback(entries);
+        callback(this.#entries);
+
+        this.#entries = [];
+        transforms = new WeakMap();
+        animations = new SetWeakMap();
       },
-    });
+      { passive: true },
+    );
   }
 
-  async invalidate(element: HTMLElement) {
-    await this.#batcher.task((entries) => {
+  invalidate(element: HTMLElement) {
+    this.#batcher.enqueue(() => {
       if (this.#elements.has(element)) {
-        entries.push({ target: element, rect: getRect(element) });
+        this.#entries.push({ target: element, rect: getRect(element) });
       }
     });
   }
 
   async getRect(element: HTMLElement) {
-    let rect: Rect;
-    return this.#batcher
-      .task(() => {
+    return new Promise((resolve) => {
+      let rect: Rect;
+      this.#batcher.addEventListener("postrun", resolve, {
+        once: true,
+        passive: true,
+      });
+      this.#batcher.enqueue(() => {
         rect = getRect(element);
-      })
-      .then(() => rect);
+      });
+    });
   }
 
   observe(target: HTMLElement) {
     this.#elements.add(target);
     this.#resizeObserver.observe(target);
   }
+
   unobserve(target: HTMLElement) {
     this.#elements.delete(target);
     this.#resizeObserver.unobserve(target);
   }
+
   disconnect() {
     this.#elements.clear();
     this.#resizeObserver.disconnect();

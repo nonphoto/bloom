@@ -5,7 +5,7 @@ function next<T>(iterator: Iterator<T>): T | undefined {
   return done ? undefined : value;
 }
 
-export class IteratorAnimation extends EventTarget {
+export class AnimationChain extends EventTarget {
   #iterator: Iterator<Animation>;
   animation: Animation | undefined;
 

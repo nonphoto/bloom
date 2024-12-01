@@ -1,41 +1,37 @@
 export function waitForMicrotask(): Promise<void> {
-	return new Promise((resolve) => queueMicrotask(() => resolve()));
+  return new Promise((resolve) => queueMicrotask(() => resolve()));
+}
+
+export function waitForTask(): Promise<void> {
+  return new Promise((resolve) => setTimeout(() => resolve(), 0));
 }
 
 export function waitForAnimationFrame(): Promise<void> {
-	return new Promise((resolve) => requestAnimationFrame(() => resolve()));
+  return new Promise((resolve) => requestAnimationFrame(() => resolve()));
 }
 
 export type BatcherCallback<T> = (value: T) => void;
 
-export class Batcher<T = void> {
-	#promise: Promise<void> = Promise.resolve();
-	#callbacks: Array<BatcherCallback<T> | undefined> = [];
-	#wait: () => Promise<void> = waitForMicrotask;
-	#onRun: (run: BatcherCallback<T>) => void;
+export class Batcher extends EventTarget {
+  #promise: Promise<void> | null = null;
+  #wait: () => Promise<void> = waitForMicrotask;
 
-	constructor(options?: {
-		onRun?: (run: BatcherCallback<T>) => void;
-		wait?: () => Promise<void>;
-	}) {
-		this.#onRun = options?.onRun ?? (() => {});
-		this.#wait = options?.wait ?? this.#wait;
-	}
+  constructor(options?: { wait?: () => Promise<void> }) {
+    super();
+    this.#wait = options?.wait ?? this.#wait;
+  }
 
-	#run() {
-		this.#onRun((value) => {
-			for (let i = 0; i < this.#callbacks.length; i++) {
-				this.#callbacks[i]?.(value);
-			}
-			this.#callbacks = [];
-		});
-	}
-
-	task(callback?: (value: T) => void): Promise<void> {
-		if (this.#callbacks.length === 0) {
-			this.#promise = this.#wait().then(() => this.#run());
-		}
-		this.#callbacks.push(callback);
-		return this.#promise;
-	}
+  enqueue(callback?: () => void) {
+    if (callback) {
+      this.addEventListener("run", callback, { once: true, passive: true });
+    }
+    if (this.#promise == null) {
+      this.#promise = this.#wait().then(() => {
+        this.dispatchEvent(new Event("prerun"));
+        this.dispatchEvent(new Event("run"));
+        this.dispatchEvent(new Event("postrun"));
+        this.#promise = null;
+      });
+    }
+  }
 }
