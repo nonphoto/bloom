@@ -32,6 +32,7 @@
     "@nonphoto/spring": "3.0.1",
     "@nonphoto/spring-vector": "3.1.1",
     "@okikio/animate": "2.3.1",
+    "@okikio/emitter": "2.1.7",
     "@solid-primitives/map": "0.4.13",
     "@solid-primitives/mouse": "2.0.20",
     "@solid-primitives/raf": "2.2.0",

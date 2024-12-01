@@ -8,7 +8,6 @@ import {
   positionAt2 as springPositionAt2,
   VectorSpring,
 } from "@nonphoto/spring-vector";
-import { partial } from "@thi.ng/compose";
 import {
   comp,
   iterator,
@@ -17,7 +16,6 @@ import {
   partition,
   range,
   syncTuples,
-  take,
   takeWhile,
   Transducer,
   TxLike,
@@ -36,85 +34,28 @@ export type AnimateOptions =
   | Omit<KeyframeAnimationOptions, "duration" | "delay" | "easing">
   | undefined;
 
-export type Accessor<T> = () => T;
-
-export type MaybeAccessor<T> = Accessor<T> | T;
-
-export type Behavior<T> = [Transducer<number, T>, AnimationTimeline];
-
-export type MaybeBehavior<T> = Behavior<T> | MaybeAccessor<T>;
-
-export function isBehavior(a: any): a is Behavior<ReturnType<(typeof a)[0]>> {
-  return (
-    Array.isArray(a) &&
-    a.length === 2 &&
-    typeof a[0] === "function" &&
-    a[1] instanceof AnimationTimeline
-  );
-}
-
-export function compB<T, U>(
-  fn: (a: Transducer<number, T>) => Transducer<number, U>,
-  [tx, timeline]: Behavior<T>,
-): Behavior<U> {
-  return [fn(tx), timeline];
-}
-
-export function mapB<T, U>(fn: (x: T) => U, a: T): U;
-export function mapB<T, U>(fn: (x: T) => U, a: Accessor<T>): U;
-export function mapB<T, U>(fn: (x: T) => U, a: MaybeAccessor<T>): U;
-export function mapB<T, U>(fn: (x: T) => U, a: Behavior<T>): Behavior<U>;
-export function mapB<T, U>(
-  fn: (x: T) => U,
-  a: MaybeBehavior<T>,
-): MaybeBehavior<U>;
-export function mapB<T, U>(
-  fn: (a: T) => U,
-  a: MaybeBehavior<T>,
-): MaybeBehavior<U> {
-  return isBehavior(a)
-    ? compB((tx) => comp(tx, map(fn)), a)
-    : a instanceof Function
-      ? () => fn(a())
-      : fn(a);
-}
-
-export function justB<T>(t: T): Behavior<T> {
-  return [
-    comp(
-      map(() => t),
-      take(1),
-    ),
-    document.timeline,
-  ];
-}
-
-export function keyframe<T extends keyof Properties>(
-  property: T,
-  value: Properties[T],
-): Keyframe {
-  return { [property]: value };
-}
-
 export function keyframes<T extends keyof Properties>(
   property: T,
-): Transducer<Properties[T], Keyframe[]> {
-  return comp(
-    partition(maxKeyframes + 1, maxKeyframes, true),
-    map((values) => [...map(partial(keyframe, property), values)]),
-  );
+): Transducer<Properties[T], Keyframe> {
+  return map((value) => ({ [property]: value }));
 }
 
 export function animation(
   target: Element,
   options: AnimateOptions = {},
-): Transducer<Keyframe[], Animation> {
-  return map((keyframes) => {
-    return target.animate(keyframes, {
-      ...options,
-      duration: keyframes.length * frameDuration,
-    });
-  });
+): Transducer<Keyframe, Animation> {
+  return comp(
+    partition(maxKeyframes + 1, maxKeyframes, true),
+    map(
+      (keyframes) =>
+        new Animation(
+          new KeyframeEffect(target, keyframes, {
+            ...options,
+            duration: keyframes.length * frameDuration,
+          }),
+        ),
+    ),
+  );
 }
 
 export function time() {

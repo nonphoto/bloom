@@ -1,15 +1,26 @@
 import { createEventListener } from "@solid-primitives/event-listener";
 import { map } from "@thi.ng/transducers";
 import { createSignal } from "solid-js";
-import { safeDocument, styleTranslateX, useRectObserver } from "../../src";
+import {
+  createLog,
+  createRect,
+  safeDocument,
+  styleTranslateX,
+  useRectObserver,
+} from "../../src";
 import { createAnimation } from "../../src/solid/animation";
 
 export default function WaveRoute() {
   const [element, setElement] = createSignal<HTMLElement>();
   const { invalidate } = useRectObserver();
 
+  const bodyRect = createRect(safeDocument()?.body);
+  const width = () => bodyRect()?.size[0] ?? 1;
+
   createAnimation(element, "transform", () =>
-    map<number, string>((t) => styleTranslateX(500 + Math.sin(t / 1000) * 500)),
+    map<number, string>((t) =>
+      styleTranslateX(width() / 2 + (Math.sin(t / 1000) * width()) / 2),
+    ),
   );
 
   createEventListener(safeDocument()?.body, "click", () => {
@@ -18,6 +29,10 @@ export default function WaveRoute() {
       invalidate(elementValue);
     }
   });
+
+  const rect = createRect(element);
+
+  createLog(rect);
 
   return (
     <div

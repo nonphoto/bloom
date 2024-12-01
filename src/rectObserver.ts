@@ -1,6 +1,7 @@
 import { Rect } from "@thi.ng/geom";
 import { Batcher } from "./batcher";
 import { walkAncestors, walkDescendants } from "./dom";
+import { interruptAnimation } from "./interruptAnimation";
 import { rectFromDOMRect } from "./rect";
 import { SetWeakMap } from "./setWeakMap";
 
@@ -10,7 +11,6 @@ function getRect(element: HTMLElement): Rect {
     r.x += ancestor.scrollLeft;
     r.y += ancestor.scrollTop;
   });
-  console.log(r);
   return rectFromDOMRect(r);
 }
 

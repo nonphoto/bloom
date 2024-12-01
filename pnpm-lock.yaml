@@ -17,6 +17,9 @@ importers:
       '@okikio/animate':
         specifier: 2.3.1
         version: 2.3.1
+      '@okikio/emitter':
+        specifier: 2.1.7
+        version: 2.1.7
       '@solid-primitives/map':
         specifier: 0.4.13
         version: 0.4.13(solid-js@1.9.2)
