@@ -1,7 +1,6 @@
 import { Rect } from "@thi.ng/geom";
 import { Batcher } from "./batcher";
 import { walkAncestors, walkDescendants } from "./dom";
-import { interruptAnimation } from "./interruptAnimation";
 import { rectFromDOMRect } from "./rect";
 import { SetWeakMap } from "./setWeakMap";
 
@@ -46,7 +45,7 @@ export class RectObserver {
           element.style.transform = "";
           for (const animation of element.getAnimations()) {
             if (animation.playState !== "finished") {
-              animations.add(element, interruptAnimation(animation));
+              animations.add(element, animation);
             }
           }
         });

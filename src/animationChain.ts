@@ -1,5 +1,3 @@
-import { interruptAnimation } from "./interruptAnimation";
-
 function next<T>(iterator: Iterator<T>): T | undefined {
   const { done, value } = iterator.next();
   return done ? undefined : value;
@@ -7,6 +5,7 @@ function next<T>(iterator: Iterator<T>): T | undefined {
 
 export class AnimationChain extends EventTarget {
   #iterator: Iterator<Animation>;
+  #interruptTime: CSSNumberish | null = null;
   animation: Animation | undefined;
 
   constructor(iterator: Iterator<Animation>) {
@@ -17,6 +16,10 @@ export class AnimationChain extends EventTarget {
 
   play() {
     if (this.animation) {
+      if (this.#interruptTime !== null) {
+        this.animation.currentTime = this.#interruptTime;
+        this.#interruptTime = null;
+      }
       this.animation.play();
       this.animation.addEventListener(
         "finish",
@@ -35,7 +38,10 @@ export class AnimationChain extends EventTarget {
 
   interrupt() {
     if (this.animation) {
-      this.animation = interruptAnimation(this.animation);
+      const { currentTime, timeline, effect } = this.animation;
+      this.#interruptTime = currentTime;
+      this.animation.cancel();
+      this.animation = new Animation(effect, timeline);
     }
   }
 
