@@ -59,6 +59,9 @@ importers:
       solid-js:
         specifier: ^1.9.2
         version: 1.9.2
+      voby:
+        specifier: ^0.58.1
+        version: 0.58.1
     devDependencies:
       '@nonphoto/css':
         specifier: 1.0.4
@@ -2245,6 +2248,9 @@ packages:
     resolution: {integrity: sha512-4nw3vOVR+vHUOT8+U4giwe2tcGv+R3pwwRidUe67DoMBTjhrfr6rZYJVVwdkBE+Um050SG+X9tf0Jo4fOpn01w==}
     engines: {node: ^18.17.0 || >=20.5.0}
 
+  htm@3.1.1:
+    resolution: {integrity: sha512-983Vyg8NwUE7JkZ6NmOqpCZ+sh1bKv2iYTlUkzlWmA5JD2acKoxd4KVxbMmxX/85mtfdnDmTFoNKcg5DGAvxNQ==}
+
   html-entities@2.3.3:
     resolution: {integrity: sha512-DV5Ln36z34NNTDgnz0EWGBLZENelNAtkiFA4kyNOG2tDI6Mz1uSWiq1wAKdyjnJwyDiDO7Fa2SO1CTxPXL8VxA==}
 
@@ -2849,6 +2855,9 @@ packages:
   object-assign@4.1.1:
     resolution: {integrity: sha512-rJgTQnkUnH1sFw8yT6VSU3zD3sWmu6sZhIseY8VX+GRu3P6F7Fu+JNDoXfklElbLJSnc3FUQHVe4cU5hj+BcUg==}
     engines: {node: '>=0.10.0'}
+
+  oby@15.1.2:
+    resolution: {integrity: sha512-6QD9iEoPzV+pMDdcg3RtFWhgDX8pS5hZouVHvgXGDy3Q9RxFfnI3CYv9i62keeuX+qk6iN2z5E9FD3q3OckZ6A==}
 
   ofetch@1.4.0:
     resolution: {integrity: sha512-MuHgsEhU6zGeX+EMh+8mSMrYTnsqJQQrpM00Q6QHMKNqQ0bKy0B43tk8tL1wg+CnsSTy1kg4Ir2T5Ig6rD+dfQ==}
@@ -3746,6 +3755,9 @@ packages:
     peerDependenciesMeta:
       vite:
         optional: true
+
+  voby@0.58.1:
+    resolution: {integrity: sha512-kKHgUbIJXAMYbJASmQJ+4K/0BV5kgz2OzEOn+rs+Vbv1xMfJ1eh6tJoOo5fdO3pXfTBm/RkoTMEBj8f4fjA7pA==}
 
   webidl-conversions@3.0.1:
     resolution: {integrity: sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==}
@@ -6112,6 +6124,8 @@ snapshots:
     dependencies:
       lru-cache: 10.4.3
 
+  htm@3.1.1: {}
+
   html-entities@2.3.3: {}
 
   html-to-image@1.11.11: {}
@@ -6676,6 +6690,8 @@ snapshots:
       ufo: 1.5.4
 
   object-assign@4.1.1: {}
+
+  oby@15.1.2: {}
 
   ofetch@1.4.0:
     dependencies:
@@ -7633,6 +7649,11 @@ snapshots:
   vitefu@0.2.5(vite@5.4.8(@types/node@22.7.5)(terser@5.34.1)):
     optionalDependencies:
       vite: 5.4.8(@types/node@22.7.5)(terser@5.34.1)
+
+  voby@0.58.1:
+    dependencies:
+      htm: 3.1.1
+      oby: 15.1.2
 
   webidl-conversions@3.0.1: {}
 

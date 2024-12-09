@@ -32,7 +32,7 @@ export default function WaveRoute() {
 
   const rect = createRect(element);
 
-  createLog(rect);
+  createLog(() => rect()?.pos);
 
   return (
     <div

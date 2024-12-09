@@ -16,5 +16,5 @@ export default function BatcherRoute() {
     entries = [];
   });
 
-  return null;
+  return "See console";
 }

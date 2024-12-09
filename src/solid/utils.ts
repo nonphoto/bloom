@@ -12,7 +12,6 @@ import {
   Owner,
   runWithOwner,
 } from "solid-js";
-import { catchMaybe } from "../utils";
 
 export function awaitWithOwner<T>(
   promise: Promise<T>,
@@ -55,12 +54,6 @@ export function createOnce<T>(
 
 export function createVec(fn: EffectFunction<Vec>): Accessor<Vec> {
   return createMemo(fn, [], { equals: false });
-}
-
-export function createMaybeVec(
-  fn: EffectFunction<Vec | undefined>,
-): Accessor<Vec | undefined> {
-  return createMemo(catchMaybe(fn), undefined, { equals: false });
 }
 
 export function createLog<T>(value: MaybeAccessor<T>, ...args: any[]) {

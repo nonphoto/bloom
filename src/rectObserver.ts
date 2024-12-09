@@ -1,8 +1,12 @@
+import { ReactiveMap } from "@solid-primitives/map";
+import { createSingletonRoot } from "@solid-primitives/rootless";
+import { MaybeAccessor, access } from "@solid-primitives/utils";
 import { Rect } from "@thi.ng/geom";
+import { Accessor, createEffect, onCleanup } from "solid-js";
+import { isServer } from "solid-js/web";
 import { Batcher } from "./batcher";
 import { walkAncestors, walkDescendants } from "./dom";
 import { rectFromDOMRect } from "./rect";
-import { SetWeakMap } from "./setWeakMap";
 
 function getRect(element: HTMLElement): Rect {
   const r = element.getBoundingClientRect();
@@ -35,24 +39,16 @@ export class RectObserver {
     callback: (entries: RectObserverEntry[]) => void,
   ) {
     let transforms = new WeakMap<HTMLElement, string>();
-    let animations = new SetWeakMap<HTMLElement, Animation>();
-
     this.#batcher.addEventListener(
       "prerun",
       () => {
         walkDescendants(root, (element) => {
           transforms.set(element, element.style.transform);
           element.style.transform = "";
-          for (const animation of element.getAnimations()) {
-            if (animation.playState !== "finished") {
-              animations.add(element, animation);
-            }
-          }
         });
       },
       { passive: true },
     );
-
     this.#batcher.addEventListener(
       "postrun",
       () => {
@@ -61,17 +57,10 @@ export class RectObserver {
           if (transform) {
             element.style.transform = transform;
           }
-
-          for (const animation of animations.get(element) ?? []) {
-            animation.play();
-          }
         });
-
         callback(this.#entries);
-
         this.#entries = [];
         transforms = new WeakMap();
-        animations = new SetWeakMap();
       },
       { passive: true },
     );
@@ -85,10 +74,10 @@ export class RectObserver {
     });
   }
 
-  async getRect(element: HTMLElement) {
+  async getRect(element: HTMLElement): Promise<Rect> {
     return new Promise((resolve) => {
       let rect: Rect;
-      this.#batcher.addEventListener("postrun", resolve, {
+      this.#batcher.addEventListener("postrun", () => void resolve(rect), {
         once: true,
         passive: true,
       });
@@ -112,4 +101,79 @@ export class RectObserver {
     this.#elements.clear();
     this.#resizeObserver.disconnect();
   }
+}
+
+interface MakeRectObserverReturn {
+  invalidate(element: HTMLElement): void;
+  getRect(element: HTMLElement): Promise<Rect>;
+  observe(target: HTMLElement): void;
+  unobserve(target: HTMLElement): void;
+}
+
+interface UseRectObserverReturn extends MakeRectObserverReturn {
+  rects: ReactiveMap<HTMLElement, Rect | null>;
+}
+
+export function makeRectObserver(
+  callback: (entries: RectObserverEntry[]) => void,
+): MakeRectObserverReturn {
+  if (isServer) {
+    return {
+      async invalidate() {},
+      async getRect() {
+        return new Promise<Rect>(() => {});
+      },
+      observe() {},
+      unobserve() {},
+    };
+  } else {
+    const observer = new RectObserver(document.documentElement, callback);
+    onCleanup(() => {
+      observer.disconnect();
+    });
+    return {
+      invalidate: observer.invalidate.bind(observer),
+      getRect: observer.getRect.bind(observer),
+      observe: observer.observe.bind(observer),
+      unobserve: observer.unobserve.bind(observer),
+    };
+  }
+}
+
+export const useRectObserver = createSingletonRoot<UseRectObserverReturn>(
+  () => {
+    const rects = new ReactiveMap<HTMLElement, Rect | null>();
+    const observer = makeRectObserver((entries) => {
+      for (const { target, rect } of entries) {
+        if (rects.has(target)) {
+          rects.set(target, rect);
+        }
+      }
+    });
+    return {
+      rects,
+      ...observer,
+    };
+  },
+);
+
+export function createRect(
+  element: MaybeAccessor<HTMLElement | undefined>,
+): Accessor<Rect | undefined> {
+  const { rects, observe, unobserve } = useRectObserver();
+  createEffect(() => {
+    const elementValue = access(element);
+    if (elementValue) {
+      rects.set(elementValue, null);
+      observe(elementValue);
+      onCleanup(() => {
+        rects.delete(elementValue);
+        unobserve(elementValue);
+      });
+    }
+  });
+  return () => {
+    const elementValue = access(element);
+    return elementValue ? (rects.get(elementValue) ?? undefined) : undefined;
+  };
 }

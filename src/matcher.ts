@@ -1,70 +1,67 @@
-import { Batcher, BatcherCallback } from "./batcher";
+import { Batcher } from "./batcher";
 
 export type MatcherAttempt<T, U> = {
-	value: T;
-	onSuccess: (value: U) => void;
-	onFailure: () => void;
+  value: T;
+  onSuccess: (value: U) => void;
+  onFailure: () => void;
 };
 
 export class Matcher<Enter, Exit> {
-	#entering = new Set<MatcherAttempt<Enter, Exit>>();
-	#exiting = new Set<MatcherAttempt<Exit, Enter>>();
-	#onRun: (run: BatcherCallback<void>) => void = (run) => run();
-	#batcher = new Batcher({
-		onRun: (run) => {
-			const entering = this.#entering.values();
-			const exiting = this.#exiting.values();
+  #entering = new Set<MatcherAttempt<Enter, Exit>>();
+  #exiting = new Set<MatcherAttempt<Exit, Enter>>();
+  #batcher = new Batcher();
 
-			const firstEnter = entering.next();
-			const firstExit = exiting.next();
+  constructor() {
+    this.#batcher.addEventListener("prerun", () => {
+      const entering = this.#entering.values();
+      const exiting = this.#exiting.values();
 
-			if (!firstEnter.done && !firstExit.done) {
-				firstEnter.value.onSuccess(firstExit.value.value);
-				firstExit.value.onSuccess(firstEnter.value.value);
-			}
+      const firstEnter = entering.next();
+      const firstExit = exiting.next();
 
-			for (const attempt of entering) {
-				attempt.onFailure();
-			}
+      if (!firstEnter.done && !firstExit.done) {
+        firstEnter.value.onSuccess(firstExit.value.value);
+        firstExit.value.onSuccess(firstEnter.value.value);
+      }
 
-			for (const attempt of exiting) {
-				attempt.onFailure();
-			}
+      for (const attempt of entering) {
+        attempt.onFailure();
+      }
 
-			this.#onRun(run);
+      for (const attempt of exiting) {
+        attempt.onFailure();
+      }
+    });
 
-			this.#entering.clear();
-			this.#exiting.clear();
-		},
-	});
+    this.#batcher.addEventListener("postrun", () => {
+      this.#entering.clear();
+      this.#exiting.clear();
+    });
+  }
 
-	constructor(options?: { onRun?: (run: BatcherCallback<void>) => void }) {
-		this.#onRun = options?.onRun ?? this.#onRun;
-	}
+  #attempt<Send, Receive>(
+    value: Send,
+    set: Set<MatcherAttempt<Send, Receive>>,
+    onSuccess: (value: Receive) => void,
+    onFailure: () => void,
+  ): void {
+    set.add({ value, onSuccess, onFailure });
+    this.#batcher.enqueue();
+  }
 
-	#attempt<Send, Receive>(
-		value: Send,
-		set: Set<MatcherAttempt<Send, Receive>>,
-		onSuccess: (value: Receive) => void,
-		onFailure: () => void,
-	): void {
-		set.add({ value, onSuccess, onFailure });
-		this.#batcher.task();
-	}
+  attemptEnter(
+    value: Enter,
+    onSuccess: (value: Exit) => void,
+    onFailure: () => void,
+  ): void {
+    this.#attempt(value, this.#entering, onSuccess, onFailure);
+  }
 
-	attemptEnter(
-		value: Enter,
-		onSuccess: (value: Exit) => void,
-		onFailure: () => void,
-	): void {
-		this.#attempt(value, this.#entering, onSuccess, onFailure);
-	}
-
-	attemptExit(
-		value: Exit,
-		onSuccess: (value: Enter) => void,
-		onFailure: () => void,
-	): void {
-		this.#attempt(value, this.#exiting, onSuccess, onFailure);
-	}
+  attemptExit(
+    value: Exit,
+    onSuccess: (value: Enter) => void,
+    onFailure: () => void,
+  ): void {
+    this.#attempt(value, this.#exiting, onSuccess, onFailure);
+  }
 }

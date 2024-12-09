@@ -1,7 +1,5 @@
-export * from "./borderRadius";
 export * from "./mouse";
 export * from "./positioningObserver";
-export * from "./rectObserver";
 export * from "./spring";
 export * from "./time";
 export * from "./transform";

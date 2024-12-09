@@ -23,8 +23,8 @@ import {
 import { Vec } from "@thi.ng/vectors";
 import { Properties } from "csstype";
 
-const maxKeyframes = 120;
-const frameDuration = 1_000 / 60;
+const maxKeyframes = 60;
+const frameDuration = 1_000 / 30;
 
 export type CSSPropertyIterables = {
   [K in keyof Properties]: Iterable<Properties[K]>;
@@ -67,6 +67,7 @@ export async function run(
   fnx: (animation: Animation) => void,
 ): Promise<void> {
   for (let animation of iterator(tx, time())) {
+    animation.play();
     fnx(animation);
     await animation.finished;
   }

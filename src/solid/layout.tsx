@@ -8,7 +8,7 @@ import {
   useContext,
 } from "solid-js";
 import { layoutCreate, Layout as LayoutType } from "../layout";
-import { createRect } from "./rectObserver";
+import { createRect } from "../rectObserver";
 
 interface LayoutContext extends LayoutType {}
 

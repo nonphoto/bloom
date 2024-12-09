@@ -11,7 +11,7 @@ import {
   untrack,
 } from "solid-js";
 import { Matcher } from "../matcher";
-import { useRectObserver } from "./rectObserver";
+import { useRectObserver } from "../rectObserver";
 import { useDisposal, useUnmounted } from "./zombie";
 
 export interface ViewTransitionOptions {
