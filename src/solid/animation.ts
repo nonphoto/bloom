@@ -1,25 +1,22 @@
 import { access, MaybeAccessor } from "@solid-primitives/utils";
 import { comp, Transducer } from "@thi.ng/transducers";
-import { Properties } from "csstype";
 import { createMemo, createSignal, untrack } from "solid-js";
-import { animation, keyframes, run } from "../behavior";
+import { animation, run } from "../behavior";
 
-export function createAnimation<T extends keyof Properties>(
+export function createAnimation(
   element: MaybeAccessor<Element | undefined>,
-  propName: MaybeAccessor<T>,
-  tx: MaybeAccessor<Transducer<number, Properties[T]> | undefined>,
+  keyframes: MaybeAccessor<Transducer<number, Keyframe> | undefined>,
   timeline?: MaybeAccessor<AnimationTimeline | undefined>,
 ) {
   const [current, setCurrent] = createSignal<Animation>();
   const memo = createMemo(() => {
     untrack(current)?.cancel();
-    const txValue = access(tx);
+    const keyframesValue = access(keyframes);
     const elementValue = access(element);
-    if (txValue && elementValue) {
+    if (keyframesValue && elementValue) {
       return run(
         comp(
-          txValue as Transducer<number, any>,
-          keyframes(access(propName)),
+          keyframesValue,
           animation(elementValue, { fill: "both", timeline: access(timeline) }),
         ),
         setCurrent,

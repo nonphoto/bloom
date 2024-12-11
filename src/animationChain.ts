@@ -3,28 +3,37 @@ function next<T>(iterator: Iterator<T>): T | undefined {
   return done ? undefined : value;
 }
 
+interface Interruption {
+  currentTime: CSSNumberish | null;
+  playState: AnimationPlayState;
+}
+
 export class AnimationChain extends EventTarget {
-  #iterator: Iterator<Animation>;
-  #interruptTime: CSSNumberish | null = null;
+  #iterator: Iterator<Animation> | null = null;
+  #interruption: Interruption | null = null;
   animation: Animation | undefined;
 
-  constructor(iterator: Iterator<Animation>) {
+  constructor(animation: Iterator<Animation> | Animation) {
     super();
-    this.#iterator = iterator;
-    this.animation = next(iterator);
+    if (animation instanceof Animation) {
+      this.#iterator = null;
+      this.animation = animation;
+    } else {
+      this.#iterator = animation;
+      this.animation = next(animation);
+    }
   }
 
   play() {
     if (this.animation) {
-      if (this.#interruptTime !== null) {
-        this.animation.currentTime = this.#interruptTime;
-        this.#interruptTime = null;
+      if (this.#interruption) {
+        this.#interruption = null;
       }
       this.animation.play();
       this.animation.addEventListener(
         "finish",
         () => {
-          this.animation = next(this.#iterator);
+          this.animation = this.#iterator ? next(this.#iterator) : undefined;
           if (this.animation) {
             this.play();
           } else {
@@ -38,10 +47,19 @@ export class AnimationChain extends EventTarget {
 
   interrupt() {
     if (this.animation) {
-      const { currentTime, timeline, effect } = this.animation;
-      this.#interruptTime = currentTime;
+      const { currentTime, timeline, effect, playState } = this.animation;
+      this.#interruption = { currentTime, playState };
       this.animation.cancel();
       this.animation = new Animation(effect, timeline);
+    }
+  }
+
+  resume() {
+    if (this.animation && this.#interruption) {
+      this.animation.currentTime = this.#interruption.currentTime;
+      if (this.#interruption.playState === "running") {
+        this.play();
+      }
     }
   }
 

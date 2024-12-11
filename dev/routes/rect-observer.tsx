@@ -17,10 +17,13 @@ export default function WaveRoute() {
   const bodyRect = createRect(safeDocument()?.body);
   const width = () => bodyRect()?.size[0] ?? 1;
 
-  createAnimation(element, "transform", () =>
-    map<number, string>((t) =>
-      styleTranslateX(width() / 2 + (Math.sin(t / 1000) * width()) / 2),
-    ),
+  createAnimation(
+    element,
+    map((t) => ({
+      transform: styleTranslateX(
+        width() / 2 + (Math.sin(t / 1000) * width()) / 2,
+      ),
+    })),
   );
 
   createEventListener(safeDocument()?.body, "click", () => {

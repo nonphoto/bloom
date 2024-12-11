@@ -4,9 +4,11 @@ import { MaybeAccessor, access } from "@solid-primitives/utils";
 import { Rect } from "@thi.ng/geom";
 import { Accessor, createEffect, onCleanup } from "solid-js";
 import { isServer } from "solid-js/web";
+import { AnimationChain } from "./animationChain";
 import { Batcher } from "./batcher";
 import { walkAncestors, walkDescendants } from "./dom";
 import { rectFromDOMRect } from "./rect";
+import { SetWeakMap } from "./setWeakMap";
 
 function getRect(element: HTMLElement): Rect {
   const r = element.getBoundingClientRect();
@@ -17,10 +19,14 @@ function getRect(element: HTMLElement): Rect {
   return rectFromDOMRect(r);
 }
 
-export type RectObserverEntry = {
+export interface RectObserverEntry {
   target: HTMLElement;
   rect: Rect;
-};
+}
+
+export interface RectObserverOptions {
+  getAnimationChain?: (animation: Animation) => AnimationChain | undefined;
+}
 
 export class RectObserver {
   #batcher = new Batcher();
@@ -37,14 +43,23 @@ export class RectObserver {
   constructor(
     root: HTMLElement,
     callback: (entries: RectObserverEntry[]) => void,
+    options?: RectObserverOptions,
   ) {
     let transforms = new WeakMap<HTMLElement, string>();
+    let animationChains = new SetWeakMap<HTMLElement, AnimationChain>();
     this.#batcher.addEventListener(
       "prerun",
       () => {
         walkDescendants(root, (element) => {
           transforms.set(element, element.style.transform);
           element.style.transform = "";
+          for (const animation of element.getAnimations()) {
+            const animationChain =
+              options?.getAnimationChain?.(animation) ??
+              new AnimationChain(animation);
+            animationChain.interrupt();
+            animationChains.add(element, animationChain);
+          }
         });
       },
       { passive: true },
@@ -56,6 +71,9 @@ export class RectObserver {
           const transform = transforms.get(element);
           if (transform) {
             element.style.transform = transform;
+          }
+          for (const animationChain of animationChains.get(element) ?? []) {
+            animationChain.resume();
           }
         });
         callback(this.#entries);
