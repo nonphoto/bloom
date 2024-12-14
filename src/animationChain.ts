@@ -26,9 +26,6 @@ export class AnimationChain extends EventTarget {
 
   play() {
     if (this.animation) {
-      if (this.#interruption) {
-        this.#interruption = null;
-      }
       this.animation.play();
       this.animation.addEventListener(
         "finish",
@@ -60,6 +57,7 @@ export class AnimationChain extends EventTarget {
       if (this.#interruption.playState === "running") {
         this.play();
       }
+      this.#interruption = null;
     }
   }
 
