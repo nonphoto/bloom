@@ -9,6 +9,7 @@ import { Batcher } from "./batcher";
 import { walkAncestors, walkDescendants } from "./dom";
 import { rectFromDOMRect } from "./rect";
 import { SetWeakMap } from "./setWeakMap";
+import { useAnimationChains } from "./solid/animation";
 
 function getRect(element: HTMLElement): Rect {
   const r = element.getBoundingClientRect();
@@ -54,11 +55,12 @@ export class RectObserver {
           transforms.set(element, element.style.transform);
           element.style.transform = "";
           for (const animation of element.getAnimations()) {
-            const animationChain =
-              options?.getAnimationChain?.(animation) ??
-              new AnimationChain(animation);
-            animationChain.interrupt();
-            animationChains.add(element, animationChain);
+            console.log(animation.playState);
+            const animationChain = options?.getAnimationChain?.(animation);
+            if (animationChain) {
+              animationChain.interrupt();
+              animationChains.add(element, animationChain);
+            }
           }
         });
       },
@@ -134,6 +136,7 @@ interface UseRectObserverReturn extends MakeRectObserverReturn {
 
 export function makeRectObserver(
   callback: (entries: RectObserverEntry[]) => void,
+  options?: RectObserverOptions,
 ): MakeRectObserverReturn {
   if (isServer) {
     return {
@@ -145,7 +148,11 @@ export function makeRectObserver(
       unobserve() {},
     };
   } else {
-    const observer = new RectObserver(document.documentElement, callback);
+    const observer = new RectObserver(
+      document.documentElement,
+      callback,
+      options,
+    );
     onCleanup(() => {
       observer.disconnect();
     });
@@ -160,14 +167,20 @@ export function makeRectObserver(
 
 export const useRectObserver = createSingletonRoot<UseRectObserverReturn>(
   () => {
+    const animationChains = useAnimationChains();
     const rects = new ReactiveMap<HTMLElement, Rect | null>();
-    const observer = makeRectObserver((entries) => {
-      for (const { target, rect } of entries) {
-        if (rects.has(target)) {
-          rects.set(target, rect);
+    const observer = makeRectObserver(
+      (entries) => {
+        for (const { target, rect } of entries) {
+          if (rects.has(target)) {
+            rects.set(target, rect);
+          }
         }
-      }
-    });
+      },
+      {
+        getAnimationChain: (animation) => animationChains.get(animation),
+      },
+    );
     return {
       rects,
       ...observer,

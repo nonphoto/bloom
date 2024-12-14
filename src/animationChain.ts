@@ -8,51 +8,66 @@ interface Interruption {
   playState: AnimationPlayState;
 }
 
+export interface AnimationChainChangeEventDetail {
+  prev: Animation;
+  next: Animation;
+}
+
 export class AnimationChain extends EventTarget {
-  #iterator: Iterator<Animation> | null = null;
+  #iterator: Iterator<Animation>;
   #interruption: Interruption | null = null;
-  animation: Animation | undefined;
+  animation: Animation;
 
   constructor(animation: Iterator<Animation> | Animation) {
     super();
     if (animation instanceof Animation) {
-      this.#iterator = null;
+      this.#iterator = [][Symbol.iterator]();
       this.animation = animation;
     } else {
       this.#iterator = animation;
-      this.animation = next(animation);
+      this.animation = next(animation) ?? new Animation();
     }
+  }
+
+  #change(nextAnimation: Animation) {
+    this.dispatchEvent(
+      new CustomEvent("change", {
+        detail: { prev: this.animation, next: nextAnimation },
+      }),
+    );
+    this.animation = nextAnimation;
   }
 
   play() {
-    if (this.animation) {
-      this.animation.play();
-      this.animation.addEventListener(
-        "finish",
-        () => {
-          this.animation = this.#iterator ? next(this.#iterator) : undefined;
-          if (this.animation) {
-            this.play();
-          } else {
-            this.dispatchEvent(new Event("finish"));
-          }
-        },
-        { once: true },
-      );
-    }
+    this.animation.play();
+    this.animation.addEventListener(
+      "finish",
+      () => {
+        const nextAnimation = this.#iterator ? next(this.#iterator) : undefined;
+        if (nextAnimation) {
+          this.#change(nextAnimation);
+          this.play();
+        } else {
+          this.dispatchEvent(new Event("finish"));
+        }
+      },
+      { once: true },
+    );
+  }
+
+  cancel() {
+    this.animation.cancel();
   }
 
   interrupt() {
-    if (this.animation) {
-      const { currentTime, timeline, effect, playState } = this.animation;
-      this.#interruption = { currentTime, playState };
-      this.animation.cancel();
-      this.animation = new Animation(effect, timeline);
-    }
+    const { currentTime, timeline, effect, playState } = this.animation;
+    this.#interruption = { currentTime, playState };
+    this.animation.cancel();
+    this.#change(new Animation(effect, timeline));
   }
 
   resume() {
-    if (this.animation && this.#interruption) {
+    if (this.#interruption) {
       this.animation.currentTime = this.#interruption.currentTime;
       if (this.#interruption.playState === "running") {
         this.play();

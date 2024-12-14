@@ -1,31 +1,57 @@
+import { createEventListener } from "@solid-primitives/event-listener";
+import { ReactiveMap } from "@solid-primitives/map";
+import { createSingletonRoot } from "@solid-primitives/rootless";
 import { access, MaybeAccessor } from "@solid-primitives/utils";
-import { comp, Transducer } from "@thi.ng/transducers";
-import { createMemo, createSignal, untrack } from "solid-js";
-import { animation, run } from "../behavior";
+import { comp, iterator, Transducer } from "@thi.ng/transducers";
+import { createMemo } from "solid-js";
+import {
+  AnimationChain,
+  AnimationChainChangeEventDetail,
+} from "../animationChain";
+import { animation, time } from "../behavior";
+
+export const useAnimationChains = createSingletonRoot(() => {
+  return new ReactiveMap<Animation, AnimationChain>();
+});
 
 export function createAnimation(
   element: MaybeAccessor<Element | undefined>,
   keyframes: MaybeAccessor<Transducer<number, Keyframe> | undefined>,
   timeline?: MaybeAccessor<AnimationTimeline | undefined>,
 ) {
-  const [current, setCurrent] = createSignal<Animation>();
-  const memo = createMemo(() => {
-    untrack(current)?.cancel();
+  const animationChains = useAnimationChains();
+  const memo = createMemo<AnimationChain | undefined>((prev) => {
+    prev?.cancel();
     const keyframesValue = access(keyframes);
     const elementValue = access(element);
     if (keyframesValue && elementValue) {
-      return run(
-        comp(
-          keyframesValue,
-          animation(elementValue, { fill: "both", timeline: access(timeline) }),
+      const chain = new AnimationChain(
+        iterator(
+          comp(
+            keyframesValue,
+            animation(elementValue, {
+              fill: "both",
+              timeline: access(timeline),
+            }),
+          ),
+          time(),
         ),
-        setCurrent,
-      ).catch((error) => {
-        if (error.name !== "AbortError") {
-          throw error;
-        }
+      );
+      animationChains.set(chain.animation, chain);
+      createEventListener(
+        chain,
+        "change",
+        (event: CustomEventInit<AnimationChainChangeEventDetail>) => {
+          animationChains.delete(event.detail!.prev);
+          animationChains.set(event.detail!.next, chain);
+        },
+      );
+      createEventListener(chain, "finish", () => {
+        animationChains.delete(chain.animation);
       });
+      chain.play();
+      return chain;
     }
   });
-  return [memo, current];
+  return memo;
 }

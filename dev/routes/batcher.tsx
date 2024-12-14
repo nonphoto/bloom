@@ -12,7 +12,6 @@ export default function BatcherRoute() {
   });
 
   batcher.addEventListener("postrun", () => {
-    console.log(entries);
     entries = [];
   });
 
