@@ -2,11 +2,10 @@ import { access } from "@solid-primitives/utils";
 import { rect, Rect } from "@thi.ng/geom";
 import { Mat } from "@thi.ng/matrices";
 import { comp, map, permutations } from "@thi.ng/transducers";
-import { createMemo, createSignal } from "solid-js";
+import { createSignal } from "solid-js";
 import {
   createRect,
   createSpring2,
-  maybe,
   springPosition2,
   styleTransformMat2d,
   tuples,
@@ -16,18 +15,12 @@ import { createAnimation } from "../../src/solid/animation";
 const areas = [...permutations([1, 2, 3], [1, 2, 3])];
 
 function rectUntransformMat2d(a: Rect, b: Rect, out: Mat): Mat {
-  // out[0] = b.size[0] / a.size[0];
-  // out[1] = 0;
-  // out[2] = 0;
-  // out[3] = b.size[1] / a.size[1];
-  // out[4] = b.pos[0] + b.size[0] / 2 - (a.pos[0] + a.size[0] / 2);
-  // out[5] = b.pos[1] + b.size[1] / 2 - (a.pos[1] + a.size[1] / 2);
-  out[0] = 1;
+  out[0] = b.size[0] / a.size[0];
   out[1] = 0;
   out[2] = 0;
-  out[3] = 1;
-  out[4] = b.pos[0] - a.pos[0];
-  out[5] = b.pos[1] - a.pos[1];
+  out[3] = b.size[1] / a.size[1];
+  out[4] = b.pos[0] + b.size[0] / 2 - (a.pos[0] + a.size[0] / 2);
+  out[5] = b.pos[1] + b.size[1] / 2 - (a.pos[1] + a.size[1] / 2);
   return out;
 }
 
@@ -48,22 +41,19 @@ export default function Layout() {
     () => access(targetRect)?.size,
   );
 
-  // createLog(() => access(targetRect)?.pos);
-
-  const tx = createMemo(() =>
-    maybe(targetRect, (targetRect) =>
-      comp(
-        tuples(springPosition2(pos()), springPosition2(size())),
-        map((args) =>
-          styleTransformMat2d(
-            rectUntransformMat2d(targetRect, rect(...args), []),
-          ),
-        ),
-      ),
-    ),
-  );
-
-  createAnimation(element, "transform", tx);
+  createAnimation(element, () => {
+    const targetRectValue = targetRect();
+    return comp(
+      tuples(springPosition2(pos()), springPosition2(size())),
+      map((args) => ({
+        transform: targetRectValue
+          ? styleTransformMat2d(
+              rectUntransformMat2d(targetRectValue, rect(...args), []),
+            )
+          : undefined,
+      })),
+    );
+  });
 
   return (
     <div

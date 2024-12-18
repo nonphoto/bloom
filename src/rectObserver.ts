@@ -55,7 +55,6 @@ export class RectObserver {
           transforms.set(element, element.style.transform);
           element.style.transform = "";
           for (const animation of element.getAnimations()) {
-            console.log(animation.playState);
             const animationChain = options?.getAnimationChain?.(animation);
             if (animationChain) {
               animationChain.interrupt();
