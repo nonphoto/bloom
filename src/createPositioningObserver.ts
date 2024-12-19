@@ -5,12 +5,12 @@ import { isServer } from "solid-js/web";
 import {
   PositioningObserver,
   PositioningObserverEntry,
-} from "../positioningObserver";
+} from "./positioningObserver";
 
 export function makePositioningObserver(
   callback: (entries: PositioningObserverEntry[]) => void,
 ): {
-  invalidate(element: HTMLElement): Promise<void>;
+  invalidate(element: HTMLElement): void;
   observe(target: HTMLElement): void;
   unobserve(target: HTMLElement): void;
 } {

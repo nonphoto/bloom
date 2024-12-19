@@ -7,9 +7,9 @@ import { isServer } from "solid-js/web";
 import { AnimationChain } from "./animationChain";
 import { Batcher } from "./batcher";
 import { walkAncestors, walkDescendants } from "./dom";
-import { rectFromDOMRect } from "./rect";
+import { rectFromDOMRect } from "./rect/fromDOMRect";
 import { SetWeakMap } from "./setWeakMap";
-import { useAnimationChains } from "./solid/animation";
+import { useAnimationChains } from "./useAnimationChains";
 
 function getRect(element: HTMLElement): Rect {
   const r = element.getBoundingClientRect();

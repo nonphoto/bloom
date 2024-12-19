@@ -1,28 +1,14 @@
 import { access } from "@solid-primitives/utils";
-import { rect, Rect } from "@thi.ng/geom";
-import { Mat } from "@thi.ng/matrices";
+import { rect } from "@thi.ng/geom";
 import { comp, map, permutations } from "@thi.ng/transducers";
 import { createSignal } from "solid-js";
-import {
-  createRect,
-  createSpring2,
-  springPosition2,
-  styleTransformMat2d,
-  tuples,
-} from "../../src";
-import { createAnimation } from "../../src/solid/animation";
+import { createRect, styleTransformMat2d } from "../../src";
+import { createAnimation } from "../../src/createAnimation";
+import { createSpring2 } from "../../src/createSpring";
+import { untransform } from "../../src/rect/untransform";
+import { springPosition2, tuples } from "../../src/transducer";
 
 const areas = [...permutations([1, 2, 3], [1, 2, 3])];
-
-function rectUntransformMat2d(a: Rect, b: Rect, out: Mat): Mat {
-  out[0] = b.size[0] / a.size[0];
-  out[1] = 0;
-  out[2] = 0;
-  out[3] = b.size[1] / a.size[1];
-  out[4] = b.pos[0] + b.size[0] / 2 - (a.pos[0] + a.size[0] / 2);
-  out[5] = b.pos[1] + b.size[1] / 2 - (a.pos[1] + a.size[1] / 2);
-  return out;
-}
 
 export default function Layout() {
   const [index, setIndex] = createSignal(0);
@@ -47,9 +33,7 @@ export default function Layout() {
       tuples(springPosition2(pos()), springPosition2(size())),
       map((args) => ({
         transform: targetRectValue
-          ? styleTransformMat2d(
-              rectUntransformMat2d(targetRectValue, rect(...args), []),
-            )
+          ? styleTransformMat2d(untransform(targetRectValue, rect(...args), []))
           : undefined,
       })),
     );

@@ -1,18 +1,13 @@
 import { createEventListener } from "@solid-primitives/event-listener";
-import { ReactiveMap } from "@solid-primitives/map";
-import { createSingletonRoot } from "@solid-primitives/rootless";
 import { access, MaybeAccessor } from "@solid-primitives/utils";
 import { comp, iterator, Transducer } from "@thi.ng/transducers";
 import { createMemo } from "solid-js";
 import {
   AnimationChain,
   AnimationChainChangeEventDetail,
-} from "../animationChain";
-import { animation, time } from "../behavior";
-
-export const useAnimationChains = createSingletonRoot(() => {
-  return new ReactiveMap<Animation, AnimationChain>();
-});
+} from "./animationChain";
+import { animations, time } from "./transducer";
+import { useAnimationChains } from "./useAnimationChains";
 
 export function createAnimation(
   element: MaybeAccessor<Element | undefined>,
@@ -29,8 +24,8 @@ export function createAnimation(
         iterator(
           comp(
             keyframesValue,
-            animation(elementValue, {
-              fill: "both",
+            animations(elementValue, {
+              fill: "none",
               timeline: access(timeline),
             }),
           ),

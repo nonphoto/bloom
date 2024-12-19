@@ -18,7 +18,7 @@ import { velocityAt } from "@nonphoto/spring/src/spring.js";
 import { access, MaybeAccessor } from "@solid-primitives/utils";
 import { Vec } from "@thi.ng/vectors";
 import { Accessor, createMemo } from "solid-js";
-import { Clock } from "./time";
+import { Clock } from "./clock";
 
 export function createSpring(
   position?: MaybeAccessor<number | undefined>,
