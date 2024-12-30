@@ -1,4 +1,10 @@
-import { fromValues, positionAt, setValues, Spring } from "@nonphoto/spring";
+import {
+  fromValues,
+  positionAt,
+  setValues,
+  Spring,
+  velocityAt,
+} from "@nonphoto/spring";
 import {
   fromValues2,
   fromValues3,
@@ -14,15 +20,12 @@ import {
   velocityAt3,
   velocityAt4,
 } from "@nonphoto/spring-vector";
-import { velocityAt } from "@nonphoto/spring/src/spring.js";
 import { access, MaybeAccessor } from "@solid-primitives/utils";
 import { Vec } from "@thi.ng/vectors";
 import { Accessor, createMemo } from "solid-js";
 import { Clock } from "./clock";
 
 export function createSpring(
-  position?: MaybeAccessor<number | undefined>,
-  velocity?: MaybeAccessor<number | undefined>,
   target?: MaybeAccessor<number | undefined>,
   damping?: MaybeAccessor<number | undefined>,
   criticality?: MaybeAccessor<number | undefined>,
@@ -41,8 +44,8 @@ export function createSpring(
             access(criticality),
           )
         : fromValues(
-            access(position),
-            access(velocity),
+            undefined,
+            undefined,
             access(target),
             access(damping),
             access(criticality),
@@ -54,8 +57,6 @@ export function createSpring(
 }
 
 export function createSpring2(
-  position?: MaybeAccessor<Vec | undefined>,
-  velocity?: MaybeAccessor<Vec | undefined>,
   target?: MaybeAccessor<Vec | undefined>,
   damping?: MaybeAccessor<number | undefined>,
   criticality?: MaybeAccessor<number | undefined>,
@@ -74,8 +75,8 @@ export function createSpring2(
             access(criticality),
           )
         : fromValues2(
-            access(position),
-            access(velocity),
+            undefined,
+            undefined,
             access(target),
             access(damping),
             access(criticality),
@@ -87,8 +88,6 @@ export function createSpring2(
 }
 
 export function createSpring3(
-  position?: MaybeAccessor<Vec | undefined>,
-  velocity?: MaybeAccessor<Vec | undefined>,
   target?: MaybeAccessor<Vec | undefined>,
   damping?: MaybeAccessor<number | undefined>,
   criticality?: MaybeAccessor<number | undefined>,
@@ -107,8 +106,8 @@ export function createSpring3(
             access(criticality),
           )
         : fromValues3(
-            access(position),
-            access(velocity),
+            undefined,
+            undefined,
             access(target),
             access(damping),
             access(criticality),
@@ -120,8 +119,6 @@ export function createSpring3(
 }
 
 export function createSpring4(
-  position?: MaybeAccessor<Vec | undefined>,
-  velocity?: MaybeAccessor<Vec | undefined>,
   target?: MaybeAccessor<Vec | undefined>,
   damping?: MaybeAccessor<number | undefined>,
   criticality?: MaybeAccessor<number | undefined>,
@@ -140,8 +137,8 @@ export function createSpring4(
             access(criticality),
           )
         : fromValues4(
-            access(position),
-            access(velocity),
+            undefined,
+            undefined,
             access(target),
             access(damping),
             access(criticality),
