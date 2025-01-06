@@ -1,19 +1,20 @@
 import { fromValues, halflifeToDamping } from "@nonphoto/spring";
-import { comp, map } from "@thi.ng/transducers";
+import { comp, map, run } from "@thi.ng/transducers";
 import { createEffect } from "solid-js";
+import { styleTranslate } from "../../src";
 import {
-  animation,
+  animations,
   keyframes,
-  run,
   springPosition,
-  styleTranslate,
+  time,
   tuples,
-} from "~/../src";
+} from "../../src/transducer";
 
 export default function () {
   let element: HTMLDivElement;
 
   createEffect(() => {
+    let currentAnimation: Animation | null = null;
     run(
       comp(
         tuples(
@@ -22,10 +23,17 @@ export default function () {
         ),
         map(styleTranslate),
         keyframes("transform"),
-        animation(element),
+        animations(element!),
       ),
-      console.log,
-    ).then(console.log);
+      (animation) => {
+        if (currentAnimation) {
+          currentAnimation.cancel();
+        }
+        currentAnimation = animation;
+        animation.play();
+      },
+      time(),
+    );
   });
 
   return (
