@@ -2,13 +2,12 @@ import { createEventListener } from "@solid-primitives/event-listener";
 import { map } from "@thi.ng/transducers";
 import { createSignal } from "solid-js";
 import {
-  createLog,
+  createAnimation,
   createRect,
   safeDocument,
   styleTranslateX,
   useRectObserver,
 } from "../../src";
-import { createAnimation } from "../../src/solid/animation";
 
 export default function WaveRoute() {
   const [element, setElement] = createSignal<HTMLElement>();
@@ -32,10 +31,6 @@ export default function WaveRoute() {
       invalidate(elementValue);
     }
   });
-
-  const rect = createRect(element);
-
-  createLog(() => rect()?.pos);
 
   return (
     <div

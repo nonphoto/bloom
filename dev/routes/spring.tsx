@@ -3,12 +3,12 @@ import { comp, map } from "@thi.ng/transducers";
 import { Vec } from "@thi.ng/vectors";
 import { createSignal } from "solid-js";
 import {
+  createAnimation,
   createSpring2,
   safeDocument,
-  springPosition2,
   styleTranslate,
-} from "~/../src";
-import { createAnimation } from "../../src/solid/animation";
+} from "../../src";
+import { keyframes, springPosition2 } from "../../src/transducer";
 
 export default function SpringRoute() {
   const [element, setElement] = createSignal<HTMLElement>();
@@ -23,10 +23,14 @@ export default function SpringRoute() {
     ]);
   });
 
-  const spring = createSpring2(undefined, undefined, target, 0.01, 0.01);
+  const spring = createSpring2(target, 0.01, 0.01);
 
-  createAnimation(element, "transform", () =>
-    comp(springPosition2(spring()), map(styleTranslate)),
+  createAnimation(element, () =>
+    comp(
+      springPosition2(spring()),
+      map(styleTranslate),
+      keyframes("transform"),
+    ),
   );
 
   return (
