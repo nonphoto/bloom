@@ -10,7 +10,7 @@ import { springPosition2, tuples } from "../../src/transducer";
 
 const areas = [...permutations([1, 2, 3], [1, 2, 3])];
 
-export default function Layout() {
+export default function GridLayoutRoute() {
   const [index, setIndex] = createSignal(0);
   const [element, setElement] = createSignal<HTMLElement>();
 
