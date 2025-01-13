@@ -52,14 +52,16 @@ function List({
                 <Zombie>
                   {(unmounted, dispose) => (
                     <TaskListItem as="li" label={`Item ${id}`}>
-                      <button onClick={[list.swap, id]}>
-                        <Show
-                          when={variant === "left"}
-                          fallback={<FiCornerDownLeft />}
-                        >
-                          <FiCornerDownRight />
-                        </Show>
-                      </button>
+                      <Show when={!unmounted()}>
+                        <button onClick={[list.swap, id]}>
+                          <Show
+                            when={variant === "left"}
+                            fallback={<FiCornerDownLeft />}
+                          >
+                            <FiCornerDownRight />
+                          </Show>
+                        </button>
+                      </Show>
                       <Show
                         when={unmounted()}
                         fallback={

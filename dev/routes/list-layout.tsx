@@ -1,57 +1,47 @@
 import {
+  FiCheck,
   FiCornerDownLeft,
   FiCornerDownRight,
-  FiDelete,
   FiX,
 } from "solid-icons/fi";
-import { Accessor, createSignal, For, Setter, Show } from "solid-js";
+import { Accessor, createSignal, For, onCleanup, Setter, Show } from "solid-js";
 import { TaskList } from "~/components/TaskList";
 import { TaskListItem } from "~/components/TaskListItem";
-import { Zombie, ZombieBoundary } from "../../src";
+import { createSwapList, SwapListStore } from "~/util/createSwapList";
+import {
+  Matcher,
+  useDisposal,
+  useUnmounted,
+  Zombie,
+  ZombieBoundary,
+} from "../../src";
 
-export default function ZombieRoute() {
-  let lastId = 0;
-  const [idsA, setIdsA] = createSignal<number[]>([]);
-  const [idsB, setIdsB] = createSignal<number[]>([]);
+type Variant = "left" | "right";
 
-  function deleteId(id: number, setIds: Setter<number[]>) {
-    setIds((ids) => ids.filter((filterId) => id != filterId));
-  }
+interface ListItemStore {
+  id: number;
+  matcher: Matcher<Variant>;
+}
 
-  function addId(id: number, setIds: Setter<number[]>) {
-    setIds((ids) => [...ids, id++]);
-  }
+export default function MatcherRoute() {
+  const [listA, listB] = createSwapList<ListItemStore>();
+  const [currentId, setCurrentId] = createSignal(0);
 
   return (
     <ZombieBoundary>
       {(zombies) => (
-        <div
-          style={{
-            display: "flex",
-            gap: "1em",
-            padding: "1em",
-            "align-items": "start",
-          }}
-        >
+        <div style={{ display: "flex", gap: "1em", padding: "1em" }}>
           <List
+            list={listA}
+            currentId={currentId}
+            setCurrentId={setCurrentId}
             variant="left"
-            ids={idsA}
-            addId={() => addId(lastId++, setIdsA)}
-            deleteId={(id) => deleteId(id, setIdsA)}
-            swapId={(id) => {
-              deleteId(id, setIdsA);
-              addId(id, setIdsB);
-            }}
           />
           <List
+            list={listB}
+            currentId={currentId}
+            setCurrentId={setCurrentId}
             variant="right"
-            ids={idsB}
-            addId={() => addId(lastId++, setIdsB)}
-            deleteId={(id) => deleteId(id, setIdsB)}
-            swapId={(id) => {
-              deleteId(id, setIdsB);
-              addId(id, setIdsA);
-            }}
           />
           <TaskList>{zombies()}</TaskList>
         </div>
@@ -61,53 +51,88 @@ export default function ZombieRoute() {
 }
 
 function List({
-  ids,
-  addId,
-  deleteId,
-  swapId,
+  list,
+  currentId,
+  setCurrentId,
   variant,
 }: {
-  ids: Accessor<number[]>;
-  addId: () => void;
-  deleteId: (id: number) => void;
-  swapId: (id: number) => void;
-  variant: "left" | "right";
+  list: SwapListStore<ListItemStore>;
+  currentId: Accessor<number>;
+  setCurrentId: Setter<number>;
+  variant: Variant;
 }) {
+  const add = () => {
+    list.add({ id: currentId(), matcher: new Matcher() });
+    setCurrentId((id) => id + 1);
+  };
   return (
     <TaskList>
       <ul style={{ display: "contents" }}>
-        <For each={ids()}>
-          {(id) => (
+        <For each={list.items()}>
+          {(item) => (
             <Zombie>
-              {(unmounted, dispose) => (
-                <TaskListItem as="li" label={`Item ${id}`}>
-                  <button onClick={[swapId, id]}>
-                    <Show
-                      when={variant === "left"}
-                      fallback={<FiCornerDownLeft />}
-                    >
-                      <FiCornerDownRight />
-                    </Show>
-                  </button>
-                  <Show
-                    when={unmounted()}
-                    fallback={
-                      <button onClick={[deleteId, id]}>
-                        <FiX />
-                      </button>
-                    }
-                  >
-                    <button onClick={dispose}>
-                      <FiDelete />
-                    </button>
-                  </Show>
-                </TaskListItem>
-              )}
+              <ListItem item={item} list={list} variant={variant} />
             </Zombie>
           )}
         </For>
       </ul>
-      <button onClick={addId}>Add Item</button>
+      <button onClick={add}>Add Item</button>
     </TaskList>
+  );
+}
+
+function ListItem({
+  list,
+  item,
+  variant,
+}: {
+  list: SwapListStore<ListItemStore>;
+  item: ListItemStore;
+  variant: Variant;
+}) {
+  const unmounted = useUnmounted();
+  const dispose = useDisposal();
+  item.matcher.attemptEnter(
+    variant,
+    (matchVariant) => {
+      console.log(`${item.id}: Enter ${matchVariant} -> ${variant}`);
+    },
+    () => {
+      console.log(`${item.id}: Enter`);
+    },
+  );
+
+  onCleanup(() => {
+    item.matcher.attemptExit(
+      variant,
+      (matchVariant) => {
+        console.log(`${item.id}: Exit ${variant} -> ${matchVariant}`);
+      },
+      () => {
+        console.log(`${item.id}: Exit`);
+      },
+    );
+  });
+
+  return (
+    <TaskListItem as="li" label={`Item ${item.id}`}>
+      <button onClick={[list.swap, item]}>
+        <Show when={variant === "left"} fallback={<FiCornerDownLeft />}>
+          <FiCornerDownRight />
+        </Show>
+      </button>
+      <Show
+        when={unmounted()}
+        fallback={
+          <button onClick={[list.delete, item]}>
+            <FiX />
+          </button>
+        }
+      >
+        <button onClick={dispose}>
+          <FiCheck />
+        </button>
+      </Show>
+    </TaskListItem>
   );
 }
