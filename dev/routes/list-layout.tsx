@@ -1,6 +1,15 @@
-import { Accessor, createSignal, Setter } from "solid-js";
+import {
+  FiCornerDownLeft,
+  FiCornerDownRight,
+  FiDelete,
+  FiX,
+} from "solid-icons/fi";
+import { Accessor, createSignal, For, Setter, Show } from "solid-js";
+import { TaskList } from "~/components/TaskList";
+import { TaskListItem } from "~/components/TaskListItem";
+import { Zombie, ZombieBoundary } from "../../src";
 
-export default function ListLayoutRoute() {
+export default function ZombieRoute() {
   let lastId = 0;
   const [idsA, setIdsA] = createSignal<number[]>([]);
   const [idsB, setIdsB] = createSignal<number[]>([]);
@@ -10,30 +19,44 @@ export default function ListLayoutRoute() {
   }
 
   function addId(id: number, setIds: Setter<number[]>) {
-    setIds((ids) => [...ids, id]);
+    setIds((ids) => [...ids, id++]);
   }
 
   return (
-    <div style={{ display: "flex" }}>
-      <List
-        ids={idsA}
-        addId={() => addId(lastId++, setIdsA)}
-        deleteId={(id) => deleteId(id, idsA)}
-        swapId={(id) => {
-          deleteId(id, idsA);
-          addId(id, idsB);
-        }}
-      />
-      <List
-        ids={idsB}
-        addId={() => addId(lastId++, setIdsB)}
-        deleteId={(id) => deleteId(id, idsB)}
-        swapId={(id) => {
-          deleteId(id, idsB);
-          addId(id, idsA);
-        }}
-      />
-    </div>
+    <ZombieBoundary>
+      {(zombies) => (
+        <div
+          style={{
+            display: "flex",
+            gap: "1em",
+            padding: "1em",
+            "align-items": "start",
+          }}
+        >
+          <List
+            variant="left"
+            ids={idsA}
+            addId={() => addId(lastId++, setIdsA)}
+            deleteId={(id) => deleteId(id, setIdsA)}
+            swapId={(id) => {
+              deleteId(id, setIdsA);
+              addId(id, setIdsB);
+            }}
+          />
+          <List
+            variant="right"
+            ids={idsB}
+            addId={() => addId(lastId++, setIdsB)}
+            deleteId={(id) => deleteId(id, setIdsB)}
+            swapId={(id) => {
+              deleteId(id, setIdsB);
+              addId(id, setIdsA);
+            }}
+          />
+          <TaskList>{zombies()}</TaskList>
+        </div>
+      )}
+    </ZombieBoundary>
   );
 }
 
@@ -41,46 +64,50 @@ function List({
   ids,
   addId,
   deleteId,
+  swapId,
+  variant,
 }: {
   ids: Accessor<number[]>;
   addId: () => void;
   deleteId: (id: number) => void;
   swapId: (id: number) => void;
+  variant: "left" | "right";
 }) {
   return (
-    <div
-      style={{
-        display: "flex",
-        "flex-direction": "column",
-        gap: "0.5em",
-        width: "10em",
-      }}
-    >
-      <ul
-        style={{
-          display: "flex",
-          "flex-direction": "column",
-          padding: 0,
-          gap: "0.5em",
-        }}
-      >
-        {ids().map((id) => (
-          <li
-            style={{
-              display: "flex",
-              background: "#eee",
-              padding: "0.25em 0.5em",
-              border: "solid 1px gray",
-              "justify-content": "space-between",
-              gap: "0.5em",
-            }}
-          >
-            <div>Item {id}</div>
-            <button onClick={[deleteId, id]}>Delete</button>
-          </li>
-        ))}
+    <TaskList>
+      <ul style={{ display: "contents" }}>
+        <For each={ids()}>
+          {(id) => (
+            <Zombie>
+              {(unmounted, dispose) => (
+                <TaskListItem as="li" label={`Item ${id}`}>
+                  <button onClick={[swapId, id]}>
+                    <Show
+                      when={variant === "left"}
+                      fallback={<FiCornerDownLeft />}
+                    >
+                      <FiCornerDownRight />
+                    </Show>
+                  </button>
+                  <Show
+                    when={unmounted()}
+                    fallback={
+                      <button onClick={[deleteId, id]}>
+                        <FiX />
+                      </button>
+                    }
+                  >
+                    <button onClick={dispose}>
+                      <FiDelete />
+                    </button>
+                  </Show>
+                </TaskListItem>
+              )}
+            </Zombie>
+          )}
+        </For>
       </ul>
       <button onClick={addId}>Add Item</button>
-    </div>
+    </TaskList>
   );
 }

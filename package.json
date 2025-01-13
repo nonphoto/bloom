@@ -49,6 +49,7 @@
     "voby": "^0.58.1"
   },
   "devDependencies": {
+    "@kobalte/core": "^0.13.7",
     "@nonphoto/css": "1.0.4",
     "@solid-primitives/event-listener": "2.3.3",
     "@solid-primitives/resize-observer": "2.0.26",
@@ -57,6 +58,7 @@
     "@solidjs/start": "^1.0.8",
     "prettier": "3.3.3",
     "semantic-release": "24.1.2",
+    "solid-icons": "^1.1.0",
     "tsup": "^8.3.0",
     "tsup-preset-solid": "^2.2.0",
     "typescript": "5.6.2",
