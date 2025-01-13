@@ -1,88 +1,107 @@
-import { FiX, FiXCircle } from "solid-icons/fi";
-import { Accessor, createSignal, For, Setter, Show } from "solid-js";
+import { FiCornerDownLeft, FiCornerDownRight, FiX } from "solid-icons/fi";
+import { Accessor, createSignal, For, onCleanup, Setter, Show } from "solid-js";
 import { TaskList } from "~/components/TaskList";
 import { TaskListItem } from "~/components/TaskListItem";
-import { Zombie, ZombieBoundary } from "../../src";
+import { createSwapList, SwapListStore } from "~/util/createSwapList";
+import { Matcher } from "../../src";
 
-export default function ZombieRoute() {
-  let lastId = 0;
-  const [idsA, setIdsA] = createSignal<number[]>([]);
-  const [idsB, setIdsB] = createSignal<number[]>([]);
+type Variant = "left" | "right";
 
-  function deleteId(id: number, setIds: Setter<number[]>) {
-    setIds((ids) => ids.filter((filterId) => id != filterId));
-  }
+interface ListItemStore {
+  id: number;
+  matcher: Matcher<Variant>;
+}
 
-  function addId(id: number, setIds: Setter<number[]>) {
-    setIds((ids) => [...ids, id++]);
-  }
+export default function MatcherRoute() {
+  const [listA, listB] = createSwapList<ListItemStore>();
+  const [currentId, setCurrentId] = createSignal(0);
 
   return (
     <div style={{ display: "flex", gap: "1em", padding: "1em" }}>
       <List
-        ids={idsA}
-        addId={() => addId(lastId++, setIdsA)}
-        deleteId={(id) => deleteId(id, setIdsA)}
-        swapId={(id) => {
-          deleteId(id, idsA);
-          addId(id, idsB);
-        }}
+        list={listA}
+        currentId={currentId}
+        setCurrentId={setCurrentId}
+        variant="left"
       />
       <List
-        ids={idsB}
-        addId={() => addId(lastId++, setIdsB)}
-        deleteId={(id) => deleteId(id, setIdsB)}
-        swapId={(id) => {
-          deleteId(id, idsB);
-          addId(id, idsA);
-        }}
+        list={listB}
+        currentId={currentId}
+        setCurrentId={setCurrentId}
+        variant="right"
       />
     </div>
   );
 }
 
 function List({
-  ids,
-  addId,
-  deleteId,
+  list,
+  currentId,
+  setCurrentId,
+  variant,
 }: {
-  ids: Accessor<number[]>;
-  addId: () => void;
-  deleteId: (id: number) => void;
-  swapId: (id: number) => void;
+  list: SwapListStore<ListItemStore>;
+  currentId: Accessor<number>;
+  setCurrentId: Setter<number>;
+  variant: Variant;
 }) {
+  const add = () => {
+    list.add({ id: currentId(), matcher: new Matcher() });
+    setCurrentId((id) => id + 1);
+  };
   return (
-    <ZombieBoundary>
-      {(zombies) => (
-        <TaskList>
-          <ul style={{ display: "contents" }}>
-            <For each={ids()}>
-              {(id) => (
-                <Zombie>
-                  {(unmounted, dispose) => (
-                    <TaskListItem as="li" label={`Item ${id}`}>
-                      <Show
-                        when={unmounted()}
-                        fallback={
-                          <button onClick={[deleteId, id]}>
-                            <FiX />
-                          </button>
-                        }
-                      >
-                        <button onClick={dispose}>
-                          <FiXCircle />
-                        </button>
-                      </Show>
-                    </TaskListItem>
-                  )}
-                </Zombie>
-              )}
-            </For>
-          </ul>
-          <button onClick={addId}>Add Item</button>
-          {zombies()}
-        </TaskList>
-      )}
-    </ZombieBoundary>
+    <TaskList>
+      <ul style={{ display: "contents" }}>
+        <For each={list.items()}>
+          {(item) => <ListItem item={item} list={list} variant={variant} />}
+        </For>
+      </ul>
+      <button onClick={add}>Add Item</button>
+    </TaskList>
+  );
+}
+
+function ListItem({
+  list,
+  item,
+  variant,
+}: {
+  list: SwapListStore<ListItemStore>;
+  item: ListItemStore;
+  variant: Variant;
+}) {
+  item.matcher.attemptEnter(
+    variant,
+    (matchVariant) => {
+      console.log(`${item.id}: Enter ${matchVariant} -> ${variant}`);
+    },
+    () => {
+      console.log(`${item.id}: Enter`);
+    },
+  );
+
+  onCleanup(() => {
+    item.matcher.attemptExit(
+      variant,
+      (matchVariant) => {
+        console.log(`${item.id}: Exit ${variant} -> ${matchVariant}`);
+      },
+      () => {
+        console.log(`${item.id}: Exit`);
+      },
+    );
+  });
+
+  return (
+    <TaskListItem as="li" label={`Item ${item.id}`}>
+      <button onClick={[list.swap, item]}>
+        <Show when={variant === "left"} fallback={<FiCornerDownLeft />}>
+          <FiCornerDownRight />
+        </Show>
+      </button>
+      <button onClick={[list.delete, item]}>
+        <FiX />
+      </button>
+    </TaskListItem>
   );
 }

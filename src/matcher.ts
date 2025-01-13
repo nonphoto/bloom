@@ -6,29 +6,29 @@ export type MatcherAttempt<T, U> = {
   onFailure: () => void;
 };
 
-export class Matcher<Enter, Exit> {
+export class Matcher<Enter, Exit = Enter> {
   #entering = new Set<MatcherAttempt<Enter, Exit>>();
   #exiting = new Set<MatcherAttempt<Exit, Enter>>();
   #batcher = new Batcher();
 
   constructor() {
     this.#batcher.addEventListener("prerun", () => {
-      const entering = this.#entering.values();
-      const exiting = this.#exiting.values();
+      const [enteringHead, ...enteringTail] = this.#entering.values();
+      const [exitingHead, ...exitingTail] = this.#exiting.values();
 
-      const firstEnter = entering.next();
-      const firstExit = exiting.next();
-
-      if (!firstEnter.done && !firstExit.done) {
-        firstEnter.value.onSuccess(firstExit.value.value);
-        firstExit.value.onSuccess(firstEnter.value.value);
+      if (enteringHead && exitingHead) {
+        enteringHead.onSuccess(exitingHead.value);
+        exitingHead.onSuccess(enteringHead.value);
+      } else {
+        enteringHead?.onFailure();
+        exitingHead?.onFailure();
       }
 
-      for (const attempt of entering) {
+      for (const attempt of enteringTail) {
         attempt.onFailure();
       }
 
-      for (const attempt of exiting) {
+      for (const attempt of exitingTail) {
         attempt.onFailure();
       }
     });
