@@ -73,7 +73,7 @@ function ListItem({
   item.matcher.attemptEnter(
     variant,
     (matchVariant) => {
-      console.log(`${item.id}: Enter ${matchVariant} -> ${variant}`);
+      console.log(`${item.id}: Enter ${variant} from ${matchVariant}`);
     },
     () => {
       console.log(`${item.id}: Enter`);
@@ -84,7 +84,7 @@ function ListItem({
     item.matcher.attemptExit(
       variant,
       (matchVariant) => {
-        console.log(`${item.id}: Exit ${variant} -> ${matchVariant}`);
+        console.log(`${item.id}: Exit ${variant} to ${matchVariant}`);
       },
       () => {
         console.log(`${item.id}: Exit`);

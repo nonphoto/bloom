@@ -4,7 +4,14 @@ import {
   FiCornerDownRight,
   FiX,
 } from "solid-icons/fi";
-import { Accessor, createSignal, For, onCleanup, Setter, Show } from "solid-js";
+import {
+  Accessor,
+  createEffect,
+  createSignal,
+  For,
+  Setter,
+  Show,
+} from "solid-js";
 import { TaskList } from "~/components/TaskList";
 import { TaskListItem } from "~/components/TaskListItem";
 import { createSwapList, SwapListStore } from "~/util/createSwapList";
@@ -14,6 +21,7 @@ import {
   useUnmounted,
   Zombie,
   ZombieBoundary,
+  Zombies,
 } from "../../src";
 
 type Variant = "left" | "right";
@@ -29,23 +37,23 @@ export default function MatcherRoute() {
 
   return (
     <ZombieBoundary>
-      {(zombies) => (
-        <div style={{ display: "flex", gap: "1em", padding: "1em" }}>
-          <List
-            list={listA}
-            currentId={currentId}
-            setCurrentId={setCurrentId}
-            variant="left"
-          />
-          <List
-            list={listB}
-            currentId={currentId}
-            setCurrentId={setCurrentId}
-            variant="right"
-          />
-          <TaskList>{zombies()}</TaskList>
-        </div>
-      )}
+      <div style={{ display: "flex", gap: "1em", padding: "1em" }}>
+        <List
+          list={listA}
+          currentId={currentId}
+          setCurrentId={setCurrentId}
+          variant="left"
+        />
+        <List
+          list={listB}
+          currentId={currentId}
+          setCurrentId={setCurrentId}
+          variant="right"
+        />
+        <TaskList>
+          <Zombies />
+        </TaskList>
+      </div>
     </ZombieBoundary>
   );
 }
@@ -95,28 +103,36 @@ function ListItem({
   item.matcher.attemptEnter(
     variant,
     (matchVariant) => {
-      console.log(`${item.id}: Enter ${matchVariant} -> ${variant}`);
+      console.log(`${item.id}: Enter ${variant} from ${matchVariant}`);
     },
     () => {
       console.log(`${item.id}: Enter`);
     },
   );
 
-  onCleanup(() => {
-    item.matcher.attemptExit(
-      variant,
-      (matchVariant) => {
-        console.log(`${item.id}: Exit ${variant} -> ${matchVariant}`);
-      },
-      () => {
-        console.log(`${item.id}: Exit`);
-      },
-    );
+  createEffect(() => {
+    if (unmounted()) {
+      item.matcher.attemptExit(
+        variant,
+        (matchVariant) => {
+          console.log(`${item.id}: Exit ${variant} to ${matchVariant}`);
+        },
+        () => {
+          console.log(`${item.id}: Exit`);
+        },
+      );
+    }
   });
 
   return (
     <TaskListItem as="li" label={`Item ${item.id}`}>
-      <button onClick={[list.swap, item]}>
+      <button
+        onClick={[list.swap, item]}
+        style={{
+          visibility: unmounted() ? "hidden" : "visible",
+          "pointer-events": unmounted() ? "none" : "auto",
+        }}
+      >
         <Show when={variant === "left"} fallback={<FiCornerDownLeft />}>
           <FiCornerDownRight />
         </Show>
