@@ -4,14 +4,7 @@ import {
   FiCornerDownRight,
   FiX,
 } from "solid-icons/fi";
-import {
-  Accessor,
-  createEffect,
-  createSignal,
-  For,
-  Setter,
-  Show,
-} from "solid-js";
+import { Accessor, createSignal, For, Setter, Show } from "solid-js";
 import { TaskList } from "~/components/TaskList";
 import { TaskListItem } from "~/components/TaskListItem";
 import { createSwapList, SwapListStore } from "~/util/createSwapList";
@@ -23,6 +16,7 @@ import {
   ZombieBoundary,
   Zombies,
 } from "../../src";
+import { createPresenceMatcher } from "../../src/presenceMatcher";
 
 type Variant = "left" | "right";
 
@@ -100,28 +94,20 @@ function ListItem({
 }) {
   const unmounted = useUnmounted();
   const dispose = useDisposal();
-  item.matcher.attemptEnter(
-    variant,
-    (matchVariant) => {
+
+  createPresenceMatcher(item.matcher, variant, {
+    onEnterSuccess(matchVariant) {
       console.log(`${item.id}: Enter ${variant} from ${matchVariant}`);
     },
-    () => {
+    onEnterFailure() {
       console.log(`${item.id}: Enter`);
     },
-  );
-
-  createEffect(() => {
-    if (unmounted()) {
-      item.matcher.attemptExit(
-        variant,
-        (matchVariant) => {
-          console.log(`${item.id}: Exit ${variant} to ${matchVariant}`);
-        },
-        () => {
-          console.log(`${item.id}: Exit`);
-        },
-      );
-    }
+    onExitSuccess(matchVariant) {
+      console.log(`${item.id}: Exit ${variant} to ${matchVariant}`);
+    },
+    onExitFailure() {
+      console.log(`${item.id}: Exit`);
+    },
   });
 
   return (

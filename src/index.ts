@@ -15,5 +15,4 @@ export * from "./rectObserver";
 export * from "./setWeakMap";
 export * from "./style";
 export * from "./useAnimationChains";
-export * from "./viewTransition";
 export * from "./zombie";
