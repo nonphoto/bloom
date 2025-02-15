@@ -8,7 +8,13 @@ import { Accessor, createSignal, For, Setter, Show } from "solid-js";
 import { TaskList } from "~/components/TaskList";
 import { TaskListItem } from "~/components/TaskListItem";
 import { createSwapList, SwapListStore } from "~/util/createSwapList";
-import { Zombie, ZombieBoundary } from "../../src";
+import {
+  useDisposal,
+  useUnmounted,
+  Zombie,
+  ZombieBoundary,
+  Zombies,
+} from "../../src";
 
 export default function ZombieRoute() {
   const [listA, listB] = createSwapList<number>();
@@ -44,13 +50,15 @@ function List({
   };
   return (
     <ZombieBoundary>
-      {(zombies) => (
-        <TaskList>
-          <ul style={{ display: "contents" }}>
-            <For each={list.items()}>
-              {(id) => (
-                <Zombie>
-                  {(unmounted, dispose) => (
+      <TaskList>
+        <ul style={{ display: "contents" }}>
+          <For each={list.items()}>
+            {(id) => (
+              <Zombie>
+                {(() => {
+                  const unmounted = useUnmounted();
+                  const dispose = useDisposal();
+                  return (
                     <TaskListItem as="li" label={`Item ${id}`}>
                       <Show when={!unmounted()}>
                         <button onClick={[list.swap, id]}>
@@ -75,15 +83,15 @@ function List({
                         </button>
                       </Show>
                     </TaskListItem>
-                  )}
-                </Zombie>
-              )}
-            </For>
-          </ul>
-          <button onClick={add}>Add Item</button>
-          {zombies()}
-        </TaskList>
-      )}
+                  );
+                })()}
+              </Zombie>
+            )}
+          </For>
+        </ul>
+        <button onClick={add}>Add Item</button>
+        <Zombies />
+      </TaskList>
     </ZombieBoundary>
   );
 }

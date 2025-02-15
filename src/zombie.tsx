@@ -1,5 +1,5 @@
 import { noop } from "@solid-primitives/utils";
-import type { Accessor, JSX } from "solid-js";
+import type { Accessor, JSX, ParentProps } from "solid-js";
 import {
   createContext,
   createEffect,
@@ -11,10 +11,6 @@ import {
   untrack,
   useContext,
 } from "solid-js";
-
-type MaybeFunctionChildren<T extends any[]> =
-  | ((...args: T) => JSX.Element)
-  | JSX.Element;
 
 function createRootWithContext<T>(fn: (dispose: () => void) => T) {
   const owner = getOwner();
@@ -29,6 +25,7 @@ function createRootWithContext<T>(fn: (dispose: () => void) => T) {
 
 interface ZombieBoundaryContextValue {
   unmounted: Accessor<boolean>;
+  unmountedChildren: Accessor<JSX.Element[]>;
   addUnmountedChild: (jsx: JSX.Element) => () => void;
 }
 
@@ -50,9 +47,7 @@ export function useUnmounted(): Accessor<boolean> {
   return () => context?.unmounted() ?? false;
 }
 
-export function ZombieBoundary(props: {
-  children: MaybeFunctionChildren<[Accessor<JSX.Element[]>]>;
-}) {
+export function ZombieBoundary(props: ParentProps) {
   const [unmounted, setUnmounted] = createSignal(false);
   const [unmountedChildren, setUnmountedChildren] = createSignal<JSX.Element[]>(
     [],
@@ -64,6 +59,7 @@ export function ZombieBoundary(props: {
 
   const context: ZombieBoundaryContextValue = {
     unmounted,
+    unmountedChildren,
     addUnmountedChild: (jsx) => {
       const object = [jsx];
       setUnmountedChildren((prev) => [...prev, object]);
@@ -75,16 +71,20 @@ export function ZombieBoundary(props: {
 
   return (
     <ZombieBoundaryContext.Provider value={context}>
-      {typeof props.children === "function"
-        ? props.children(unmountedChildren)
-        : props.children}
+      {props.children}
     </ZombieBoundaryContext.Provider>
   );
 }
 
-export function Zombie(props: {
-  children: MaybeFunctionChildren<[Accessor<boolean>, () => void]>;
-}) {
+export function Zombies() {
+  const zombieBoundary = useContext(ZombieBoundaryContext);
+  if (!zombieBoundary) {
+    throw new Error("Zombies must appear within ZombieBoundary");
+  }
+  return <>{zombieBoundary.unmountedChildren}</>;
+}
+
+export function Zombie(props: ParentProps) {
   const boundary = useContext(ZombieBoundaryContext);
   const [unmounted, setUnmounted] = createSignal(false);
   const disposalDeps = new Map<string, boolean>();
@@ -119,9 +119,7 @@ export function Zombie(props: {
 
     return [
       <ZombieContext.Provider value={context}>
-        {typeof props.children === "function"
-          ? props.children(context.unmounted, context.useDisposal())
-          : props.children}
+        {props.children}
       </ZombieContext.Provider>,
       dispose,
     ];
