@@ -1,6 +1,6 @@
 import { createEventListener } from "@solid-primitives/event-listener";
 import { map } from "@thi.ng/transducers";
-import { createSignal } from "solid-js";
+import { createEffect, createSignal } from "solid-js";
 import {
   createAnimation,
   createRect,
@@ -12,7 +12,7 @@ import {
 export default function WaveRoute() {
   const [element, setElement] = createSignal<HTMLElement>();
   const { invalidate } = useRectObserver();
-
+  const elementRect = createRect(element);
   const bodyRect = createRect(safeDocument()?.body);
   const width = () => bodyRect()?.size[0] ?? 1;
 
@@ -30,6 +30,10 @@ export default function WaveRoute() {
     if (elementValue) {
       invalidate(elementValue);
     }
+  });
+
+  createEffect(() => {
+    console.log(elementRect()?.pos);
   });
 
   return (

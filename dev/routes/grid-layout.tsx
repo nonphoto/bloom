@@ -4,6 +4,7 @@ import { comp, map, permutations, Transducer } from "@thi.ng/transducers";
 import { Accessor, createSignal } from "solid-js";
 import { createRect, styleTransformMat33 } from "../../src";
 import { createAnimation } from "../../src/createAnimation";
+import { createRectTransducer } from "../../src/createRectAnimation";
 import { createSpring2 } from "../../src/createSpring";
 import { untransform33 } from "../../src/rect/untransform";
 import { springPosition2, tuples } from "../../src/transducer";
@@ -13,23 +14,7 @@ const areas = [...permutations([1, 2, 3], [1, 2, 3])];
 export default function GridLayoutRoute() {
   const [index, setIndex] = createSignal(0);
   const [element, setElement] = createSignal<HTMLElement>();
-
-  const targetRect = createRect(element);
-
-  const pos = createSpring2(() => targetRect()?.pos);
-  const size = createSpring2(() => targetRect()?.size);
-
-  const transform = () => {
-    const targetRectValue = targetRect();
-    return comp(
-      tuples(springPosition2(pos()), springPosition2(size())),
-      map(([pos, size]) =>
-        targetRectValue
-          ? untransform33([], targetRectValue, rect(pos, size))
-          : undefined,
-      ),
-    );
-  };
+  const transform = createRectTransducer(createRect(element));
 
   createAnimation(element, () =>
     comp(
@@ -87,13 +72,6 @@ function Image({
       ),
       map(([parentTransform, pos, size]) => {
         if (parentTransform && targetRectValue) {
-          console.log(
-            parentTransform[6],
-            pos[0],
-            invert33([], parentTransform)![6],
-            untransform33([], targetRectValue, rect(pos, size))[6],
-          );
-
           return mul33(
             [],
             invert33([], parentTransform)!,

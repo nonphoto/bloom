@@ -1,28 +1,41 @@
+import { comp, map } from "@thi.ng/transducers";
 import {
   FiCheck,
   FiCornerDownLeft,
   FiCornerDownRight,
   FiX,
 } from "solid-icons/fi";
-import { Accessor, createSignal, For, Setter, Show } from "solid-js";
+import {
+  Accessor,
+  createEffect,
+  createSignal,
+  For,
+  Setter,
+  Show,
+} from "solid-js";
 import { TaskList } from "~/components/TaskList";
 import { TaskListItem } from "~/components/TaskListItem";
 import { createSwapList, SwapListStore } from "~/util/createSwapList";
 import {
+  createAnimation,
+  createRect,
   Matcher,
+  styleTransformMat33,
   useDisposal,
   useUnmounted,
   Zombie,
   ZombieBoundary,
   Zombies,
 } from "../../src";
-import { createPresenceMatcher } from "../../src/presenceMatcher";
+import { createEnter } from "../../src/createEnter";
+import { createExit } from "../../src/createExit";
+import { createRectTransducer } from "../../src/createRectAnimation";
 
 type Variant = "left" | "right";
 
 interface ListItemStore {
   id: number;
-  matcher: Matcher<Variant>;
+  matcher: Matcher<any>;
 }
 
 export default function MatcherRoute() {
@@ -94,24 +107,46 @@ function ListItem({
 }) {
   const unmounted = useUnmounted();
   const dispose = useDisposal();
+  const [element, setElement] = createSignal<HTMLElement>();
+  const rect = createRect(element);
 
-  createPresenceMatcher(item.matcher, variant, {
-    onEnterSuccess(matchVariant) {
-      console.log(`${item.id}: Enter ${variant} from ${matchVariant}`);
+  createEnter(
+    (match) => {
+      if (match) {
+        console.log(`${item.id}: Enter match`, match.rect()?.pos, rect()?.pos);
+        const transform = createRectTransducer(() => rect() ?? match.rect());
+
+        createEffect(() => {
+          console.log((rect() ?? match.rect()).size);
+        });
+        createAnimation(element, () =>
+          comp(
+            transform(),
+            map((transform) => ({ transform: styleTransformMat33(transform) })),
+          ),
+        );
+      } else {
+        console.log(`${item.id}: Enter`);
+      }
     },
-    onEnterFailure() {
-      console.log(`${item.id}: Enter`);
+    item.matcher,
+    { rect },
+  );
+
+  createExit(
+    (match) => {
+      if (match) {
+        console.log(`${item.id}: Exit match`);
+      } else {
+        console.log(`${item.id}: Exit`);
+      }
     },
-    onExitSuccess(matchVariant) {
-      console.log(`${item.id}: Exit ${variant} to ${matchVariant}`);
-    },
-    onExitFailure() {
-      console.log(`${item.id}: Exit`);
-    },
-  });
+    item.matcher,
+    { rect },
+  );
 
   return (
-    <TaskListItem as="li" label={`Item ${item.id}`}>
+    <TaskListItem as="li" label={`Item ${item.id}`} ref={setElement}>
       <button
         onClick={[list.swap, item]}
         style={{

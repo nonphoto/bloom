@@ -1,6 +1,6 @@
 import { createSubRoot } from "@solid-primitives/rootless";
 import { noop } from "@solid-primitives/utils";
-import { createEffect, getOwner, Owner } from "solid-js";
+import { getOwner, Owner } from "solid-js";
 import { Matcher } from "./matcher";
 import { useUnmounted } from "./zombie";
 
@@ -27,20 +27,6 @@ export function createPresenceMatcher<T>(
       ? withCreateSubRoot(options.onEnterFailure, owner)
       : noop,
   );
-
-  createEffect(() => {
-    if (unmounted()) {
-      matcher.attemptExit(
-        value,
-        options?.onExitSuccess
-          ? withCreateSubRoot(options.onExitSuccess, owner)
-          : noop,
-        options?.onExitFailure
-          ? withCreateSubRoot(options.onExitFailure, owner)
-          : noop,
-      );
-    }
-  });
 }
 
 function withCreateSubRoot<T>(fn: (value: T) => void, owner: Owner | null) {

@@ -1,7 +1,7 @@
 import { createEventListener } from "@solid-primitives/event-listener";
 import { access, MaybeAccessor } from "@solid-primitives/utils";
 import { comp, iterator, Transducer } from "@thi.ng/transducers";
-import { createMemo } from "solid-js";
+import { Accessor, createMemo } from "solid-js";
 import {
   AnimationChain,
   AnimationChainChangeEventDetail,
@@ -13,7 +13,7 @@ export function createAnimation(
   element: MaybeAccessor<Element | undefined>,
   keyframes: MaybeAccessor<Transducer<number, Keyframe> | undefined>,
   timeline?: MaybeAccessor<AnimationTimeline | undefined>,
-) {
+): Accessor<AnimationChain | undefined> {
   const animationChains = useAnimationChains();
   const memo = createMemo<AnimationChain | undefined>((prev) => {
     prev?.cancel();
