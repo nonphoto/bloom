@@ -72,7 +72,7 @@ function Image({
         springPosition2(size()),
       ),
       map(([parentTransform, pos, size]) => {
-        if (parentTransform && targetRectValue) {
+        if (parentTransform && targetRectValue && pos && size) {
           return mul33(
             [],
             invert33([], parentTransform)!,

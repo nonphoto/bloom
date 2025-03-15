@@ -1,3 +1,4 @@
+import { dampingFromHalflife, stiffnessFromDamping } from "@nonphoto/spring";
 import { createEventListener } from "@solid-primitives/event-listener";
 import { comp, map } from "@thi.ng/transducers";
 import { Vec } from "@thi.ng/vectors";
@@ -23,7 +24,9 @@ export default function SpringRoute() {
     ]);
   });
 
-  const spring = createSpring2(target, 0.01, 0.01);
+  const damping = dampingFromHalflife(1000);
+  const stiffness = stiffnessFromDamping(1, damping);
+  const spring = createSpring2(target, { damping, stiffness });
 
   createAnimation(element, () =>
     comp(

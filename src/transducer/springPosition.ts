@@ -1,10 +1,14 @@
 import {
   Spring,
-  Spring2,
   duration as springDuration,
   duration2 as springDuration2,
+  duration3 as springDuration3,
+  duration4 as springDuration4,
   positionAt as springPositionAt,
   positionAt2 as springPositionAt2,
+  positionAt3 as springPositionAt3,
+  positionAt4 as springPositionAt4,
+  VecSpring,
 } from "@nonphoto/spring";
 import { comp, map, Transducer } from "@thi.ng/transducers";
 import { Vec } from "@thi.ng/vectors";
@@ -21,11 +25,31 @@ export function springPosition(
 }
 
 export function springPosition2(
-  s: Spring2 | undefined,
+  s: VecSpring | undefined,
   epsilon?: number,
 ): Transducer<number, Vec | undefined> {
   return comp(
-    duration(s ? springDuration2(s, epsilon ?? 1) : 0),
-    map((t) => (s ? springPositionAt2([0, 0], s, t) : undefined)),
+    duration(s ? springDuration2(s, epsilon) : 0),
+    map((t) => (s ? springPositionAt2([], s, t) : undefined)),
+  );
+}
+
+export function springPosition3(
+  s: VecSpring | undefined,
+  epsilon?: number,
+): Transducer<number, Vec | undefined> {
+  return comp(
+    duration(s ? springDuration3(s, epsilon) : 0),
+    map((t) => (s ? springPositionAt3([], s, t) : undefined)),
+  );
+}
+
+export function springPosition4(
+  s: VecSpring | undefined,
+  epsilon?: number,
+): Transducer<number, Vec | undefined> {
+  return comp(
+    duration(s ? springDuration4(s, epsilon) : 0),
+    map((t) => (s ? springPositionAt4([], s, t) : undefined)),
   );
 }
