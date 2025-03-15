@@ -14,7 +14,8 @@ const areas = [...permutations([1, 2, 3], [1, 2, 3])];
 export default function GridLayoutRoute() {
   const [index, setIndex] = createSignal(0);
   const [element, setElement] = createSignal<HTMLElement>();
-  const transform = createRectTransducer(createRect(element));
+  const rect = createRect(element);
+  const transform = createRectTransducer(rect);
 
   createAnimation(element, () =>
     comp(
@@ -45,7 +46,7 @@ export default function GridLayoutRoute() {
           "align-items": "center",
         }}
       >
-        <Image parentTransform={transform} />
+        {/* <Image parentTransform={transform} /> */}
       </div>
     </div>
   );

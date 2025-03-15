@@ -1,7 +1,7 @@
 import { rect, Rect } from "@thi.ng/geom";
 import { Mat } from "@thi.ng/matrices";
 import { comp, map, Transducer } from "@thi.ng/transducers";
-import { Accessor } from "solid-js";
+import { Accessor, createMemo } from "solid-js";
 import { createSpring2 } from "./createSpring";
 import { untransform33 } from "./rect/untransform";
 import { springPosition2, tuples } from "./transducer";
@@ -12,15 +12,19 @@ export function createRectTransducer(
   const pos = createSpring2(() => target()?.pos);
   const size = createSpring2(() => target()?.size);
 
-  return () => {
-    const targetValue = target();
-    return comp(
-      tuples(springPosition2(pos()), springPosition2(size())),
-      map(([pos, size]) =>
-        targetValue
-          ? untransform33([], targetValue, rect(pos, size))
-          : undefined,
-      ),
-    );
-  };
+  return createMemo(
+    () => {
+      const targetValue = target();
+      return comp(
+        tuples(springPosition2(pos()), springPosition2(size())),
+        map(([pos, size]) => {
+          return targetValue && pos && size
+            ? untransform33([], targetValue, rect(pos, size))
+            : undefined;
+        }),
+      );
+    },
+    undefined,
+    { equals: false },
+  );
 }

@@ -1,25 +1,13 @@
 import {
-  fromValues,
+  defaultDamping,
+  defaultStiffness,
   positionAt,
-  setValues,
-  Spring,
-  velocityAt,
-} from "@nonphoto/spring";
-import {
-  fromValues2,
-  fromValues3,
-  fromValues4,
   positionAt2,
-  positionAt3,
-  positionAt4,
-  setValues2,
-  setValues3,
-  setValues4,
-  VectorSpring,
+  Spring,
+  Spring2,
+  velocityAt,
   velocityAt2,
-  velocityAt3,
-  velocityAt4,
-} from "@nonphoto/spring-vector";
+} from "@nonphoto/spring";
 import { access, MaybeAccessor } from "@solid-primitives/utils";
 import { Vec } from "@thi.ng/vectors";
 import { Accessor, createMemo } from "solid-js";
@@ -27,64 +15,50 @@ import { Clock } from "./clock";
 
 export function createSpring(
   target?: MaybeAccessor<number | undefined>,
-  damping?: MaybeAccessor<number | undefined>,
-  criticality?: MaybeAccessor<number | undefined>,
-): Accessor<Spring> {
+  options?: {
+    stiffness?: MaybeAccessor<number | undefined>;
+    damping?: MaybeAccessor<number | undefined>;
+  },
+): Accessor<Spring | undefined> {
   const clock = new Clock();
-  return createMemo(
-    (prev) => {
-      clock.tick();
-      return prev
-        ? setValues(
-            prev,
-            positionAt(...prev, clock.deltaTime),
-            velocityAt(...prev, clock.deltaTime),
-            access(target),
-            access(damping),
-            access(criticality),
-          )
-        : fromValues(
-            undefined,
-            undefined,
-            access(target),
-            access(damping),
-            access(criticality),
-          );
-    },
-    undefined,
-    { equals: false },
-  );
+  return createMemo((prev) => {
+    clock.tick();
+    const targetValue = access(target);
+    return targetValue
+      ? {
+          position: prev ? positionAt(prev, clock.deltaTime) : targetValue,
+          velocity: prev ? velocityAt(prev, clock.deltaTime) : 0,
+          target: targetValue,
+          damping: access(options?.damping) ?? defaultDamping,
+          stiffness: access(options?.stiffness) ?? defaultStiffness,
+        }
+      : undefined;
+  });
 }
 
 export function createSpring2(
   target?: MaybeAccessor<Vec | undefined>,
-  damping?: MaybeAccessor<number | undefined>,
-  criticality?: MaybeAccessor<number | undefined>,
-): Accessor<VectorSpring> {
+  options?: {
+    stiffness?: MaybeAccessor<number | undefined>;
+    damping?: MaybeAccessor<number | undefined>;
+  },
+): Accessor<Spring2 | undefined> {
   const clock = new Clock();
-  return createMemo(
-    (prev) => {
-      clock.tick();
-      return prev
-        ? setValues2(
-            prev,
-            positionAt2([], ...prev, clock.deltaTime),
-            velocityAt2([], ...prev, clock.deltaTime),
-            access(target),
-            access(damping),
-            access(criticality),
-          )
-        : fromValues2(
-            undefined,
-            undefined,
-            access(target),
-            access(damping),
-            access(criticality),
-          );
-    },
-    undefined,
-    { equals: false },
-  );
+  return createMemo((prev) => {
+    clock.tick();
+    const targetValue = access(target);
+    return targetValue
+      ? {
+          position: prev
+            ? positionAt2([0, 0], prev, clock.deltaTime)
+            : targetValue,
+          velocity: prev ? velocityAt2([0, 0], prev, clock.deltaTime) : 0,
+          target: targetValue,
+          damping: access(options?.damping) ?? defaultDamping,
+          stiffness: access(options?.stiffness) ?? defaultStiffness,
+        }
+      : undefined;
+  });
 }
 
 export function createSpring3(

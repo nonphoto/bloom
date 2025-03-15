@@ -1,13 +1,11 @@
 import {
   Spring,
+  Spring2,
   duration as springDuration,
-  velocityAt as springVelocityAt,
-} from "@nonphoto/spring";
-import {
   duration2 as springDuration2,
+  velocityAt as springVelocityAt,
   velocityAt2 as springVelocityAt2,
-  VectorSpring,
-} from "@nonphoto/spring-vector";
+} from "@nonphoto/spring";
 import { comp, map, Transducer } from "@thi.ng/transducers";
 import { Vec } from "@thi.ng/vectors";
 import { duration } from "./duration";
@@ -17,17 +15,17 @@ export function springVelocity(
   epsilon?: number,
 ): Transducer<number, number> {
   return comp(
-    duration(springDuration(...s, epsilon)),
-    map((t) => springVelocityAt(...s, t)),
+    duration(springDuration(s, epsilon)),
+    map((t) => springVelocityAt(s, t)),
   );
 }
 
 export function springVelocity2(
-  s: VectorSpring,
+  s: Spring2,
   epsilon?: number,
 ): Transducer<number, Vec> {
   return comp(
-    duration(Math.max(...springDuration2([], ...s, epsilon ?? 1))),
-    map((t) => springVelocityAt2([], ...s, t)),
+    duration(springDuration2(s, epsilon ?? 1)),
+    map((t) => springVelocityAt2([0, 0], s, t)),
   );
 }

@@ -29,8 +29,8 @@
     "dev": "vinxi dev"
   },
   "dependencies": {
-    "@nonphoto/spring": "3.0.1",
-    "@nonphoto/spring-vector": "3.1.1",
+    "@nonphoto/spring": "4.0.1",
+    "@nonphoto/spring-vector": "3.1.4",
     "@okikio/animate": "2.3.1",
     "@okikio/emitter": "2.1.7",
     "@solid-primitives/map": "0.4.13",
