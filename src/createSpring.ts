@@ -51,7 +51,6 @@ export function createSpring2(
   return createMemo((prev) => {
     clock.tick();
     const targetValue = access(target);
-    console.log(prev);
     return targetValue
       ? {
           position: prev

@@ -1,3 +1,4 @@
+import { dampingFromHalflife, stiffnessFromDamping } from "@nonphoto/spring";
 import { rect } from "@thi.ng/geom";
 import { invert33, Mat, mul33 } from "@thi.ng/matrices";
 import { comp, map, permutations, Transducer } from "@thi.ng/transducers";
@@ -15,7 +16,9 @@ export default function GridLayoutRoute() {
   const [index, setIndex] = createSignal(0);
   const [element, setElement] = createSignal<HTMLElement>();
   const rect = createRect(element);
-  const transform = createRectTransducer(rect);
+  const damping = dampingFromHalflife(200);
+  const stiffness = stiffnessFromDamping(1, damping);
+  const transform = createRectTransducer(rect, { damping, stiffness });
 
   createAnimation(element, () =>
     comp(

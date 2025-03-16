@@ -8,9 +8,13 @@ import { springPosition2, tuples } from "./transducer";
 
 export function createRectTransducer(
   target: Accessor<Rect | undefined>,
+  options?: {
+    damping?: number;
+    stiffness?: number;
+  },
 ): Accessor<Transducer<number, Mat | undefined>> {
-  const pos = createSpring2(() => target()?.pos);
-  const size = createSpring2(() => target()?.size);
+  const pos = createSpring2(() => target()?.pos, options);
+  const size = createSpring2(() => target()?.size, options);
 
   return createMemo(
     () => {

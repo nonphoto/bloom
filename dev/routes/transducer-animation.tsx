@@ -1,5 +1,5 @@
-import { fromValues, halflifeToDamping } from "@nonphoto/spring";
-import { comp, map, run } from "@thi.ng/transducers";
+import { dampingFromHalflife, stiffnessFromDamping } from "@nonphoto/spring";
+import { comp, map, run, take } from "@thi.ng/transducers";
 import { createEffect } from "solid-js";
 import { styleTranslate } from "../../src";
 import {
@@ -18,9 +18,22 @@ export default function () {
     run(
       comp(
         tuples(
-          springPosition(fromValues(0, 0, 100, halflifeToDamping(100))),
-          springPosition(fromValues(0, 0, 200, halflifeToDamping(200))),
+          springPosition({
+            position: 0,
+            velocity: 0,
+            target: 100,
+            damping: dampingFromHalflife(100),
+            stiffness: stiffnessFromDamping(1, dampingFromHalflife(100)),
+          }),
+          springPosition({
+            position: 0,
+            velocity: 0,
+            target: 100,
+            damping: dampingFromHalflife(200),
+            stiffness: stiffnessFromDamping(1, dampingFromHalflife(200)),
+          }),
         ),
+        take(100),
         map(styleTranslate),
         keyframes("transform"),
         animations(element!),
