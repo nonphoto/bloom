@@ -29,7 +29,7 @@
     "dev": "vinxi dev"
   },
   "dependencies": {
-    "@nonphoto/spring": "4.1.2",
+    "@nonphoto/spring": "4.1.4",
     "@nonphoto/spring-vector": "3.1.4",
     "@okikio/animate": "2.3.1",
     "@okikio/emitter": "2.1.7",

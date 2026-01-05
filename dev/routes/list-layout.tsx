@@ -1,15 +1,13 @@
+import { dampingFromHalflife, stiffnessFromDamping } from "@nonphoto/spring";
+import { Rect } from "@thi.ng/geom";
 import { comp, map } from "@thi.ng/transducers";
-import {
-  FiCheck,
-  FiCornerDownLeft,
-  FiCornerDownRight,
-  FiX,
-} from "solid-icons/fi";
+import { FiCornerDownLeft, FiCornerDownRight, FiX } from "solid-icons/fi";
 import {
   Accessor,
   createEffect,
   createSignal,
   For,
+  onCleanup,
   Setter,
   Show,
 } from "solid-js";
@@ -27,15 +25,14 @@ import {
   ZombieBoundary,
   Zombies,
 } from "../../src";
-import { createEnter } from "../../src/createEnter";
-import { createExit } from "../../src/createExit";
+import { createEnterSubRoot, createExitSubRoot } from "../../src/createEnter";
 import { createRectTransducer } from "../../src/createRectAnimation";
 
 type Variant = "left" | "right";
 
 interface ListItemStore {
   id: number;
-  matcher: Matcher<any>;
+  matcher: Matcher<{ rect: Accessor<Rect | undefined> }>;
 }
 
 export default function MatcherRoute() {
@@ -105,71 +102,70 @@ function ListItem({
   item: ListItemStore;
   variant: Variant;
 }) {
-  const unmounted = useUnmounted();
+  const isUnmounted = useUnmounted();
   const dispose = useDisposal();
   const [element, setElement] = createSignal<HTMLElement>();
   const rect = createRect(element);
 
-  createEnter(
-    (match) => {
-      if (match) {
-        console.log(`${item.id}: Enter match`, match.rect()?.pos, rect()?.pos);
-        const transform = createRectTransducer(() => rect() ?? match.rect());
+  createEffect(() => {
+    console.log("update rect", rect()?.pos);
+  });
 
-        createEffect(() => {
-          console.log((rect() ?? match.rect()).size);
-        });
-        createAnimation(element, () =>
-          comp(
-            transform(),
-            map((transform) => ({ transform: styleTransformMat33(transform) })),
-          ),
-        );
-      } else {
-        console.log(`${item.id}: Enter`);
-      }
+  onCleanup(() => {
+    console.log("cleanup");
+  });
+
+  createEnterSubRoot(
+    (exit) => {
+      console.log(`${item.id}: Enter match`);
+      const damping = dampingFromHalflife(200);
+      const stiffness = stiffnessFromDamping(0.8, damping);
+      const transform = createRectTransducer(() => rect() ?? exit.rect(), {
+        damping,
+        stiffness,
+      });
+      createEffect(() => {
+        console.log("rect", rect() ?? exit.rect());
+      });
+      createAnimation(element, () =>
+        comp(
+          transform(),
+          map((transform) => ({ transform: styleTransformMat33(transform) })),
+        ),
+      );
+    },
+    () => {
+      console.log(`${item.id}: Enter`);
     },
     item.matcher,
     { rect },
   );
 
-  createExit(
-    (match) => {
-      if (match) {
-        console.log(`${item.id}: Exit match`);
-      } else {
-        console.log(`${item.id}: Exit`);
-      }
-    },
-    item.matcher,
-    { rect },
-  );
+  createEffect(() => {
+    if (isUnmounted()) {
+      createExitSubRoot(
+        (match) => {
+          console.log(`${item.id}: Exit match`);
+        },
+        () => {
+          console.log(`${item.id}: Exit`);
+        },
+        item.matcher,
+        { rect },
+      );
+    }
+  });
 
   return (
     <TaskListItem as="li" label={`Item ${item.id}`} ref={setElement}>
-      <button
-        onClick={[list.swap, item]}
-        style={{
-          visibility: unmounted() ? "hidden" : "visible",
-          "pointer-events": unmounted() ? "none" : "auto",
-        }}
-      >
+      <button onClick={[list.swap, item]}>
         <Show when={variant === "left"} fallback={<FiCornerDownLeft />}>
           <FiCornerDownRight />
         </Show>
       </button>
-      <Show
-        when={unmounted()}
-        fallback={
-          <button onClick={[list.delete, item]}>
-            <FiX />
-          </button>
-        }
-      >
-        <button onClick={dispose}>
-          <FiCheck />
-        </button>
-      </Show>
+      <button onClick={[list.delete, item]}>
+        <FiX />
+      </button>
     </TaskListItem>
   );
 }

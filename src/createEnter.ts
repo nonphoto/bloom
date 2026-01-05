@@ -1,24 +1,59 @@
 import { createSubRoot } from "@solid-primitives/rootless";
-import { getOwner } from "solid-js";
+import { getOwner, Owner } from "solid-js";
 import { Matcher } from "./matcher";
 
-export function createEnter<T>(
-  fn: (value: T | undefined) => void,
+export function createEnterSubRoot<T>(
+  onSuccess: (value: T) => void,
+  onFailure: () => void,
   matcher: Matcher<T, T>,
   value: T,
+  owners: (Owner | null)[] = [getOwner()],
 ) {
-  const owner = getOwner();
   matcher.attemptEnter(
     value,
     (match) => {
-      createSubRoot(() => {
-        fn(match);
-      }, owner);
+      createSubRoot(
+        () => {
+          onSuccess(match);
+        },
+        ...owners,
+      );
     },
     () => {
-      createSubRoot(() => {
-        fn(undefined);
-      }, owner);
+      createSubRoot(
+        () => {
+          onFailure();
+        },
+        ...owners,
+      );
+    },
+  );
+}
+
+export function createExitSubRoot<T>(
+  onSuccess: (value: T) => void,
+  onFailure: () => void,
+  matcher: Matcher<T, T>,
+  value: T,
+  owners: (Owner | null)[] = [getOwner()],
+) {
+  matcher.attemptExit(
+    value,
+    (match) => {
+      createSubRoot(
+        () => {
+          onSuccess(match);
+        },
+        ...owners,
+      );
+    },
+    () => {
+      createSubRoot(
+        () => {
+          onFailure();
+        },
+        ...owners,
+      );
     },
   );
 }
