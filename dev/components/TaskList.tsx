@@ -1,22 +1,17 @@
-import { Polymorphic, PolymorphicProps } from "@kobalte/core";
-import { ValidComponent } from "solid-js";
+import { ComponentProps } from "@solidjs/web";
+import { merge } from "solid-js";
+import { combineStyle } from "@solid-primitives/props";
 
-export interface TaskListProps {}
+export interface TaskListProps extends ComponentProps<"div"> {}
 
-export function TaskList<T extends ValidComponent>(
-  props: PolymorphicProps<T, TaskListProps>,
-) {
-  return (
-    <Polymorphic
-      as="div"
-      {...props}
-      style={{
-        ...props.style,
-        display: "flex",
-        "flex-direction": "column",
-        gap: "0.5em",
-        width: "10em",
-      }}
-    />
-  );
+export function TaskList(props: TaskListProps) {
+  const divProps = merge(props, {
+    style: combineStyle(props.style || {}, {
+      display: "flex",
+      "flex-direction": "column",
+      gap: "0.5em",
+      width: "10em",
+    }),
+  });
+  return <div {...divProps} />;
 }

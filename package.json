@@ -26,12 +26,13 @@
   },
   "devDependencies": {
     "@solid-primitives/event-listener": "3.0.0-next.5",
+    "@solid-primitives/props": "4.0.0-next.3",
     "@solid-primitives/resize-observer": "4.0.0-next.3",
     "@solidjs/router": "2.0.0-next.30",
     "@solidjs/vite-plugin": "3.0.0-next.46",
     "prettier": "3.9.9",
     "tsdown": "^0.23.0",
-    "typescript": "7.0.2",
+    "typescript": "^6.0.3",
     "unplugin-solid": "^3.0.0",
     "unrun": "^0.3.1",
     "vite": "^8.3.1"

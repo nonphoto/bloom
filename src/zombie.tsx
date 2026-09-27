@@ -87,12 +87,13 @@ export function Zombies() {
 
 export function Zombie(props: ParentProps) {
   const boundary = useContext(ZombieBoundaryContext);
-  const [unmounted, setUnmounted] = createSignal(false);
   const disposalDeps = new Map<string, boolean>();
 
   let removeUnmountedChild: (() => void) | undefined;
 
-  const [jsx, dispose] = createRootWithContext((disposeRoot) => {
+  const [jsx, onUnmount] = createRootWithContext((disposeRoot) => {
+    const [unmounted, setUnmounted] = createSignal(false, { ownedWrite: true });
+
     const dispose = () => {
       disposeRoot();
       removeUnmountedChild?.();
@@ -118,29 +119,31 @@ export function Zombie(props: ParentProps) {
       },
     };
 
+    const onUnmount = () => {
+      setUnmounted(true);
+      if (disposalDeps.size > 0) {
+        removeUnmountedChild = boundary?.addUnmountedChild(jsx);
+      } else {
+        dispose();
+      }
+    };
+
+    createEffect(
+      () => boundary?.unmounted(),
+      (unmounted) => {
+        if (unmounted) {
+          dispose();
+        }
+      },
+    );
+
     return [
       <ZombieContext value={context}>{props.children}</ZombieContext>,
-      dispose,
+      onUnmount,
     ];
   });
 
-  createEffect(
-    () => boundary?.unmounted(),
-    (unmounted) => {
-      if (unmounted) {
-        dispose();
-      }
-    },
-  );
-
-  onCleanup(() => {
-    setUnmounted(true);
-    if (disposalDeps.size > 0) {
-      removeUnmountedChild = boundary?.addUnmountedChild(jsx);
-    } else {
-      dispose();
-    }
-  });
+  onCleanup(onUnmount);
 
   return jsx;
 }

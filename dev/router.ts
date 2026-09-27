@@ -20,6 +20,10 @@ export const Router = createRouter({
       component: lazy(() => import("./routes/grid-layout")),
     },
     {
+      path: "matcher",
+      component: lazy(() => import("./routes/matcher")),
+    },
+    {
       path: "list-layout",
       component: lazy(() => import("./routes/list-layout")),
     },

@@ -12,6 +12,9 @@ export default function Home() {
           <a href="/grid-layout">Grid Layout</a>
         </li>
         <li>
+          <a href="/matcher">Matcher</a>
+        </li>
+        <li>
           <a href="/list-layout">List Layout</a>
         </li>
         <li>

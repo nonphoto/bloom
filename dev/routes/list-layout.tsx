@@ -159,7 +159,7 @@ function ListItem({
   );
 
   return (
-    <TaskListItem as="li" label={`Item ${item.id}`} ref={setElement}>
+    <TaskListItem label={`Item ${item.id}`} ref={setElement}>
       <button onClick={[list.swap, item]}>
         <Show when={variant === "left"} fallback={<span>{"<"}</span>}>
           <span>{">"}</span>

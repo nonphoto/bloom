@@ -1,8 +1,7 @@
-import { FiCornerDownLeft, FiCornerDownRight, FiX } from "solid-icons/fi";
 import { Accessor, createSignal, For, onCleanup, Setter, Show } from "solid-js";
-import { TaskList } from "~/components/TaskList";
-import { TaskListItem } from "~/components/TaskListItem";
-import { createSwapList, SwapListStore } from "~/util/createSwapList";
+import { TaskList } from "../components/TaskList";
+import { TaskListItem } from "../components/TaskListItem";
+import { createSwapList, SwapListStore } from "../util/createSwapList";
 import { Matcher } from "../../src";
 
 type Variant = "left" | "right";
@@ -93,14 +92,14 @@ function ListItem({
   });
 
   return (
-    <TaskListItem as="li" label={`Item ${item.id}`}>
+    <TaskListItem label={`Item ${item.id}`}>
       <button onClick={[list.swap, item]}>
-        <Show when={variant === "left"} fallback={<FiCornerDownLeft />}>
-          <FiCornerDownRight />
+        <Show when={variant === "left"} fallback={<span>{"<"}</span>}>
+          <span>{">"}</span>
         </Show>
       </button>
       <button onClick={[list.delete, item]}>
-        <FiX />
+        <span>X</span>
       </button>
     </TaskListItem>
   );
