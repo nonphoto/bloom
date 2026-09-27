@@ -1,4 +1,4 @@
-import { Accessor, batch, createSignal } from "solid-js";
+import { Accessor, createSignal } from "solid-js";
 import { createTimeCallback } from "./createTimeCallback";
 
 /**
@@ -24,10 +24,8 @@ export function createTime(): CreateTimeReturn {
   const [deltaTime, setDeltaTime] = createSignal(0, { equals: false });
 
   createTimeCallback((t, dt) => {
-    batch(() => {
-      setTime(t);
-      setDeltaTime(dt);
-    });
+    setTime(t);
+    setDeltaTime(dt);
   });
 
   return [time, deltaTime];

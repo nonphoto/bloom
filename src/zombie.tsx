@@ -1,5 +1,5 @@
 import { noop } from "@solid-primitives/utils";
-import type { Accessor, JSX, ParentProps } from "solid-js";
+import type { Accessor, ParentProps } from "solid-js";
 import {
   createContext,
   createEffect,
@@ -11,13 +11,14 @@ import {
   untrack,
   useContext,
 } from "solid-js";
+import { JSX } from "@solidjs/web";
 
 function createRootWithContext<T>(fn: (dispose: () => void) => T) {
   const owner = getOwner();
   return createRoot((dispose) => {
     const rootOwner = getOwner();
     if (rootOwner && owner) {
-      rootOwner.context = owner.context;
+      rootOwner._context = owner._context;
     }
     return fn(dispose);
   });
@@ -70,9 +71,9 @@ export function ZombieBoundary(props: ParentProps) {
   };
 
   return (
-    <ZombieBoundaryContext.Provider value={context}>
+    <ZombieBoundaryContext value={context}>
       {props.children}
-    </ZombieBoundaryContext.Provider>
+    </ZombieBoundaryContext>
   );
 }
 
@@ -118,18 +119,19 @@ export function Zombie(props: ParentProps) {
     };
 
     return [
-      <ZombieContext.Provider value={context}>
-        {props.children}
-      </ZombieContext.Provider>,
+      <ZombieContext value={context}>{props.children}</ZombieContext>,
       dispose,
     ];
   });
 
-  createEffect(() => {
-    if (boundary?.unmounted()) {
-      dispose();
-    }
-  });
+  createEffect(
+    () => boundary?.unmounted(),
+    (unmounted) => {
+      if (unmounted) {
+        dispose();
+      }
+    },
+  );
 
   onCleanup(() => {
     setUnmounted(true);

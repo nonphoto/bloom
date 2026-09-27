@@ -32,9 +32,12 @@ export default function WaveRoute() {
     }
   });
 
-  createEffect(() => {
-    console.log(elementRect()?.pos);
-  });
+  createEffect(
+    () => elementRect(),
+    (rect) => {
+      console.log(rect?.pos);
+    },
+  );
 
   return (
     <div

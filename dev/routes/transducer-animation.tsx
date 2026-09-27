@@ -1,6 +1,5 @@
 import { dampingFromHalflife, stiffnessFromDamping } from "@nonphoto/spring";
 import { comp, map, run, take } from "@thi.ng/transducers";
-import { createEffect } from "solid-js";
 import { styleTranslate } from "../../src";
 import {
   animations,
@@ -9,11 +8,12 @@ import {
   time,
   tuples,
 } from "../../src/transducer";
+import { onSettled } from "solid-js";
 
 export default function () {
   let element: HTMLDivElement;
 
-  createEffect(() => {
+  onSettled(() => {
     let currentAnimation: Animation | null = null;
     run(
       comp(

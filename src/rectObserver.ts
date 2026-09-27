@@ -3,7 +3,7 @@ import { createSingletonRoot } from "@solid-primitives/rootless";
 import { MaybeAccessor, access } from "@solid-primitives/utils";
 import { Rect } from "@thi.ng/geom";
 import { Accessor, createEffect, onCleanup } from "solid-js";
-import { isServer } from "solid-js/web";
+import { isServer } from "@solidjs/web";
 import { AnimationChain } from "./animationChain";
 import { Batcher } from "./batcher";
 import { walkAncestors, walkDescendants } from "./dom";
@@ -191,17 +191,19 @@ export function createRect(
   element: MaybeAccessor<HTMLElement | undefined>,
 ): Accessor<Rect | undefined> {
   const { rects, observe, unobserve } = useRectObserver();
-  createEffect(() => {
-    const elementValue = access(element);
-    if (elementValue) {
-      rects.set(elementValue, null);
-      observe(elementValue);
-      onCleanup(() => {
-        rects.delete(elementValue);
-        unobserve(elementValue);
-      });
-    }
-  });
+  createEffect(
+    () => access(element),
+    (elementValue) => {
+      if (elementValue) {
+        rects.set(elementValue, null);
+        observe(elementValue);
+        return () => {
+          rects.delete(elementValue);
+          unobserve(elementValue);
+        };
+      }
+    },
+  );
   return () => {
     const elementValue = access(element);
     return elementValue ? (rects.get(elementValue) ?? undefined) : undefined;

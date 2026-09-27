@@ -1,7 +1,7 @@
 import { ReactiveMap } from "@solid-primitives/map";
 import { createHydratableSingletonRoot } from "@solid-primitives/rootless";
 import { onCleanup } from "solid-js";
-import { isServer } from "solid-js/web";
+import { isServer } from "@solidjs/web";
 import {
   PositioningObserver,
   PositioningObserverEntry,

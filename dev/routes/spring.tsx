@@ -24,7 +24,7 @@ export default function SpringRoute() {
     ]);
   });
 
-  const damping = dampingFromHalflife(1000);
+  const damping = dampingFromHalflife(100);
   const stiffness = stiffnessFromDamping(1, damping);
   const spring = createSpring2(target, { damping, stiffness });
 

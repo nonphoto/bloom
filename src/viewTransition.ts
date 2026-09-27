@@ -5,11 +5,10 @@ import { Directive, MaybeAccessor, access } from "@solid-primitives/utils";
 import { Rect } from "@thi.ng/geom";
 import {
   Accessor,
-  createComputed,
   createEffect,
   createSignal,
   getOwner,
-  on,
+  onSettled,
   untrack,
 } from "solid-js";
 import { Matcher } from "./matcher";
@@ -58,7 +57,7 @@ function makeViewTransition(
   const rectObserver = useRectObserver();
 
   const createOnAnimationFinished = (fn: () => void) => {
-    createEffect(() => {
+    onSettled(() => {
       if (animation()?.isFinished() ?? true) {
         fn();
       }
@@ -82,10 +81,11 @@ function makeViewTransition(
   const onExitSuccess = (match: Accessor<ReactiveAnimation | undefined>) => {
     createSubRoot(() => {
       createEffect(
-        on(match, (matchValue) => {
+        () => match(),
+        (matchValue) => {
           setAnimation(onExitMatch?.(element, matchValue) ?? undefined);
           createOnAnimationFinished(releaseDisposal);
-        }),
+        },
       );
     }, owner);
   };
@@ -100,16 +100,14 @@ function makeViewTransition(
   matcher.attemptEnter(animation, onEnterSuccess, onEnterFailure);
 
   createEffect(
-    on(
-      unmounted,
-      () => {
-        rectObserver.getRect(element).then((rect) => {
-          setInert(element, rect);
-        });
-        matcher.attemptExit(untrack(animation), onExitSuccess, onExitFailure);
-      },
-      { defer: true },
-    ),
+    () => unmounted(),
+    () => {
+      rectObserver.getRect(element).then((rect) => {
+        setInert(element, rect);
+      });
+      matcher.attemptExit(untrack(animation), onExitSuccess, onExitFailure);
+    },
+    { defer: true },
   );
 }
 
@@ -117,14 +115,14 @@ export function createViewTransition(
   element: MaybeAccessor<HTMLElement | null | undefined>,
   options: MaybeAccessor<ViewTransitionOptions | undefined>,
 ) {
-  createComputed(() => {
-    const elementValue = access(element);
-    const optionsValue = access(options);
-
-    if (elementValue && optionsValue) {
-      makeViewTransition(elementValue, optionsValue);
-    }
-  });
+  createEffect(
+    () => [access(element), access(options)] as const,
+    ([elementValue, optionsValue]) => {
+      if (elementValue && optionsValue) {
+        makeViewTransition(elementValue, optionsValue);
+      }
+    },
+  );
 }
 
 export const viewTransition: Directive<ViewTransitionOptions> = (

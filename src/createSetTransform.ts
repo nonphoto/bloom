@@ -2,38 +2,42 @@ import { ReactiveWeakMap } from "@solid-primitives/map";
 import { createHydratableSingletonRoot } from "@solid-primitives/rootless";
 import { access, Directive, MaybeAccessor } from "@solid-primitives/utils";
 import { Mat } from "@thi.ng/matrices";
-import { createComputed } from "solid-js";
+import { createEffect } from "solid-js";
 
 export const useTransforms = createHydratableSingletonRoot(() => {
-	return new ReactiveWeakMap<HTMLElement, Mat>();
+  return new ReactiveWeakMap<HTMLElement, Mat>();
 });
 
 function maybeSet<T extends WeakKey, U>(
-	map: WeakMap<T, U>,
-	key: T,
-	value: U | undefined,
+  map: WeakMap<T, U>,
+  key: T,
+  value: U | undefined,
 ) {
-	if (value != null) {
-		map.set(key, value);
-	} else {
-		map.delete(key);
-	}
+  if (value != null) {
+    map.set(key, value);
+  } else {
+    map.delete(key);
+  }
 }
 
 export function createSetTransform(
-	element: MaybeAccessor<HTMLElement | null | undefined>,
-	value: MaybeAccessor<Mat | undefined>,
+  element: MaybeAccessor<HTMLElement | null | undefined>,
+  value: MaybeAccessor<Mat | undefined>,
 ): void {
-	const transforms = useTransforms();
-
-	createComputed(() => {
-		const elementValue = access(element);
-		if (elementValue) {
-			createComputed(() => {
-				maybeSet(transforms, elementValue, access(value));
-			});
-		}
-	});
+  const transforms = useTransforms();
+  createEffect(
+    () => access(element),
+    (elementValue) => {
+      if (elementValue) {
+        createEffect(
+          () => access(value),
+          (m) => {
+            maybeSet(transforms, elementValue, m);
+          },
+        );
+      }
+    },
+  );
 }
 
 /**
@@ -43,7 +47,7 @@ export function createSetTransform(
  * @param value - The transform to set on the element.
  */
 export const setTransform: Directive<Mat | undefined> = (target, value) => {
-	if (target instanceof HTMLElement) {
-		createSetTransform(target, value);
-	}
+  if (target instanceof HTMLElement) {
+    createSetTransform(target, value);
+  }
 };

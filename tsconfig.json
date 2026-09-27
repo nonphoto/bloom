@@ -1,21 +1,15 @@
 {
   "compilerOptions": {
-    "allowJs": true,
-    "strict": true,
+    "jsx": "preserve",
+    "jsxImportSource": "@solidjs/web",
+    "target": "ESNext",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "isolatedModules": true,
-    "jsx": "preserve",
-    "jsxImportSource": "solid-js",
-    "lib": ["DOM", "ESNext"],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "noEmit": true,
-    "paths": { "~/*": ["./dev/*"] },
-    "skipLibCheck": true,
-    "target": "ESNext",
-    "types": ["vinxi/types/client"]
-  },
-  "include": ["./dev/**/*", "./src/**/*"],
-  "exclude": ["node_modules"]
+    "strict": true,
+    "skipLibCheck": true
+  }
 }

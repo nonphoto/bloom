@@ -1,19 +1,17 @@
 import { dampingFromHalflife, stiffnessFromDamping } from "@nonphoto/spring";
 import { Rect } from "@thi.ng/geom";
 import { comp, map } from "@thi.ng/transducers";
-import { FiCornerDownLeft, FiCornerDownRight, FiX } from "solid-icons/fi";
 import {
   Accessor,
   createEffect,
   createSignal,
   For,
-  onCleanup,
   Setter,
   Show,
 } from "solid-js";
-import { TaskList } from "~/components/TaskList";
-import { TaskListItem } from "~/components/TaskListItem";
-import { createSwapList, SwapListStore } from "~/util/createSwapList";
+import { TaskList } from "../components/TaskList";
+import { TaskListItem } from "../components/TaskListItem";
+import { createSwapList, SwapListStore } from "../util/createSwapList";
 import {
   createAnimation,
   createRect,
@@ -103,17 +101,15 @@ function ListItem({
   variant: Variant;
 }) {
   const isUnmounted = useUnmounted();
-  const dispose = useDisposal();
   const [element, setElement] = createSignal<HTMLElement>();
   const rect = createRect(element);
 
-  createEffect(() => {
-    console.log("update rect", rect()?.pos);
-  });
-
-  onCleanup(() => {
-    console.log("cleanup");
-  });
+  createEffect(
+    () => rect(),
+    (rect) => {
+      console.log("update rect", rect?.pos);
+    },
+  );
 
   createEnterSubRoot(
     (exit) => {
@@ -124,9 +120,12 @@ function ListItem({
         damping,
         stiffness,
       });
-      createEffect(() => {
-        console.log("rect", rect() ?? exit.rect());
-      });
+      createEffect(
+        () => rect(),
+        (rect) => {
+          console.log("rect", rect ?? exit.rect());
+        },
+      );
       createAnimation(element, () =>
         comp(
           transform(),
@@ -141,30 +140,33 @@ function ListItem({
     { rect },
   );
 
-  createEffect(() => {
-    if (isUnmounted()) {
-      createExitSubRoot(
-        (match) => {
-          console.log(`${item.id}: Exit match`);
-        },
-        () => {
-          console.log(`${item.id}: Exit`);
-        },
-        item.matcher,
-        { rect },
-      );
-    }
-  });
+  createEffect(
+    () => isUnmounted(),
+    (isUnmounted) => {
+      if (isUnmounted) {
+        createExitSubRoot(
+          () => {
+            console.log(`${item.id}: Exit match`);
+          },
+          () => {
+            console.log(`${item.id}: Exit`);
+          },
+          item.matcher,
+          { rect },
+        );
+      }
+    },
+  );
 
   return (
     <TaskListItem as="li" label={`Item ${item.id}`} ref={setElement}>
       <button onClick={[list.swap, item]}>
-        <Show when={variant === "left"} fallback={<FiCornerDownLeft />}>
-          <FiCornerDownRight />
+        <Show when={variant === "left"} fallback={<span>{"<"}</span>}>
+          <span>{">"}</span>
         </Show>
       </button>
       <button onClick={[list.delete, item]}>
-        <FiX />
+        <span>X</span>
       </button>
     </TaskListItem>
   );

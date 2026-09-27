@@ -1,47 +1,63 @@
 import { createEventListener } from "@solid-primitives/event-listener";
-import { createEffect, createSignal, onCleanup } from "solid-js";
+import { createEffect, createMemo, createSignal } from "solid-js";
 import { safeDocument, styleTranslateX } from "../../src";
 import { AnimationChain } from "../../src/animationChain";
+
+function makeAnimationChain(element: HTMLElement) {
+  return new AnimationChain(
+    (function* () {
+      while (true) {
+        yield new Animation(
+          new KeyframeEffect(
+            element,
+            {
+              transform: ["translateX(0px)", "translateX(400px)"],
+            },
+            { duration: 5000, delay: -500 },
+          ),
+        );
+      }
+    })(),
+  );
+}
 
 export default function AnimationChainRoute() {
   const [element, setElement] = createSignal<HTMLElement>();
   const [isRunning, setIsRunning] = createSignal(true);
   const [markerPosition, setMarkerPosition] = createSignal(0);
 
-  createEffect(() => {
+  const animation = createMemo(() => {
     const elementValue = element();
     if (elementValue) {
-      const animation = new AnimationChain(
-        (function* () {
-          while (true) {
-            yield new Animation(
-              new KeyframeEffect(
-                elementValue,
-                {
-                  transform: ["translateX(0px)", "translateX(200px)"],
-                },
-                { duration: 3000, delay: -500 },
-              ),
-            );
-          }
-        })(),
-      );
-      animation.play();
-
-      onCleanup(() => {
-        animation.animation?.cancel();
-      });
-
-      createEffect(() => {
-        if (isRunning()) {
-          animation.resume();
-        } else {
-          setMarkerPosition(elementValue.getBoundingClientRect().x);
-          animation.interrupt();
-        }
-      });
+      return makeAnimationChain(elementValue);
     }
   });
+
+  createEffect(
+    () => animation(),
+    (animation) => {
+      animation?.play();
+      return () => {
+        animation?.animation?.cancel();
+      };
+    },
+  );
+
+  createEffect(
+    () => [animation(), isRunning(), element()] as const,
+    ([animation, isRunning, element]) => {
+      if (animation) {
+        if (isRunning) {
+          animation.resume();
+        } else {
+          animation.interrupt();
+          if (element) {
+            setMarkerPosition(element.getBoundingClientRect().x);
+          }
+        }
+      }
+    },
+  );
 
   createEventListener(safeDocument()?.body, "click", () => {
     setIsRunning((prev) => !prev);

@@ -28,7 +28,6 @@ export function createRectTransducer(
         }),
       );
     },
-    undefined,
     { equals: false },
   );
 }
