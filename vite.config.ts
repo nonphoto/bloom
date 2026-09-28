@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import solid from "@solidjs/vite-plugin";
+import { fileRoutes } from "filesystem-routing/vite";
 
 export default defineConfig({
   resolve: {
@@ -10,5 +11,6 @@ export default defineConfig({
       start: { app: "./dev/app.tsx" },
       extensions: [".jsx", ".tsx"],
     }),
+    fileRoutes({ types: true, dir: "./dev/routes" }),
   ],
 });
