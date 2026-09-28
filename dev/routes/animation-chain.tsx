@@ -50,10 +50,10 @@ export default function AnimationChainRoute() {
         if (isRunning) {
           animation.resume();
         } else {
-          animation.interrupt();
           if (element) {
             setMarkerPosition(element.getBoundingClientRect().x);
           }
+          animation.interrupt();
         }
       }
     },
