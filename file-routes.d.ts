@@ -35,6 +35,12 @@ declare module "virtual:file-routes" {
   /** The flat route manifest, in scan order. */
   const routes: readonly [
     {
+      path: "/animation-chain";
+      page: true;
+      $component: FileRouteLazyRef<typeof import("./dev/routes/animation-chain")>;
+      $$route?: undefined;
+    },
+    {
       path: "/batcher";
       page: true;
       $component: FileRouteLazyRef<typeof import("./dev/routes/batcher")>;
@@ -89,9 +95,9 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
-      path: "/animation-chain";
+      path: "/transition";
       page: true;
-      $component: FileRouteLazyRef<typeof import("./dev/routes/animation-chain")>;
+      $component: FileRouteLazyRef<typeof import("./dev/routes/transition")>;
       $$route?: undefined;
     }
   ];
@@ -136,6 +142,14 @@ declare module "virtual:file-routes" {
       id: "/matcher";
       page: true;
       $component: FileRouteLazyRef<typeof import("./dev/routes/matcher")>;
+      $$route?: undefined;
+      children?: undefined;
+    },
+    {
+      path: "/transition";
+      id: "/transition";
+      page: true;
+      $component: FileRouteLazyRef<typeof import("./dev/routes/transition")>;
       $$route?: undefined;
       children?: undefined;
     },
