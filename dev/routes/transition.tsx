@@ -1,6 +1,13 @@
+import {
+  useDisposal,
+  useUnmounted,
+  Zombie,
+  ZombieBoundary,
+  Zombies,
+} from "../../src";
 import { TaskList } from "../components/TaskList";
 import { TaskListItem } from "../components/TaskListItem";
-import { createSignal, For } from "solid-js";
+import { createSignal, For, createEffect, Show } from "solid-js";
 
 export default function TransitionRoute() {
   const [list, setList] = createSignal<Pick<ItemProps, "id">[]>([]);
@@ -19,10 +26,15 @@ export default function TransitionRoute() {
   };
 
   return (
-    <TaskList>
-      <button onClick={add}>Add</button>
-      <For each={list()}>{(item) => <Item {...item} remove={remove} />}</For>
-    </TaskList>
+    <ZombieBoundary>
+      <TaskList>
+        <button onClick={add}>Add</button>
+        <For each={list()}>{(item) => <Item {...item} remove={remove} />}</For>
+      </TaskList>
+      <TaskList style={{ "margin-block-start": "1rem" }}>
+        <Zombies />
+      </TaskList>
+    </ZombieBoundary>
   );
 }
 
@@ -33,9 +45,25 @@ interface ItemProps {
 
 function Item(props: ItemProps) {
   return (
-    <TaskListItem>
-      <span>{props.id}</span>
-      <button onClick={[props.remove, props.id]}>X</button>
-    </TaskListItem>
+    <Zombie>
+      {(() => {
+        const isUnmounted = useUnmounted();
+        const dispose = useDisposal();
+
+        return (
+          <TaskListItem
+            style={{ background: isUnmounted() ? "lightpink" : undefined }}
+          >
+            <span>{props.id}</span>
+            <Show
+              when={!isUnmounted()}
+              fallback={<button onClick={dispose}>?</button>}
+            >
+              <button onClick={[props.remove, props.id]}>X</button>
+            </Show>
+          </TaskListItem>
+        );
+      })()}
+    </Zombie>
   );
 }
