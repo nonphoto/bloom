@@ -8,8 +8,6 @@ export interface TaskListItemProps extends ComponentProps<"div"> {
 
 export function TaskListItem(props: TaskListItemProps) {
   const id = createUniqueId();
-  console.log(props.style);
-
   return (
     <div
       {...props}

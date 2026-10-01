@@ -1,5 +1,5 @@
 import {
-  useDisposal,
+  useDispose,
   useUnmounted,
   Zombie,
   ZombieBoundary,
@@ -7,7 +7,7 @@ import {
 } from "../../src";
 import { TaskList } from "../components/TaskList";
 import { TaskListItem } from "../components/TaskListItem";
-import { createSignal, For, createEffect, Show } from "solid-js";
+import { createSignal, For, Show, useContext } from "solid-js";
 
 export default function TransitionRoute() {
   const [list, setList] = createSignal<Pick<ItemProps, "id">[]>([]);
@@ -48,8 +48,7 @@ function Item(props: ItemProps) {
     <Zombie>
       {(() => {
         const isUnmounted = useUnmounted();
-        const dispose = useDisposal();
-
+        const dispose = useDispose();
         return (
           <TaskListItem
             style={{ background: isUnmounted() ? "lightpink" : undefined }}
