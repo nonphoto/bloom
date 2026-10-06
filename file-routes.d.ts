@@ -71,6 +71,18 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
+      path: "/page-transitions";
+      page: true;
+      $component: FileRouteLazyRef<typeof import("./dev/routes/page-transitions")>;
+      $$route?: undefined;
+    },
+    {
+      path: "/page-transitions/";
+      page: true;
+      $component: FileRouteLazyRef<typeof import("./dev/routes/page-transitions/index")>;
+      $$route?: undefined;
+    },
+    {
       path: "/rect-observer";
       page: true;
       $component: FileRouteLazyRef<typeof import("./dev/routes/rect-observer")>;
@@ -89,15 +101,27 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
+      path: "/zombie-old";
+      page: true;
+      $component: FileRouteLazyRef<typeof import("./dev/routes/zombie-old")>;
+      $$route?: undefined;
+    },
+    {
       path: "/zombie";
       page: true;
       $component: FileRouteLazyRef<typeof import("./dev/routes/zombie")>;
       $$route?: undefined;
     },
     {
-      path: "/transition";
+      path: "/page-transitions/bravo";
       page: true;
-      $component: FileRouteLazyRef<typeof import("./dev/routes/transition")>;
+      $component: FileRouteLazyRef<typeof import("./dev/routes/page-transitions/bravo")>;
+      $$route?: undefined;
+    },
+    {
+      path: "/page-transitions/alpha";
+      page: true;
+      $component: FileRouteLazyRef<typeof import("./dev/routes/page-transitions/alpha")>;
       $$route?: undefined;
     }
   ];
@@ -146,10 +170,10 @@ declare module "virtual:file-routes" {
       children?: undefined;
     },
     {
-      path: "/transition";
-      id: "/transition";
+      path: "/zombie-old";
+      id: "/zombie-old";
       page: true;
-      $component: FileRouteLazyRef<typeof import("./dev/routes/transition")>;
+      $component: FileRouteLazyRef<typeof import("./dev/routes/zombie-old")>;
       $$route?: undefined;
       children?: undefined;
     },
@@ -184,6 +208,39 @@ declare module "virtual:file-routes" {
       $component: FileRouteLazyRef<typeof import("./dev/routes/animation-chain")>;
       $$route?: undefined;
       children?: undefined;
+    },
+    {
+      path: "/page-transitions";
+      id: "/page-transitions";
+      page: true;
+      $component: FileRouteLazyRef<typeof import("./dev/routes/page-transitions")>;
+      $$route?: undefined;
+      children: readonly [
+        {
+          path: "/";
+          id: "/";
+          page: true;
+          $component: FileRouteLazyRef<typeof import("./dev/routes/page-transitions/index")>;
+          $$route?: undefined;
+          children?: undefined;
+        },
+        {
+          path: "/alpha";
+          id: "/alpha";
+          page: true;
+          $component: FileRouteLazyRef<typeof import("./dev/routes/page-transitions/alpha")>;
+          $$route?: undefined;
+          children?: undefined;
+        },
+        {
+          path: "/bravo";
+          id: "/bravo";
+          page: true;
+          $component: FileRouteLazyRef<typeof import("./dev/routes/page-transitions/bravo")>;
+          $$route?: undefined;
+          children?: undefined;
+        }
+      ];
     },
     {
       path: "/transducer-animation";
