@@ -1,8 +1,8 @@
 import { createEventListener } from "@solid-primitives/event-listener";
-import { Batcher, safeDocument, waitForAnimationFrame } from "../../src";
+import { Batcher, safeDocument, waitForTimeout } from "../../src";
 
 export default function BatcherRoute() {
-  const batcher = new Batcher({ wait: waitForAnimationFrame });
+  const batcher = new Batcher({ wait: () => waitForTimeout(100) });
   let entries: [number, number][] = [];
 
   createEventListener(safeDocument()?.body, "mousemove", (event) => {

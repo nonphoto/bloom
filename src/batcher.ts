@@ -10,13 +10,23 @@ export function waitForAnimationFrame(): Promise<void> {
   return new Promise((resolve) => requestAnimationFrame(() => resolve()));
 }
 
+export function waitForTimeout(duration: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve();
+    }, duration);
+  });
+}
+
 export type BatcherCallback<T> = (value: T) => void;
+
+export type BatcherOptions = { wait?: () => Promise<void> };
 
 export class Batcher extends EventTarget {
   #promise: Promise<void> | null = null;
   #wait: () => Promise<void> = waitForMicrotask;
 
-  constructor(options?: { wait?: () => Promise<void> }) {
+  constructor(options?: BatcherOptions) {
     super();
     this.#wait = options?.wait ?? this.#wait;
   }
