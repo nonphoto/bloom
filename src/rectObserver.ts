@@ -20,6 +20,52 @@ function getRect(element: HTMLElement): Rect {
   return rectFromDOMRect(r);
 }
 
+type BeforeGetRectReturn = {
+  transforms: WeakMap<HTMLElement, string>;
+  animationChains: SetWeakMap<HTMLElement, AnimationChain>;
+};
+
+type BeforeGetRectOptions = {
+  getAnimationChain?: (animation: Animation) => AnimationChain | undefined;
+};
+
+function beforeGetRect(
+  root: HTMLElement,
+  options?: BeforeGetRectOptions,
+): BeforeGetRectReturn {
+  const transforms = new WeakMap<HTMLElement, string>();
+  const animationChains = new SetWeakMap<HTMLElement, AnimationChain>();
+
+  walkDescendants(root, (element) => {
+    transforms.set(element, element.style.transform);
+    element.style.transform = "";
+    for (const animation of element.getAnimations()) {
+      const animationChain = options?.getAnimationChain?.(animation);
+      if (animationChain) {
+        animationChain.interrupt();
+        animationChains.add(element, animationChain);
+      }
+    }
+  });
+
+  return { transforms, animationChains };
+}
+
+function afterGetRect(
+  root: HTMLElement,
+  { transforms, animationChains }: BeforeGetRectReturn,
+) {
+  walkDescendants(root, (element) => {
+    const transform = transforms.get(element);
+    if (transform) {
+      element.style.transform = transform;
+    }
+    for (const animationChain of animationChains.get(element) ?? []) {
+      animationChain.resume();
+    }
+  });
+}
+
 export interface RectObserverEntry {
   target: HTMLElement;
   rect: Rect;
@@ -46,40 +92,23 @@ export class RectObserver {
     callback: (entries: RectObserverEntry[]) => void,
     options?: RectObserverOptions,
   ) {
-    let transforms = new WeakMap<HTMLElement, string>();
-    let animationChains = new SetWeakMap<HTMLElement, AnimationChain>();
+    let beforeGetRectReturn: BeforeGetRectReturn | null = null;
     this.#batcher.addEventListener(
       "prerun",
       () => {
-        walkDescendants(root, (element) => {
-          transforms.set(element, element.style.transform);
-          element.style.transform = "";
-          for (const animation of element.getAnimations()) {
-            const animationChain = options?.getAnimationChain?.(animation);
-            if (animationChain) {
-              animationChain.interrupt();
-              animationChains.add(element, animationChain);
-            }
-          }
-        });
+        beforeGetRectReturn = beforeGetRect(root, options);
       },
       { passive: true },
     );
     this.#batcher.addEventListener(
       "postrun",
       () => {
-        walkDescendants(root, (element) => {
-          const transform = transforms.get(element);
-          if (transform) {
-            element.style.transform = transform;
-          }
-          for (const animationChain of animationChains.get(element) ?? []) {
-            animationChain.resume();
-          }
-        });
+        if (beforeGetRectReturn) {
+          afterGetRect(root, beforeGetRectReturn);
+        }
+        beforeGetRectReturn = null;
         callback(this.#entries);
         this.#entries = [];
-        transforms = new WeakMap();
       },
       { passive: true },
     );
@@ -92,6 +121,8 @@ export class RectObserver {
       }
     });
   }
+
+  flush() {}
 
   async getRect(element: HTMLElement): Promise<Rect> {
     return new Promise((resolve) => {
