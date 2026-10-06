@@ -1,67 +1,42 @@
-import { Batcher } from "./batcher";
-
-export type MatcherAttempt<T, U> = {
+type MatcherAttempt<T, U> = {
   value: T;
-  onSuccess: (value: U) => void;
-  onFailure: () => void;
+  callback: (match?: U) => void;
 };
 
 export class Matcher<Enter, Exit = Enter> {
   #entering = new Set<MatcherAttempt<Enter, Exit>>();
   #exiting = new Set<MatcherAttempt<Exit, Enter>>();
-  #batcher = new Batcher();
 
-  constructor() {
-    this.#batcher.addEventListener("prerun", () => {
-      const [enteringHead, ...enteringTail] = this.#entering.values();
-      const [exitingHead, ...exitingTail] = this.#exiting.values();
+  constructor() {}
 
-      if (enteringHead && exitingHead) {
-        enteringHead.onSuccess(exitingHead.value);
-        exitingHead.onSuccess(enteringHead.value);
-      } else {
-        enteringHead?.onFailure();
-        exitingHead?.onFailure();
-      }
+  flush() {
+    const [enteringHead, ...enteringTail] = this.#entering.values();
+    const [exitingHead, ...exitingTail] = this.#exiting.values();
 
-      for (const attempt of enteringTail) {
-        attempt.onFailure();
-      }
+    enteringHead?.callback(exitingHead?.value);
+    exitingHead?.callback(enteringHead?.value);
 
-      for (const attempt of exitingTail) {
-        attempt.onFailure();
-      }
-    });
+    for (const attempt of [...enteringTail, ...exitingTail]) {
+      attempt.callback();
+    }
 
-    this.#batcher.addEventListener("postrun", () => {
-      this.#entering.clear();
-      this.#exiting.clear();
-    });
+    this.#entering.clear();
+    this.#exiting.clear();
   }
 
   #attempt<Send, Receive>(
     value: Send,
     set: Set<MatcherAttempt<Send, Receive>>,
-    onSuccess: (value: Receive) => void,
-    onFailure: () => void,
+    callback: (value?: Receive) => void,
   ): void {
-    set.add({ value, onSuccess, onFailure });
-    this.#batcher.enqueue();
+    set.add({ value, callback });
   }
 
-  attemptEnter(
-    value: Enter,
-    onSuccess: (value: Exit) => void,
-    onFailure: () => void,
-  ): void {
-    this.#attempt(value, this.#entering, onSuccess, onFailure);
+  attemptEnter(value: Enter, callback: (match?: Exit) => void): void {
+    this.#attempt(value, this.#entering, callback);
   }
 
-  attemptExit(
-    value: Exit,
-    onSuccess: (value: Enter) => void,
-    onFailure: () => void,
-  ): void {
-    this.#attempt(value, this.#exiting, onSuccess, onFailure);
+  attemptExit(value: Exit, callback: (match?: Enter) => void): void {
+    this.#attempt(value, this.#exiting, callback);
   }
 }
