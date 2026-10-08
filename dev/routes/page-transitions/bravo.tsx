@@ -1,13 +1,6 @@
-import { createEffect, createSignal, latest, useContext } from "solid-js";
-import {
-  useDispose,
-  useRectObserver,
-  useUnmounted,
-  Zombie,
-} from "../../../src";
+import { createEffect, createSignal, useContext, onCleanup } from "solid-js";
+import { useDispose, useUnmounted, createRect, Zombie } from "../../../src";
 import { PageTransitionContext } from "../../lib/page-transitions";
-import { Rect } from "@thi.ng/geom";
-import { useBeforeLeave } from "@solidjs/router";
 
 export default function PageTransitionsBravoRoute() {
   return (
@@ -17,29 +10,28 @@ export default function PageTransitionsBravoRoute() {
         const unmounted = useUnmounted();
         const dispose = useDispose();
         const { matcher } = useContext(PageTransitionContext);
-        const rectObserver = useRectObserver();
+        const rect = createRect(element);
 
-        useBeforeLeave((event) => {
-          event.preventDefault();
-          rectObserver.getRect(element()!).then((rect) => {
-            console.log("observer rect", rect);
-            event.retry(true);
-          });
-        });
+        console.log("bravo create");
 
         createEffect(
-          () => latest(unmounted),
+          () => unmounted(),
           (unmounted) => {
+            console.log("bravo unmounted", unmounted);
             if (unmounted) {
-              matcher.attemptExit({ rect: new Rect() }, (match) => {
+              matcher.attemptExit({ rect }, (match) => {
                 if (match) {
-                  console.log("exit match");
+                  console.log("exit match", match);
                 }
                 dispose();
               });
             }
           },
         );
+
+        onCleanup(() => {
+          console.log("bravo onCleanup");
+        });
 
         return <div ref={setElement} style={{ background: "lightblue" }} />;
       })()}

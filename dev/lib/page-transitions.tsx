@@ -1,8 +1,9 @@
 import { Rect } from "@thi.ng/geom";
-import { Accessor, createContext, createEffect, ParentProps } from "solid-js";
+import { createContext, createEffect, ParentProps } from "solid-js";
 import { Matcher } from "../../src/matcher";
 import { useIsRouting } from "@solidjs/router";
 import { dampingFromHalflife, stiffnessFromDamping } from "@nonphoto/spring";
+import { useBeforeLeave } from "@solidjs/router";
 
 type PageTransitionMatch = { rect?: Rect };
 
@@ -19,8 +20,19 @@ export function PageTransition(props: ParentProps) {
 
   createEffect(
     () => isRouting(),
-    (isRouting) => (!isRouting ? matcher.flush() : undefined),
+    (isRouting) => {
+      console.log("routing", isRouting);
+      if (!isRouting) {
+        queueMicrotask(() => {
+          matcher.flush();
+        });
+      }
+    },
   );
+
+  useBeforeLeave((event) => {
+    console.log("before leave");
+  });
 
   return (
     <PageTransitionContext value={{ matcher }}>
