@@ -77,12 +77,6 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
-      path: "/page-transitions/alpha";
-      page: true;
-      $component: FileRouteLazyRef<typeof import("./dev/routes/page-transitions/alpha")>;
-      $$route?: undefined;
-    },
-    {
       path: "/page-transitions/";
       page: true;
       $component: FileRouteLazyRef<typeof import("./dev/routes/page-transitions/index")>;
@@ -113,15 +107,21 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
-      path: "/zombie";
+      path: "/page-transitions/alpha";
       page: true;
-      $component: FileRouteLazyRef<typeof import("./dev/routes/zombie")>;
+      $component: FileRouteLazyRef<typeof import("./dev/routes/page-transitions/alpha")>;
       $$route?: undefined;
     },
     {
       path: "/page-transitions/bravo";
       page: true;
       $component: FileRouteLazyRef<typeof import("./dev/routes/page-transitions/bravo")>;
+      $$route?: undefined;
+    },
+    {
+      path: "/zombie";
+      page: true;
+      $component: FileRouteLazyRef<typeof import("./dev/routes/zombie")>;
       $$route?: undefined;
     }
   ];

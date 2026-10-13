@@ -1,40 +1,50 @@
-import { createEffect, createSignal, useContext, onCleanup } from "solid-js";
-import { useDispose, useUnmounted, createRect, Zombie } from "../../../src";
-import { PageTransitionContext } from "../../lib/page-transitions";
+import {
+  createSignal,
+  useContext,
+  onCleanup,
+  createEffect,
+  createMemo,
+} from "solid-js";
+import { createRect } from "../../../src";
+import { PageTransitionContext, getName } from "../../lib/page-transitions";
+import { Rect } from "@thi.ng/geom";
 
 export default function PageTransitionsBravoRoute() {
+  const name = createMemo(() => getName("bravo"));
+
+  console.log("bravo create");
+
+  const [element, setElement] = createSignal<HTMLElement>();
+  const { matcher } = useContext(PageTransitionContext);
+  const rect = createRect(element);
+
+  let prevRect: Rect | undefined;
+  createEffect(
+    () => rect(),
+    (rectValue) => {
+      prevRect = rectValue;
+    },
+  );
+
+  onCleanup(() => {
+    matcher.attemptExit({ rect: prevRect }, (match) => {
+      if (match) {
+        console.log("exit match", match);
+      }
+    });
+  });
+
   return (
-    <Zombie>
-      {(() => {
-        const [element, setElement] = createSignal<HTMLElement>();
-        const unmounted = useUnmounted();
-        const dispose = useDispose();
-        const { matcher } = useContext(PageTransitionContext);
-        const rect = createRect(element);
-
-        console.log("bravo create");
-
-        createEffect(
-          () => unmounted(),
-          (unmounted) => {
-            console.log("bravo unmounted", unmounted);
-            if (unmounted) {
-              matcher.attemptExit({ rect }, (match) => {
-                if (match) {
-                  console.log("exit match", match);
-                }
-                dispose();
-              });
-            }
-          },
-        );
-
-        onCleanup(() => {
-          console.log("bravo onCleanup");
-        });
-
-        return <div ref={setElement} style={{ background: "lightblue" }} />;
-      })()}
-    </Zombie>
+    <div
+      ref={setElement}
+      style={{
+        background: "lightblue",
+        "text-align": "center",
+        "grid-row": 2,
+        "grid-column": 2,
+      }}
+    >
+      {name()}
+    </div>
   );
 }
