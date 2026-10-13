@@ -1,24 +1,22 @@
 import { Rect } from "@thi.ng/geom";
 import {
   createContext,
-  createEffect,
   createRoot,
   onCleanup,
   ParentProps,
   runWithOwner,
 } from "solid-js";
 import { Matcher } from "../../src/matcher";
-import { useIsRouting } from "@solidjs/router";
 import { dampingFromHalflife, stiffnessFromDamping } from "@nonphoto/spring";
-import { useBeforeLeave } from "@solidjs/router";
 import { access, MaybeAccessor } from "@solid-primitives/utils";
 import { isServer } from "@solidjs/web";
-import { waitForTimeout } from "../../src";
+import { Batcher, waitForTimeout } from "../../src";
 
 type PageTransitionMatch = { rect?: Rect };
 
 interface PageTransitionContextValue {
   matcher: Matcher<PageTransitionMatch>;
+  batcher: Batcher;
 }
 
 export const PageTransitionContext =
@@ -26,26 +24,17 @@ export const PageTransitionContext =
 
 export function PageTransition(props: ParentProps) {
   const matcher = new Matcher<PageTransitionMatch>();
-  const isRouting = useIsRouting();
+  const batcher = new Batcher();
+  batcher.addEventListener("run", () => {
+    console.log("batcher run");
+  });
 
-  createEffect(
-    () => isRouting(),
-    (isRouting) => {
-      console.log("routing", isRouting);
-      if (!isRouting) {
-        queueMicrotask(() => {
-          matcher.flush();
-        });
-      }
-    },
-  );
-
-  useBeforeLeave((event) => {
-    console.log("before leave");
+  batcher.addEventListener("postrun", () => {
+    matcher.flush();
   });
 
   return (
-    <PageTransitionContext value={{ matcher }}>
+    <PageTransitionContext value={{ matcher, batcher }}>
       {props.children}
     </PageTransitionContext>
   );

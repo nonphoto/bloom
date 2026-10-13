@@ -6,13 +6,17 @@ export default function PageTransitionsAlphaRoute() {
 
   console.log("alpha create");
 
-  const { matcher } = useContext(PageTransitionContext);
+  const { matcher, batcher } = useContext(PageTransitionContext);
 
   onSettled(() => {
-    matcher.attemptEnter({}, (match) => {
-      if (match) {
-        console.log("enter match", match?.rect);
-      }
+    console.log("alpha onSettled");
+    batcher.enqueue(() => {
+      console.log("alpha attempt");
+      matcher.attemptEnter({}, (match) => {
+        if (match) {
+          console.log("enter match", match?.rect);
+        }
+      });
     });
   });
 

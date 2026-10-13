@@ -15,7 +15,7 @@ export default function PageTransitionsBravoRoute() {
   console.log("bravo create");
 
   const [element, setElement] = createSignal<HTMLElement>();
-  const { matcher } = useContext(PageTransitionContext);
+  const { matcher, batcher } = useContext(PageTransitionContext);
   const rect = createRect(element);
 
   let prevRect: Rect | undefined;
@@ -27,10 +27,14 @@ export default function PageTransitionsBravoRoute() {
   );
 
   onCleanup(() => {
-    matcher.attemptExit({ rect: prevRect }, (match) => {
-      if (match) {
-        console.log("exit match", match);
-      }
+    console.log("bravo onCleanup");
+    batcher.enqueue(() => {
+      console.log("bravo attempt");
+      matcher.attemptExit({ rect: prevRect }, (match) => {
+        if (match) {
+          console.log("exit match", match);
+        }
+      });
     });
   });
 
