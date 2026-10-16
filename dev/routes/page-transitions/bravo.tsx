@@ -5,7 +5,7 @@ import {
   createEffect,
   createMemo,
 } from "solid-js";
-import { createRect } from "../../../src";
+import { createRect, getRect } from "../../../src";
 import { PageTransitionContext, getName } from "../../lib/page-transitions";
 import { Rect } from "@thi.ng/geom";
 
@@ -27,15 +27,15 @@ export default function PageTransitionsBravoRoute() {
   );
 
   onCleanup(() => {
-    console.log("bravo onCleanup");
     batcher.enqueue(() => {
       console.log("bravo attempt");
-      matcher.attemptExit({ rect: prevRect }, (match) => {
+      matcher.attemptExit({ rect }, (match) => {
         if (match) {
           console.log("exit match", match);
         }
       });
     });
+    const rect = getRect(element()!);
   });
 
   return (

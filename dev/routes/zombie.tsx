@@ -7,7 +7,7 @@ import {
 } from "../../src";
 import { TaskList } from "../components/TaskList";
 import { TaskListItem } from "../components/TaskListItem";
-import { createSignal, For, Show, useContext } from "solid-js";
+import { createSignal, For, Show } from "solid-js";
 
 export default function TransitionRoute() {
   const [list, setList] = createSignal<Pick<ItemProps, "id">[]>([]);

@@ -10,7 +10,13 @@ import { Matcher } from "../../src/matcher";
 import { dampingFromHalflife, stiffnessFromDamping } from "@nonphoto/spring";
 import { access, MaybeAccessor } from "@solid-primitives/utils";
 import { isServer } from "@solidjs/web";
-import { Batcher, waitForTimeout } from "../../src";
+import {
+  afterGetRect,
+  Batcher,
+  beforeGetRect,
+  BeforeGetRectReturn,
+  waitForTimeout,
+} from "../../src";
 
 type PageTransitionMatch = { rect?: Rect };
 
@@ -25,11 +31,20 @@ export const PageTransitionContext =
 export function PageTransition(props: ParentProps) {
   const matcher = new Matcher<PageTransitionMatch>();
   const batcher = new Batcher();
+  let beforeGetRectReturn: BeforeGetRectReturn | null = null;
+
+  batcher.addEventListener("first-enqueue", () => {
+    beforeGetRectReturn = beforeGetRect(document.body);
+  });
+
   batcher.addEventListener("run", () => {
     console.log("batcher run");
   });
 
   batcher.addEventListener("postrun", () => {
+    if (beforeGetRectReturn) {
+      afterGetRect(document.body, beforeGetRectReturn);
+    }
     matcher.flush();
   });
 

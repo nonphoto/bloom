@@ -11,7 +11,7 @@ import { rectFromDOMRect } from "./rect/fromDOMRect";
 import { SetWeakMap } from "./setWeakMap";
 import { useAnimationChains } from "./useAnimationChains";
 
-function getRect(element: HTMLElement): Rect {
+export function getRect(element: HTMLElement): Rect {
   const r = element.getBoundingClientRect();
   walkAncestors(element, (ancestor) => {
     r.x += ancestor.scrollLeft;
@@ -20,16 +20,16 @@ function getRect(element: HTMLElement): Rect {
   return rectFromDOMRect(r);
 }
 
-type BeforeGetRectReturn = {
+export type BeforeGetRectReturn = {
   transforms: WeakMap<HTMLElement, string>;
   animationChains: SetWeakMap<HTMLElement, AnimationChain>;
 };
 
-type BeforeGetRectOptions = {
+export type BeforeGetRectOptions = {
   getAnimationChain?: (animation: Animation) => AnimationChain | undefined;
 };
 
-function beforeGetRect(
+export function beforeGetRect(
   root: HTMLElement,
   options?: BeforeGetRectOptions,
 ): BeforeGetRectReturn {
@@ -51,7 +51,7 @@ function beforeGetRect(
   return { transforms, animationChains };
 }
 
-function afterGetRect(
+export function afterGetRect(
   root: HTMLElement,
   { transforms, animationChains }: BeforeGetRectReturn,
 ) {

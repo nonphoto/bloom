@@ -32,6 +32,9 @@ export class Batcher extends EventTarget {
   }
 
   enqueue(callback?: () => void) {
+    if (this.#promise == null) {
+      this.dispatchEvent(new Event("first-enqueue"));
+    }
     if (callback) {
       this.addEventListener("run", callback, { once: true, passive: true });
     }
