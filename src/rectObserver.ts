@@ -1,8 +1,21 @@
 import { ReactiveMap } from "@solid-primitives/map";
 import { createSingletonRoot } from "@solid-primitives/rootless";
-import { MaybeAccessor, access } from "@solid-primitives/utils";
+import {
+  Many,
+  MaybeAccessor,
+  access,
+  asArray,
+  filterNonNullable,
+  handleDiffArray,
+} from "@solid-primitives/utils";
 import { Rect } from "@thi.ng/geom";
-import { Accessor, createEffect, onCleanup } from "solid-js";
+import {
+  Accessor,
+  createEffect,
+  createSignal,
+  createUniqueId,
+  onCleanup,
+} from "solid-js";
 import { isServer } from "@solidjs/web";
 import { AnimationChain } from "./animationChain";
 import { Batcher } from "./batcher";
@@ -75,10 +88,11 @@ export interface RectObserverOptions {
   getAnimationChain?: (animation: Animation) => AnimationChain | undefined;
 }
 
+export type RectObserverCallback = (entries: RectObserverEntry[]) => void;
+
 export class RectObserver {
   #batcher = new Batcher();
   #entries: RectObserverEntry[] = [];
-  #elements = new Set<HTMLElement>();
   #resizeObserver = new ResizeObserver((entries) => {
     for (const { target } of entries) {
       if (target instanceof HTMLElement) {
@@ -89,13 +103,14 @@ export class RectObserver {
 
   constructor(
     root: HTMLElement,
-    callback: (entries: RectObserverEntry[]) => void,
+    callback: RectObserverCallback,
     options?: RectObserverOptions,
   ) {
     let beforeGetRectReturn: BeforeGetRectReturn | null = null;
     this.#batcher.addEventListener(
-      "prerun",
+      "first-enqueue",
       () => {
+        console.log("first-enqueue");
         beforeGetRectReturn = beforeGetRect(root, options);
       },
       { passive: true },
@@ -103,6 +118,7 @@ export class RectObserver {
     this.#batcher.addEventListener(
       "postrun",
       () => {
+        console.log("postrun");
         if (beforeGetRectReturn) {
           afterGetRect(root, beforeGetRectReturn);
         }
@@ -115,65 +131,38 @@ export class RectObserver {
   }
 
   invalidate(element: HTMLElement) {
+    console.log("invalidate", element);
     this.#batcher.enqueue(() => {
-      if (this.#elements.has(element)) {
-        this.#entries.push({ target: element, rect: getRect(element) });
-      }
-    });
-  }
-
-  flush() {}
-
-  async getRect(element: HTMLElement): Promise<Rect> {
-    return new Promise((resolve) => {
-      let rect: Rect;
-      this.#batcher.addEventListener("postrun", () => void resolve(rect), {
-        once: true,
-        passive: true,
-      });
-      this.#batcher.enqueue(() => {
-        rect = getRect(element);
-      });
+      this.#entries.push({ target: element, rect: getRect(element) });
     });
   }
 
   observe(target: HTMLElement) {
-    this.#elements.add(target);
     this.#resizeObserver.observe(target);
   }
 
   unobserve(target: HTMLElement) {
-    this.#elements.delete(target);
     this.#resizeObserver.unobserve(target);
   }
 
   disconnect() {
-    this.#elements.clear();
     this.#resizeObserver.disconnect();
   }
 }
 
 interface MakeRectObserverReturn {
   invalidate(element: HTMLElement): void;
-  getRect(element: HTMLElement): Promise<Rect>;
   observe(target: HTMLElement): void;
   unobserve(target: HTMLElement): void;
 }
 
-interface UseRectObserverReturn extends MakeRectObserverReturn {
-  rects: ReactiveMap<HTMLElement, Rect | null>;
-}
-
 export function makeRectObserver(
-  callback: (entries: RectObserverEntry[]) => void,
+  callback: RectObserverCallback,
   options?: RectObserverOptions,
 ): MakeRectObserverReturn {
   if (isServer) {
     return {
-      async invalidate() {},
-      async getRect() {
-        return new Promise<Rect>(() => {});
-      },
+      invalidate() {},
       observe() {},
       unobserve() {},
     };
@@ -188,32 +177,85 @@ export function makeRectObserver(
     });
     return {
       invalidate: observer.invalidate.bind(observer),
-      getRect: observer.getRect.bind(observer),
       observe: observer.observe.bind(observer),
       unobserve: observer.unobserve.bind(observer),
     };
   }
 }
 
+export type CreateRectObserverCallback = (entry: RectObserverEntry) => void;
+
+export function createRectObserver(
+  targets: MaybeAccessor<Many<HTMLElement | undefined | null>>,
+  callback: CreateRectObserverCallback,
+  options?: RectObserverOptions,
+): void {
+  if (isServer) return;
+  const observer = makeRectObserver((entries) => {
+    for (const entry of entries) {
+      callback(entry);
+    }
+  }, options);
+
+  createEffect(
+    () => filterNonNullable(asArray(access(targets))),
+    (targets, prevTargets = []) => {
+      handleDiffArray(
+        targets,
+        prevTargets,
+        (element) => {
+          console.log("add element", element);
+          observer.observe(element);
+        },
+        observer.unobserve,
+      );
+    },
+  );
+}
+
+export interface UseRectObserverReturn {
+  useCallback(
+    element: MaybeAccessor<HTMLElement | undefined>,
+    callback: CreateRectObserverCallback,
+  ): void;
+}
+
 export const useRectObserver = createSingletonRoot<UseRectObserverReturn>(
   () => {
     const animationChains = useAnimationChains();
-    const rects = new ReactiveMap<HTMLElement, Rect | null>();
-    const observer = makeRectObserver(
-      (entries) => {
-        for (const { target, rect } of entries) {
-          if (rects.has(target)) {
-            rects.set(target, rect);
-          }
+
+    // TODO: Replace these with a better data structure
+    const callbacks = new SetWeakMap<HTMLElement, CreateRectObserverCallback>();
+    const elements = new ReactiveMap<string, HTMLElement>();
+
+    createRectObserver(
+      () => [...elements.values()],
+      (entry) => {
+        for (const callback of callbacks.get(entry.target) ?? []) {
+          callback(entry);
         }
       },
-      {
-        getAnimationChain: (animation) => animationChains.get(animation),
-      },
+      { getAnimationChain: (animation) => animationChains.get(animation) },
     );
+
     return {
-      rects,
-      ...observer,
+      useCallback: (element, callback) => {
+        const id = createUniqueId();
+        createEffect(
+          () => access(element),
+          (element) => {
+            if (element) {
+              elements.set(id, element);
+              callbacks.add(element, callback);
+              return () => {
+                callbacks.remove(element, callback);
+              };
+            } else {
+              elements.delete(id);
+            }
+          },
+        );
+      },
     };
   },
 );
@@ -221,22 +263,9 @@ export const useRectObserver = createSingletonRoot<UseRectObserverReturn>(
 export function createRect(
   element: MaybeAccessor<HTMLElement | undefined>,
 ): Accessor<Rect | undefined> {
-  const { rects, observe, unobserve } = useRectObserver();
-  createEffect(
-    () => access(element),
-    (elementValue) => {
-      if (elementValue) {
-        rects.set(elementValue, null);
-        observe(elementValue);
-        return () => {
-          rects.delete(elementValue);
-          unobserve(elementValue);
-        };
-      }
-    },
-  );
-  return () => {
-    const elementValue = access(element);
-    return elementValue ? (rects.get(elementValue) ?? undefined) : undefined;
-  };
+  const [rect, setRect] = createSignal<Rect | undefined>();
+  useRectObserver().useCallback(element, ({ rect }) => {
+    setRect(rect);
+  });
+  return rect;
 }

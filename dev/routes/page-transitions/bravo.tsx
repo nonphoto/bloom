@@ -1,29 +1,18 @@
-import {
-  createSignal,
-  useContext,
-  onCleanup,
-  createEffect,
-  createMemo,
-} from "solid-js";
-import { createRect, getRect } from "../../../src";
+import { useContext, onCleanup, createMemo, createEffect } from "solid-js";
+import { getRect } from "../../../src";
 import { PageTransitionContext, getName } from "../../lib/page-transitions";
-import { Rect } from "@thi.ng/geom";
+import { duration } from "../../../src/transducer";
+import { createLog } from "../../lib/log";
 
 export default function PageTransitionsBravoRoute() {
   const name = createMemo(() => getName("bravo"));
 
   console.log("bravo create");
 
-  const [element, setElement] = createSignal<HTMLElement>();
-  const { matcher, batcher } = useContext(PageTransitionContext);
-  const rect = createRect(element);
+  console.log(duration(100));
 
-  let prevRect: Rect | undefined;
-  createEffect(
-    () => rect(),
-    (rectValue) => {
-      prevRect = rectValue;
-    },
+  const { matcher, batcher, element, setElement, rect } = useContext(
+    PageTransitionContext,
   );
 
   onCleanup(() => {
@@ -37,6 +26,9 @@ export default function PageTransitionsBravoRoute() {
     });
     const rect = getRect(element()!);
   });
+
+  createLog("bravo element", element);
+  createLog("bravo rect", rect);
 
   return (
     <div

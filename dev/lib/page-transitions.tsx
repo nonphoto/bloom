@@ -5,6 +5,9 @@ import {
   onCleanup,
   ParentProps,
   runWithOwner,
+  type Setter,
+  type Accessor,
+  createSignal,
 } from "solid-js";
 import { Matcher } from "../../src/matcher";
 import { dampingFromHalflife, stiffnessFromDamping } from "@nonphoto/spring";
@@ -15,6 +18,7 @@ import {
   Batcher,
   beforeGetRect,
   BeforeGetRectReturn,
+  createRect,
   waitForTimeout,
 } from "../../src";
 
@@ -23,6 +27,9 @@ type PageTransitionMatch = { rect?: Rect };
 interface PageTransitionContextValue {
   matcher: Matcher<PageTransitionMatch>;
   batcher: Batcher;
+  element: Accessor<HTMLElement | undefined>;
+  setElement: Setter<HTMLElement | undefined>;
+  rect: Accessor<Rect | undefined>;
 }
 
 export const PageTransitionContext =
@@ -48,8 +55,13 @@ export function PageTransition(props: ParentProps) {
     matcher.flush();
   });
 
+  const [element, setElement] = createSignal<HTMLElement>();
+  const rect = createRect(element);
+
   return (
-    <PageTransitionContext value={{ matcher, batcher }}>
+    <PageTransitionContext
+      value={{ matcher, batcher, element, setElement, rect }}
+    >
       {props.children}
     </PageTransitionContext>
   );

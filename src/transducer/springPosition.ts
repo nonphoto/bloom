@@ -28,7 +28,6 @@ export function springPosition2(
   s: VecSpring | undefined,
   epsilon?: number,
 ): Transducer<number, Vec | undefined> {
-  console.log(s, s ? springDuration2(s) : undefined);
   return comp(
     duration(s ? springDuration2(s, epsilon) : 0),
     map((t) => (s ? springPositionAt2([], s, t) : undefined)),

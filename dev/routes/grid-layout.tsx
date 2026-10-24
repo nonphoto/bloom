@@ -9,23 +9,27 @@ import { createRectTransducer } from "../../src/createRectAnimation";
 import { createSpring2 } from "../../src/createSpring";
 import { untransform33 } from "../../src/rect/untransform";
 import { springPosition2, tuples } from "../../src/transducer";
+import { createLog } from "../lib/log";
 
 const areas = [...permutations([1, 2, 3], [1, 2, 3])];
+const damping = dampingFromHalflife(200);
+const stiffness = stiffnessFromDamping(1, damping);
 
 export default function GridLayoutRoute() {
   const [index, setIndex] = createSignal(0);
   const [element, setElement] = createSignal<HTMLElement>();
   const rect = createRect(element);
-  const damping = dampingFromHalflife(200);
-  const stiffness = stiffnessFromDamping(1, damping);
   const transform = createRectTransducer(rect, { damping, stiffness });
 
-  createAnimation(element, () =>
+  createAnimation(
+    element,
     comp(
       transform(),
       map((transform) => ({ transform: styleTransformMat33(transform) })),
     ),
   );
+
+  createLog("transducer", transform);
 
   return (
     <div

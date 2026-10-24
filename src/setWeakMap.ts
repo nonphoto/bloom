@@ -15,6 +15,17 @@ export class SetWeakMap<T extends WeakKey, U> {
     }
   }
 
+  remove(key: T, value: U): void {
+    const set = this.#map.get(key);
+    if (set) {
+      if (set.size <= 1) {
+        this.#map.delete(key);
+      } else {
+        set.delete(value);
+      }
+    }
+  }
+
   get(key: T): Set<U> | undefined {
     return this.#map.get(key);
   }
