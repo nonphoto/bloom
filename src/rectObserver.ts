@@ -110,6 +110,7 @@ export class RectObserver {
     this.#batcher.addEventListener(
       "first-enqueue",
       () => {
+        performance.mark("rectObserver first-enqueue");
         beforeGetRectReturn = beforeGetRect(root, options);
       },
       { passive: true },
@@ -117,6 +118,7 @@ export class RectObserver {
     this.#batcher.addEventListener(
       "postrun",
       () => {
+        performance.mark("rectObserver postrun");
         if (beforeGetRectReturn) {
           afterGetRect(root, beforeGetRectReturn);
         }
