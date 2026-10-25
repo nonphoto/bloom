@@ -110,7 +110,6 @@ export class RectObserver {
     this.#batcher.addEventListener(
       "first-enqueue",
       () => {
-        console.log("first-enqueue");
         beforeGetRectReturn = beforeGetRect(root, options);
       },
       { passive: true },
@@ -118,7 +117,6 @@ export class RectObserver {
     this.#batcher.addEventListener(
       "postrun",
       () => {
-        console.log("postrun");
         if (beforeGetRectReturn) {
           afterGetRect(root, beforeGetRectReturn);
         }
@@ -131,7 +129,6 @@ export class RectObserver {
   }
 
   invalidate(element: HTMLElement) {
-    console.log("invalidate", element);
     this.#batcher.enqueue(() => {
       this.#entries.push({ target: element, rect: getRect(element) });
     });
@@ -204,7 +201,6 @@ export function createRectObserver(
         targets,
         prevTargets,
         (element) => {
-          console.log("add element", element);
           observer.observe(element);
         },
         observer.unobserve,

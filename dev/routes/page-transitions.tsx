@@ -2,8 +2,6 @@ import { ParentProps } from "solid-js";
 import { PageTransition } from "../lib/page-transitions";
 
 export default function PageTransitionsRoute(props: ParentProps) {
-  console.log("create layout");
-
   return (
     <PageTransition>
       <header
@@ -12,6 +10,7 @@ export default function PageTransitionsRoute(props: ParentProps) {
           inset: "0 auto auto 0",
           display: "flex",
           "flex-direction": "column",
+          "z-index": 1,
         }}
       >
         <a href="/page-transitions/alpha">Alpha</a>

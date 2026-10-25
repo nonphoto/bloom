@@ -91,8 +91,6 @@ export function Zombie(props: ParentProps) {
   let removeUnmountedChild: (() => void) | undefined;
 
   const [jsx, onUnmount] = createDetachedRootWithContext((disposeRoot) => {
-    console.log("create zombie root");
-
     const [unmounted, setUnmounted] = createSignal(false);
 
     const dispose = () => {

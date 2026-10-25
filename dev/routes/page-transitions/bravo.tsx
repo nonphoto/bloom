@@ -1,34 +1,10 @@
-import { useContext, onCleanup, createMemo, createEffect } from "solid-js";
-import { getRect } from "../../../src";
+import { useContext, createMemo } from "solid-js";
 import { PageTransitionContext, getName } from "../../lib/page-transitions";
-import { duration } from "../../../src/transducer";
-import { createLog } from "../../lib/log";
 
 export default function PageTransitionsBravoRoute() {
   const name = createMemo(() => getName("bravo"));
 
-  console.log("bravo create");
-
-  console.log(duration(100));
-
-  const { matcher, batcher, element, setElement, rect } = useContext(
-    PageTransitionContext,
-  );
-
-  onCleanup(() => {
-    batcher.enqueue(() => {
-      console.log("bravo attempt");
-      matcher.attemptExit({ rect }, (match) => {
-        if (match) {
-          console.log("exit match", match);
-        }
-      });
-    });
-    const rect = getRect(element()!);
-  });
-
-  createLog("bravo element", element);
-  createLog("bravo rect", rect);
+  const { setElement } = useContext(PageTransitionContext);
 
   return (
     <div

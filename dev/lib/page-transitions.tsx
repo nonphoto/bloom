@@ -18,9 +18,13 @@ import {
   Batcher,
   beforeGetRect,
   BeforeGetRectReturn,
+  createAnimation,
   createRect,
+  styleTransformMat33,
   waitForTimeout,
 } from "../../src";
+import { createRectTransducer } from "../../src/createRectAnimation";
+import { comp, map } from "@thi.ng/transducers";
 
 type PageTransitionMatch = { rect?: Rect };
 
@@ -44,10 +48,6 @@ export function PageTransition(props: ParentProps) {
     beforeGetRectReturn = beforeGetRect(document.body);
   });
 
-  batcher.addEventListener("run", () => {
-    console.log("batcher run");
-  });
-
   batcher.addEventListener("postrun", () => {
     if (beforeGetRectReturn) {
       afterGetRect(document.body, beforeGetRectReturn);
@@ -57,6 +57,14 @@ export function PageTransition(props: ParentProps) {
 
   const [element, setElement] = createSignal<HTMLElement>();
   const rect = createRect(element);
+  const transform = createRectTransducer(rect, { damping, stiffness });
+
+  createAnimation(element, () =>
+    comp(
+      transform(),
+      map((transform) => ({ transform: styleTransformMat33(transform) })),
+    ),
+  );
 
   return (
     <PageTransitionContext
@@ -111,6 +119,6 @@ export function createZombie(
 }
 
 export async function getName(name: string) {
-  await waitForTimeout(1000);
+  await waitForTimeout(5);
   return name;
 }

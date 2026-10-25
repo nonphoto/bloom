@@ -21,8 +21,7 @@ export default function GridLayoutRoute() {
   const rect = createRect(element);
   const transform = createRectTransducer(rect, { damping, stiffness });
 
-  createAnimation(
-    element,
+  createAnimation(element, () =>
     comp(
       transform(),
       map((transform) => ({ transform: styleTransformMat33(transform) })),

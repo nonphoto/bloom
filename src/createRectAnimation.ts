@@ -19,6 +19,7 @@ export function createRectTransducer(
   return createMemo(
     () => {
       const targetValue = target();
+      console.log(targetValue);
       return comp(
         tuples(springPosition2(pos()), springPosition2(size())),
         map(([pos, size]) => {
