@@ -4,8 +4,8 @@ import {
   onCleanup,
   ParentProps,
   runWithOwner,
-  type Setter,
   createSignal,
+  onSettled,
 } from "solid-js";
 import { dampingFromHalflife, stiffnessFromDamping } from "@nonphoto/spring";
 import { access, MaybeAccessor } from "@solid-primitives/utils";
@@ -20,7 +20,7 @@ import { createRectTransducer } from "../../src/createRectAnimation";
 import { comp, map } from "@thi.ng/transducers";
 
 interface PageTransitionContextValue {
-  setElement: Setter<HTMLElement | undefined>;
+  setElement: (value: HTMLElement | undefined) => void;
 }
 
 export const PageTransitionContext =
@@ -39,8 +39,20 @@ export function PageTransition(props: ParentProps) {
     );
   });
 
+  const setElementOnSettled: PageTransitionContextValue["setElement"] = (
+    ...args
+  ) => {
+    onSettled(() => {
+      setElement(...args);
+    });
+  };
+
   return (
-    <PageTransitionContext value={{ setElement }}>
+    <PageTransitionContext
+      value={{
+        setElement: setElementOnSettled,
+      }}
+    >
       {props.children}
     </PageTransitionContext>
   );
@@ -63,33 +75,33 @@ export function createZombie(
   callback: (zombie: Node, dispose: () => void) => void,
   options?: CreateZombieOptions,
 ) {
-  if (!isServer) {
-    onCleanup(() => {
-      runWithOwner(null, () =>
-        createRoot((dispose) => {
-          const elementValue = access(element);
-          if (elementValue) {
-            const zombie = elementValue.cloneNode(true);
-            if (zombie instanceof HTMLElement) {
-              zombie.inert = true;
-            }
+  if (isServer) return;
 
-            const mount = options?.mount ?? document.body;
-            mount.appendChild(zombie);
-
-            onCleanup(() => {
-              mount.removeChild(zombie);
-            });
-
-            callback(zombie, dispose);
+  onCleanup(() => {
+    runWithOwner(null, () =>
+      createRoot((dispose) => {
+        const elementValue = access(element);
+        if (elementValue) {
+          const zombie = elementValue.cloneNode(true);
+          if (zombie instanceof HTMLElement) {
+            zombie.inert = true;
           }
-        }),
-      );
-    });
-  }
+
+          const mount = options?.mount ?? document.body;
+          mount.appendChild(zombie);
+
+          onCleanup(() => {
+            mount.removeChild(zombie);
+          });
+
+          callback(zombie, dispose);
+        }
+      }),
+    );
+  });
 }
 
 export async function getName(name: string) {
-  await waitForTimeout(5);
+  await waitForTimeout(500);
   return name;
 }
