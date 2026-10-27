@@ -12,6 +12,7 @@ import { access, MaybeAccessor } from "@solid-primitives/utils";
 import { isServer } from "@solidjs/web";
 import {
   createAnimation,
+  createBatchedGetRect,
   createRect,
   styleTransformMat33,
   waitForTimeout,
@@ -28,7 +29,8 @@ export const PageTransitionContext =
 
 export function PageTransition(props: ParentProps) {
   const [element, setElement] = createSignal<HTMLElement>();
-  const rect = createRect(element);
+  const getRect = createBatchedGetRect(document.documentElement);
+  const rect = createRect(getRect, element);
   const transform = createRectTransducer(rect, { damping, stiffness });
 
   createAnimation(element, () => {

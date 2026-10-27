@@ -33,16 +33,16 @@ export class Batcher extends EventTarget {
 
   enqueue(callback?: () => void) {
     if (this.#promise == null) {
-      this.dispatchEvent(new Event("first-enqueue"));
+      this.dispatchEvent(new Event("pre-enqueue"));
     }
     if (callback) {
-      this.addEventListener("run", callback, { once: true, passive: true });
+      this.addEventListener("run", callback, { once: true });
     }
     if (this.#promise == null) {
       this.#promise = this.#wait().then(() => {
-        this.dispatchEvent(new Event("prerun"));
+        this.dispatchEvent(new Event("pre-run"));
         this.dispatchEvent(new Event("run"));
-        this.dispatchEvent(new Event("postrun"));
+        this.dispatchEvent(new Event("post-run"));
         this.#promise = null;
       });
     }
