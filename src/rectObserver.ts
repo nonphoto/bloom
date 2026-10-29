@@ -20,6 +20,7 @@ export function getRect(element: HTMLElement): Rect {
 }
 
 export type BeforeGetRectReturn = {
+  root: HTMLElement;
   transforms: WeakMap<HTMLElement, string>;
   animationChains: SetWeakMap<HTMLElement, AnimationChain>;
 };
@@ -47,13 +48,14 @@ export function beforeGetRect(
     }
   });
 
-  return { transforms, animationChains };
+  return { root, transforms, animationChains };
 }
 
-export function afterGetRect(
-  root: HTMLElement,
-  { transforms, animationChains }: BeforeGetRectReturn,
-) {
+export function afterGetRect({
+  root,
+  transforms,
+  animationChains,
+}: BeforeGetRectReturn) {
   walkDescendants(root, (element) => {
     const transform = transforms.get(element);
     if (transform) {
@@ -65,7 +67,7 @@ export function afterGetRect(
   });
 }
 
-export function createBatchedGetRect(root: HTMLElement) {
+export function createBatchedGetRect(root: MaybeAccessor<HTMLElement>) {
   const batcher = new Batcher();
   let beforeGetRectReturn: BeforeGetRectReturn | undefined;
 
@@ -74,7 +76,7 @@ export function createBatchedGetRect(root: HTMLElement) {
 
   createEventListener(batcher, "pre-enqueue", () => {
     performance.mark("batcher pre-enqueue");
-    beforeGetRectReturn = beforeGetRect(root, (element) =>
+    beforeGetRectReturn = beforeGetRect(access(root), (element) =>
       animationChains.get(element),
     );
   });
@@ -82,7 +84,7 @@ export function createBatchedGetRect(root: HTMLElement) {
   createEventListener(batcher, "post-run", () => {
     performance.mark("batcher post-run");
     if (beforeGetRectReturn) {
-      afterGetRect(root, beforeGetRectReturn);
+      afterGetRect(beforeGetRectReturn);
       beforeGetRectReturn = undefined;
     }
   });

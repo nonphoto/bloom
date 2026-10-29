@@ -1,6 +1,6 @@
 import { createEventListener } from "@solid-primitives/event-listener";
 import { access, MaybeAccessor } from "@solid-primitives/utils";
-import { comp, iterator, Transducer } from "@thi.ng/transducers";
+import { comp, map, iterator, Transducer } from "@thi.ng/transducers";
 import { Accessor, createMemo } from "solid-js";
 import {
   AnimationChain,
@@ -8,6 +8,8 @@ import {
 } from "./animationChain";
 import { animations, time } from "./transducer";
 import { useAnimationChains } from "./useAnimationChains";
+import { Mat } from "@thi.ng/matrices";
+import { styleTransformMat33 } from "./style";
 
 export function createAnimation(
   element: MaybeAccessor<Element | undefined>,
@@ -49,4 +51,20 @@ export function createAnimation(
     }
   });
   return memo;
+}
+
+export function createTransformAnimation(
+  element: MaybeAccessor<Element | undefined>,
+  transform: MaybeAccessor<Transducer<number, Mat | undefined>>,
+  timeline?: MaybeAccessor<AnimationTimeline | undefined>,
+): Accessor<AnimationChain | undefined> {
+  return createAnimation(
+    element,
+    () =>
+      comp(
+        access(transform),
+        map((transform) => ({ transform: styleTransformMat33(transform) })),
+      ),
+    timeline,
+  );
 }

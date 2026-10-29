@@ -11,14 +11,12 @@ import { dampingFromHalflife, stiffnessFromDamping } from "@nonphoto/spring";
 import { access, MaybeAccessor } from "@solid-primitives/utils";
 import { isServer } from "@solidjs/web";
 import {
-  createAnimation,
   createBatchedGetRect,
   createRect,
-  styleTransformMat33,
+  createTransformAnimation,
   waitForTimeout,
 } from "../../src";
 import { createRectTransducer } from "../../src/createRectAnimation";
-import { comp, map } from "@thi.ng/transducers";
 
 interface PageTransitionContextValue {
   setElement: (value: HTMLElement | undefined) => void;
@@ -32,14 +30,7 @@ export function PageTransition(props: ParentProps) {
   const getRect = createBatchedGetRect(document.documentElement);
   const rect = createRect(getRect, element);
   const transform = createRectTransducer(rect, { damping, stiffness });
-
-  createAnimation(element, () => {
-    performance.mark("createAnimation");
-    return comp(
-      transform(),
-      map((transform) => ({ transform: styleTransformMat33(transform) })),
-    );
-  });
+  createTransformAnimation(element, transform);
 
   const setElementOnSettled: PageTransitionContextValue["setElement"] = (
     ...args

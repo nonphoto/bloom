@@ -3,13 +3,19 @@ import { rect } from "@thi.ng/geom";
 import { invert33, Mat, mul33 } from "@thi.ng/matrices";
 import { comp, map, permutations, Transducer } from "@thi.ng/transducers";
 import { Accessor, createSignal } from "solid-js";
-import { createRect, styleTransformMat33 } from "../../src";
-import { createAnimation } from "../../src/createAnimation";
+import {
+  createBatchedGetRect,
+  createRect,
+  styleTransformMat33,
+} from "../../src";
+import {
+  createAnimation,
+  createTransformAnimation,
+} from "../../src/createAnimation";
 import { createRectTransducer } from "../../src/createRectAnimation";
 import { createSpring2 } from "../../src/createSpring";
 import { untransform33 } from "../../src/rect/untransform";
 import { springPosition2, tuples } from "../../src/transducer";
-import { createLog } from "../lib/log";
 
 const areas = [...permutations([1, 2, 3], [1, 2, 3])];
 const damping = dampingFromHalflife(200);
@@ -18,17 +24,10 @@ const stiffness = stiffnessFromDamping(1, damping);
 export default function GridLayoutRoute() {
   const [index, setIndex] = createSignal(0);
   const [element, setElement] = createSignal<HTMLElement>();
-  const rect = createRect(element);
+  const getRect = createBatchedGetRect(document.documentElement);
+  const rect = createRect(getRect, element);
   const transform = createRectTransducer(rect, { damping, stiffness });
-
-  createAnimation(element, () =>
-    comp(
-      transform(),
-      map((transform) => ({ transform: styleTransformMat33(transform) })),
-    ),
-  );
-
-  createLog("transducer", transform);
+  createTransformAnimation(element, transform);
 
   return (
     <div

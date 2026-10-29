@@ -47,12 +47,6 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
-      path: "/grid-layout";
-      page: true;
-      $component: FileRouteLazyRef<typeof import("./dev/routes/grid-layout")>;
-      $$route?: undefined;
-    },
-    {
       path: "/";
       page: true;
       $component: FileRouteLazyRef<typeof import("./dev/routes/index")>;
@@ -122,6 +116,12 @@ declare module "virtual:file-routes" {
       path: "/zombie";
       page: true;
       $component: FileRouteLazyRef<typeof import("./dev/routes/zombie")>;
+      $$route?: undefined;
+    },
+    {
+      path: "/grid-layout";
+      page: true;
+      $component: FileRouteLazyRef<typeof import("./dev/routes/grid-layout")>;
       $$route?: undefined;
     }
   ];
