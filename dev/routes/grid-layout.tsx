@@ -1,5 +1,5 @@
 import { dampingFromHalflife, stiffnessFromDamping } from "@nonphoto/spring";
-import { rect } from "@thi.ng/geom";
+import { Rect, rect } from "@thi.ng/geom";
 import { invert33, Mat, mul33 } from "@thi.ng/matrices";
 import { comp, map, permutations, Transducer } from "@thi.ng/transducers";
 import { Accessor, createSignal } from "solid-js";
@@ -20,11 +20,11 @@ import { springPosition2, tuples } from "../../src/transducer";
 const areas = [...permutations([1, 2, 3], [1, 2, 3])];
 const damping = dampingFromHalflife(200);
 const stiffness = stiffnessFromDamping(1, damping);
+const getRect = createBatchedGetRect(document.documentElement);
 
 export default function GridLayoutRoute() {
   const [index, setIndex] = createSignal(0);
   const [element, setElement] = createSignal<HTMLElement>();
-  const getRect = createBatchedGetRect(document.documentElement);
   const rect = createRect(getRect, element);
   const transform = createRectTransducer(rect, { damping, stiffness });
   createTransformAnimation(element, transform);
@@ -51,49 +51,20 @@ export default function GridLayoutRoute() {
           "align-items": "center",
         }}
       >
-        {/* <Image parentTransform={transform} /> */}
+        <Child parentTransform={transform()} getRect={getRect} />
       </div>
     </div>
   );
 }
 
-function Image({
-  parentTransform,
-}: {
-  parentTransform: Accessor<Transducer<number, Mat | undefined>>;
+function Child(props: {
+  parentTransform: Transducer<number, Mat | undefined>;
+  getRect: (element: HTMLElement) => Promise<Rect>;
 }) {
   const [element, setElement] = createSignal<HTMLElement>();
-
-  const targetRect = createRect(element);
-  const pos = createSpring2(() => targetRect()?.pos);
-  const size = createSpring2(() => targetRect()?.size);
-
-  const transform = () => {
-    const targetRectValue = targetRect();
-    return comp(
-      tuples(
-        parentTransform(),
-        springPosition2(pos()),
-        springPosition2(size()),
-      ),
-      map(([parentTransform, pos, size]) => {
-        if (parentTransform && targetRectValue && pos && size) {
-          return mul33(
-            [],
-            invert33([], parentTransform)!,
-            untransform33([], targetRectValue, rect(pos, size)),
-          );
-        }
-      }),
-    );
-  };
-
-  createAnimation(element, () =>
-    comp(
-      transform(),
-      map((transform) => ({ transform: styleTransformMat33(transform) })),
-    ),
-  );
+  const rect = createRect(getRect, element);
+  const transform = createRectTransducer(rect, { damping, stiffness });
+  createTransformAnimation(element, transform);
 
   return (
     <img
@@ -103,3 +74,24 @@ function Image({
     />
   );
 }
+
+// const transform = () => {
+//   const targetRectValue = targetRect();
+//   return comp(
+//     tuples(
+//       props.parentTransform,
+//       springPosition2(pos()),
+//       springPosition2(size()),
+//     ),
+//     map(([parentTransform, pos, size]) => {
+//       console.log(parentTransform)
+//       if (parentTransform && targetRectValue && pos && size) {
+//         return mul33(
+//           [],
+//           invert33([], parentTransform)!,
+//           untransform33([], targetRectValue, rect(pos, size)),
+//         );
+//       }
+//     }),
+//   );
+// };

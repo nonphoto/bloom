@@ -9,7 +9,7 @@ import {
 } from "solid-js";
 import { dampingFromHalflife, stiffnessFromDamping } from "@nonphoto/spring";
 import { access, MaybeAccessor } from "@solid-primitives/utils";
-import { isServer } from "@solidjs/web";
+import { isServer, respond } from "@solidjs/web";
 import {
   createBatchedGetRect,
   createRect,
@@ -29,6 +29,9 @@ export function PageTransition(props: ParentProps) {
   const [element, setElement] = createSignal<HTMLElement>();
   const getRect = createBatchedGetRect(document.documentElement);
   const rect = createRect(getRect, element);
+
+  // TODO: Is it possible to remove optional types from memos that don't depend
+  // on HTMLElement directly?
   const transform = createRectTransducer(rect, { damping, stiffness });
   createTransformAnimation(element, transform);
 
@@ -94,7 +97,42 @@ export function createZombie(
   });
 }
 
-export async function getName(name: string) {
+const pages: { name: string; backgroundColor: string }[] = [
+  {
+    name: "alpha",
+    backgroundColor: "lightpink",
+  },
+  {
+    name: "bravo",
+    backgroundColor: "skyblue",
+  },
+  {
+    name: "charlie",
+    backgroundColor: "lightgoldenrodyellow",
+  },
+  {
+    name: "delta",
+    backgroundColor: "palegreen",
+  },
+  {
+    name: "echo",
+    backgroundColor: "lavender",
+  },
+];
+
+export async function fetchAllPages() {
+  "use server";
   await waitForTimeout(500);
-  return name;
+  return pages;
+}
+
+export async function fetchPage(name: string) {
+  "use server";
+  await waitForTimeout(500);
+  const page = pages.find((page) => page.name === name);
+  if (page) {
+    return respond(page);
+  } else {
+    throw respond("Page not found", { status: 404 });
+  }
 }
