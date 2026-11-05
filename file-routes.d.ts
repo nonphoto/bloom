@@ -35,87 +35,51 @@ declare module "virtual:file-routes" {
   /** The flat route manifest, in scan order. */
   const routes: readonly [
     {
-      path: "/animation-chain";
+      path: "/batcher";
       page: true;
-      $component: FileRouteLazyRef<typeof import("./dev/routes/animation-chain")>;
+      $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/batcher"), Extract<"default", keyof typeof import("./dev/routes/batcher")>>>;
       $$route?: undefined;
     },
     {
-      path: "/batcher";
+      path: "/grid-layout";
       page: true;
-      $component: FileRouteLazyRef<typeof import("./dev/routes/batcher")>;
+      $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/grid-layout"), Extract<"default", keyof typeof import("./dev/routes/grid-layout")>>>;
       $$route?: undefined;
     },
     {
       path: "/";
       page: true;
-      $component: FileRouteLazyRef<typeof import("./dev/routes/index")>;
-      $$route?: undefined;
-    },
-    {
-      path: "/list-layout";
-      page: true;
-      $component: FileRouteLazyRef<typeof import("./dev/routes/list-layout")>;
-      $$route?: undefined;
-    },
-    {
-      path: "/matcher";
-      page: true;
-      $component: FileRouteLazyRef<typeof import("./dev/routes/matcher")>;
+      $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/index"), Extract<"default", keyof typeof import("./dev/routes/index")>>>;
       $$route?: undefined;
     },
     {
       path: "/page-transitions";
       page: true;
-      $component: FileRouteLazyRef<typeof import("./dev/routes/page-transitions")>;
-      $$route?: undefined;
-    },
-    {
-      path: "/page-transitions/";
-      page: true;
-      $component: FileRouteLazyRef<typeof import("./dev/routes/page-transitions/index")>;
-      $$route?: undefined;
-    },
-    {
-      path: "/rect-observer";
-      page: true;
-      $component: FileRouteLazyRef<typeof import("./dev/routes/rect-observer")>;
-      $$route?: undefined;
-    },
-    {
-      path: "/spring";
-      page: true;
-      $component: FileRouteLazyRef<typeof import("./dev/routes/spring")>;
-      $$route?: undefined;
-    },
-    {
-      path: "/transducer-animation";
-      page: true;
-      $component: FileRouteLazyRef<typeof import("./dev/routes/transducer-animation")>;
-      $$route?: undefined;
-    },
-    {
-      path: "/zombie-old";
-      page: true;
-      $component: FileRouteLazyRef<typeof import("./dev/routes/zombie-old")>;
-      $$route?: undefined;
-    },
-    {
-      path: "/zombie";
-      page: true;
-      $component: FileRouteLazyRef<typeof import("./dev/routes/zombie")>;
+      $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/page-transitions"), Extract<"default", keyof typeof import("./dev/routes/page-transitions")>>>;
       $$route?: undefined;
     },
     {
       path: "/page-transitions/:name";
       page: true;
-      $component: FileRouteLazyRef<typeof import("./dev/routes/page-transitions/[name]")>;
-      $$route: FileRouteEagerRef<typeof import("./dev/routes/page-transitions/[name]")>;
+      $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/page-transitions/[name]"), Extract<"default", keyof typeof import("./dev/routes/page-transitions/[name]")>>>;
+      $$route: FileRouteEagerRef<Pick<typeof import("./dev/routes/page-transitions/[name]"), Extract<"route", keyof typeof import("./dev/routes/page-transitions/[name]")>>>;
     },
     {
-      path: "/grid-layout";
+      path: "/page-transitions/";
       page: true;
-      $component: FileRouteLazyRef<typeof import("./dev/routes/grid-layout")>;
+      $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/page-transitions/index"), Extract<"default", keyof typeof import("./dev/routes/page-transitions/index")>>>;
+      $$route?: undefined;
+    },
+    {
+      path: "/rect-observer";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/rect-observer"), Extract<"default", keyof typeof import("./dev/routes/rect-observer")>>>;
+      $$route?: undefined;
+    },
+    {
+      path: "/spring";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/spring"), Extract<"default", keyof typeof import("./dev/routes/spring")>>>;
       $$route?: undefined;
     }
   ];
@@ -127,7 +91,7 @@ declare module "virtual:file-routes" {
       path: "/";
       id: "/";
       page: true;
-      $component: FileRouteLazyRef<typeof import("./dev/routes/index")>;
+      $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/index"), Extract<"default", keyof typeof import("./dev/routes/index")>>>;
       $$route?: undefined;
       children?: undefined;
     },
@@ -135,15 +99,7 @@ declare module "virtual:file-routes" {
       path: "/spring";
       id: "/spring";
       page: true;
-      $component: FileRouteLazyRef<typeof import("./dev/routes/spring")>;
-      $$route?: undefined;
-      children?: undefined;
-    },
-    {
-      path: "/zombie";
-      id: "/zombie";
-      page: true;
-      $component: FileRouteLazyRef<typeof import("./dev/routes/zombie")>;
+      $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/spring"), Extract<"default", keyof typeof import("./dev/routes/spring")>>>;
       $$route?: undefined;
       children?: undefined;
     },
@@ -151,23 +107,7 @@ declare module "virtual:file-routes" {
       path: "/batcher";
       id: "/batcher";
       page: true;
-      $component: FileRouteLazyRef<typeof import("./dev/routes/batcher")>;
-      $$route?: undefined;
-      children?: undefined;
-    },
-    {
-      path: "/matcher";
-      id: "/matcher";
-      page: true;
-      $component: FileRouteLazyRef<typeof import("./dev/routes/matcher")>;
-      $$route?: undefined;
-      children?: undefined;
-    },
-    {
-      path: "/zombie-old";
-      id: "/zombie-old";
-      page: true;
-      $component: FileRouteLazyRef<typeof import("./dev/routes/zombie-old")>;
+      $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/batcher"), Extract<"default", keyof typeof import("./dev/routes/batcher")>>>;
       $$route?: undefined;
       children?: undefined;
     },
@@ -175,15 +115,7 @@ declare module "virtual:file-routes" {
       path: "/grid-layout";
       id: "/grid-layout";
       page: true;
-      $component: FileRouteLazyRef<typeof import("./dev/routes/grid-layout")>;
-      $$route?: undefined;
-      children?: undefined;
-    },
-    {
-      path: "/list-layout";
-      id: "/list-layout";
-      page: true;
-      $component: FileRouteLazyRef<typeof import("./dev/routes/list-layout")>;
+      $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/grid-layout"), Extract<"default", keyof typeof import("./dev/routes/grid-layout")>>>;
       $$route?: undefined;
       children?: undefined;
     },
@@ -191,15 +123,7 @@ declare module "virtual:file-routes" {
       path: "/rect-observer";
       id: "/rect-observer";
       page: true;
-      $component: FileRouteLazyRef<typeof import("./dev/routes/rect-observer")>;
-      $$route?: undefined;
-      children?: undefined;
-    },
-    {
-      path: "/animation-chain";
-      id: "/animation-chain";
-      page: true;
-      $component: FileRouteLazyRef<typeof import("./dev/routes/animation-chain")>;
+      $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/rect-observer"), Extract<"default", keyof typeof import("./dev/routes/rect-observer")>>>;
       $$route?: undefined;
       children?: undefined;
     },
@@ -207,14 +131,14 @@ declare module "virtual:file-routes" {
       path: "/page-transitions";
       id: "/page-transitions";
       page: true;
-      $component: FileRouteLazyRef<typeof import("./dev/routes/page-transitions")>;
+      $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/page-transitions"), Extract<"default", keyof typeof import("./dev/routes/page-transitions")>>>;
       $$route?: undefined;
       children: readonly [
         {
           path: "/";
           id: "/";
           page: true;
-          $component: FileRouteLazyRef<typeof import("./dev/routes/page-transitions/index")>;
+          $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/page-transitions/index"), Extract<"default", keyof typeof import("./dev/routes/page-transitions/index")>>>;
           $$route?: undefined;
           children?: undefined;
         },
@@ -222,19 +146,11 @@ declare module "virtual:file-routes" {
           path: "/:name";
           id: "/:name";
           page: true;
-          $component: FileRouteLazyRef<typeof import("./dev/routes/page-transitions/[name]")>;
-          $$route: FileRouteEagerRef<typeof import("./dev/routes/page-transitions/[name]")>;
+          $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/page-transitions/[name]"), Extract<"default", keyof typeof import("./dev/routes/page-transitions/[name]")>>>;
+          $$route: FileRouteEagerRef<Pick<typeof import("./dev/routes/page-transitions/[name]"), Extract<"route", keyof typeof import("./dev/routes/page-transitions/[name]")>>>;
           children?: undefined;
         }
       ];
-    },
-    {
-      path: "/transducer-animation";
-      id: "/transducer-animation";
-      page: true;
-      $component: FileRouteLazyRef<typeof import("./dev/routes/transducer-animation")>;
-      $$route?: undefined;
-      children?: undefined;
     }
   ];
 }

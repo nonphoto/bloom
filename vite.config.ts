@@ -9,8 +9,12 @@ export default defineConfig({
   plugins: [
     solid({
       start: { app: "./dev/app.tsx" },
+      ssr: true,
       extensions: [".jsx", ".tsx"],
     }),
     fileRoutes({ types: true, dir: "./dev/routes" }),
   ],
+  build: {
+    target: 'esnext'
+  }
 });

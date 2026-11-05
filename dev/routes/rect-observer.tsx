@@ -1,53 +1,46 @@
 import { createEventListener } from "@solid-primitives/event-listener";
-import { map } from "@thi.ng/transducers";
 import { createEffect, createSignal } from "solid-js";
-import {
-  createAnimation,
-  createRect,
-  safeDocument,
-  styleTranslateX,
-  useRectObserver,
-} from "../../src";
+import { createBatchedGetRect, safeDocument } from "../../src";
+import { createResizeObserver } from "@solid-primitives/resize-observer";
 
 export default function WaveRoute() {
   const [element, setElement] = createSignal<HTMLElement>();
-  const { invalidate } = useRectObserver();
-  const elementRect = createRect(element);
-  const bodyRect = createRect(safeDocument()?.body);
-  const width = () => bodyRect()?.size[0] ?? 1;
+  const getRect = createBatchedGetRect(document.documentElement);
 
-  createAnimation(
-    element,
-    map((t) => ({
-      transform: styleTranslateX(
-        width() / 2 + (Math.sin(t / 1000) * width()) / 2,
-      ),
-    })),
+  createEffect(
+    () => element(),
+    (element) => {
+      const animation = element?.animate(
+        [
+          { transform: `translate(0px, 0px)` },
+          { transform: `translate(-100%, -100%)` },
+        ],
+        { duration: 2000, iterations: Infinity },
+      );
+      return () => animation?.cancel();
+    },
   );
 
   createEventListener(safeDocument()?.body, "click", () => {
     const elementValue = element();
     if (elementValue) {
-      invalidate(elementValue);
+      // getRect(elementValue).then(console.log);
     }
   });
 
-  createEffect(
-    () => elementRect(),
-    (rect) => {
-      console.log(rect?.pos);
-    },
-  );
+  createResizeObserver(element, ({ width, height }, element) => {
+    console.log(element.clientLeft);
+  });
 
   return (
     <div
       ref={setElement}
       style={{
         position: "fixed",
-        inset: "0 auto auto 0",
+        inset: "auto 0 0 auto",
         background: "skyblue",
-        width: "4rem",
-        height: "4rem",
+        width: "50%",
+        height: "50%",
       }}
     />
   );

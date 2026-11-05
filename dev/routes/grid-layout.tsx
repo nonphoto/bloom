@@ -1,21 +1,10 @@
 import { dampingFromHalflife, stiffnessFromDamping } from "@nonphoto/spring";
-import { Rect, rect } from "@thi.ng/geom";
-import { invert33, Mat, mul33 } from "@thi.ng/matrices";
-import { comp, map, permutations, Transducer } from "@thi.ng/transducers";
-import { Accessor, createSignal } from "solid-js";
-import {
-  createBatchedGetRect,
-  createRect,
-  styleTransformMat33,
-} from "../../src";
-import {
-  createAnimation,
-  createTransformAnimation,
-} from "../../src/createAnimation";
-import { createRectTransducer } from "../../src/createRectAnimation";
-import { createSpring2 } from "../../src/createSpring";
-import { untransform33 } from "../../src/rect/untransform";
-import { springPosition2, tuples } from "../../src/transducer";
+import { Rect } from "@thi.ng/geom";
+import { Mat } from "@thi.ng/matrices";
+import { permutations, Transducer } from "@thi.ng/transducers";
+import { createSignal, onSettled } from "solid-js";
+import { Batcher, createBatchedGetRect, createRect } from "../../src";
+import { TransformController } from "../../src/transformController";
 
 const areas = [...permutations([1, 2, 3], [1, 2, 3])];
 const damping = dampingFromHalflife(200);
@@ -23,14 +12,37 @@ const stiffness = stiffnessFromDamping(1, damping);
 const getRect = createBatchedGetRect(document.documentElement);
 
 export default function GridLayoutRoute() {
+  let parentElement!: HTMLDivElement;
+  let childElement!: HTMLDivElement;
   const [index, setIndex] = createSignal(0);
-  const [element, setElement] = createSignal<HTMLElement>();
-  const rect = createRect(getRect, element);
-  const transform = createRectTransducer(rect, { damping, stiffness });
-  createTransformAnimation(element, transform);
+
+  onSettled(() => {
+    const controller = new TransformController(childElement);
+
+    const batcher = new Batcher();
+    batcher.addEventListener("pre-enqueue", () => {
+      controller.disable();
+    });
+    batcher.addEventListener("post-run", () => {
+      controller.enable();
+    });
+
+    const observer = new ResizeObserver(() => {
+      batcher.enqueue(() => {
+        const rect = getRect(childElement);
+        console.log(rect);
+      });
+    });
+    observer.observe(childElement);
+
+    return () => {
+      observer.disconnect();
+    };
+  });
 
   return (
     <div
+      ref={parentElement}
       style={{
         height: "100svh",
         display: "grid",
@@ -42,7 +54,7 @@ export default function GridLayoutRoute() {
       }}
     >
       <div
-        ref={setElement}
+        ref={childElement}
         style={{
           background: "pink",
           "grid-row-start": areas[index()]?.[0],
@@ -50,9 +62,7 @@ export default function GridLayoutRoute() {
           display: "flex",
           "align-items": "center",
         }}
-      >
-        <Child parentTransform={transform()} getRect={getRect} />
-      </div>
+      ></div>
     </div>
   );
 }
@@ -63,8 +73,6 @@ function Child(props: {
 }) {
   const [element, setElement] = createSignal<HTMLElement>();
   const rect = createRect(getRect, element);
-  const transform = createRectTransducer(rect, { damping, stiffness });
-  createTransformAnimation(element, transform);
 
   return (
     <img

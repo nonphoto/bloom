@@ -1,10 +1,10 @@
-import { access, MaybeAccessor } from "@solid-primitives/utils";
 import { Mat } from "@thi.ng/matrices";
 import { comp, map, Transducer } from "@thi.ng/transducers";
 import { Accessor } from "solid-js";
 import { createAnimation } from "./createAnimation";
-import { styleTransformMat33 } from "../dist";
 import { keyframes } from "./transducer";
+import { access, MaybeAccessor } from "@solid-primitives/utils";
+import { styleTransformMat33 } from "./style";
 
 export function createTransformAnimation(
   element: MaybeAccessor<HTMLElement | undefined>,

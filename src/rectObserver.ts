@@ -2,13 +2,10 @@ import { createResizeObserver } from "@solid-primitives/resize-observer";
 import { access, MaybeAccessor } from "@solid-primitives/utils";
 import { Rect } from "@thi.ng/geom";
 import { Accessor, createSignal } from "solid-js";
-import { AnimationChain } from "./animationChain";
 import { Batcher } from "./batcher";
 import { walkAncestors, walkDescendants } from "./dom";
 import { rectFromDOMRect } from "./rect/fromDOMRect";
-import { SetWeakMap } from "./setWeakMap";
 import { createEventListener } from "@solid-primitives/event-listener";
-import { useAnimationChains } from "./useAnimationChains";
 
 export function getRect(element: HTMLElement): Rect {
   const r = element.getBoundingClientRect();
@@ -22,47 +19,24 @@ export function getRect(element: HTMLElement): Rect {
 export type BeforeGetRectReturn = {
   root: HTMLElement;
   transforms: WeakMap<HTMLElement, string>;
-  animationChains: SetWeakMap<HTMLElement, AnimationChain>;
 };
 
-export type BeforeGetRectOptions = {
-  getAnimationChain?: (animation: Animation) => AnimationChain | undefined;
-};
-
-export function beforeGetRect(
-  root: HTMLElement,
-  getAnimationChain: (animation: Animation) => AnimationChain | undefined,
-): BeforeGetRectReturn {
+export function beforeGetRect(root: HTMLElement): BeforeGetRectReturn {
   const transforms = new WeakMap<HTMLElement, string>();
-  const animationChains = new SetWeakMap<HTMLElement, AnimationChain>();
 
   walkDescendants(root, (element) => {
     transforms.set(element, element.style.transform);
     element.style.transform = "";
-    for (const animation of element.getAnimations()) {
-      const animationChain = getAnimationChain(animation);
-      if (animationChain) {
-        animationChain.interrupt();
-        animationChains.add(element, animationChain);
-      }
-    }
   });
 
-  return { root, transforms, animationChains };
+  return { root, transforms };
 }
 
-export function afterGetRect({
-  root,
-  transforms,
-  animationChains,
-}: BeforeGetRectReturn) {
+export function afterGetRect({ root, transforms }: BeforeGetRectReturn) {
   walkDescendants(root, (element) => {
     const transform = transforms.get(element);
     if (transform) {
       element.style.transform = transform;
-    }
-    for (const animationChain of animationChains.get(element) ?? []) {
-      animationChain.resume();
     }
   });
 }
@@ -71,14 +45,9 @@ export function createBatchedGetRect(root: MaybeAccessor<HTMLElement>) {
   const batcher = new Batcher();
   let beforeGetRectReturn: BeforeGetRectReturn | undefined;
 
-  // TODO: Remove global animation chains
-  const animationChains = useAnimationChains();
-
   createEventListener(batcher, "pre-enqueue", () => {
     performance.mark("batcher pre-enqueue");
-    beforeGetRectReturn = beforeGetRect(access(root), (element) =>
-      animationChains.get(element),
-    );
+    beforeGetRectReturn = beforeGetRect(access(root));
   });
 
   createEventListener(batcher, "post-run", () => {

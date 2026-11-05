@@ -17,11 +17,11 @@ export default function PageTransitionsNameRoute(
     <div
       ref={setElement}
       style={{
-        background: page().value.backgroundColor,
+        background: page().backgroundColor,
         "text-align": "center",
       }}
     >
-      {page().value.name}
+      {page().name}
     </div>
   );
 }
