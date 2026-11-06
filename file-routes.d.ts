@@ -47,12 +47,6 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
-      path: "/";
-      page: true;
-      $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/index"), Extract<"default", keyof typeof import("./dev/routes/index")>>>;
-      $$route?: undefined;
-    },
-    {
       path: "/page-transitions";
       page: true;
       $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/page-transitions"), Extract<"default", keyof typeof import("./dev/routes/page-transitions")>>>;
@@ -87,14 +81,6 @@ declare module "virtual:file-routes" {
 
   /** The page entries, nested by path with grouping segments stripped. */
   export const pageRoutes: readonly [
-    {
-      path: "/";
-      id: "/";
-      page: true;
-      $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/index"), Extract<"default", keyof typeof import("./dev/routes/index")>>>;
-      $$route?: undefined;
-      children?: undefined;
-    },
     {
       path: "/spring";
       id: "/spring";

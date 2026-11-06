@@ -1,5 +1,6 @@
-import { takeWhile, Transducer } from "@thi.ng/transducers";
+import { take, Transducer } from "@thi.ng/transducers";
+import { frameDuration } from "./const";
 
 export function duration(ms: number): Transducer<number, number> {
-  return takeWhile((t) => t < ms);
+  return take(Math.ceil(ms / frameDuration));
 }

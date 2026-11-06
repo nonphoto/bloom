@@ -1,23 +1,25 @@
 import { dampingFromHalflife, stiffnessFromDamping } from "@nonphoto/spring";
-import { Rect } from "@thi.ng/geom";
-import { Mat } from "@thi.ng/matrices";
-import { permutations, Transducer } from "@thi.ng/transducers";
+import { comp, map, permutations } from "@thi.ng/transducers";
 import { createSignal, onSettled } from "solid-js";
-import { Batcher, createBatchedGetRect, createRect } from "../../src";
+import { Batcher, getRect } from "../../src";
 import { TransformController } from "../../src/transformController";
+import { rectSpringTx } from "../../src/rectSpring";
+import { untransform33 } from "../../src/rect/untransform";
+import { SpringController2 } from "../../src/springController";
+import { delay } from "../../src/transducer";
 
 const areas = [...permutations([1, 2, 3], [1, 2, 3])];
 const damping = dampingFromHalflife(200);
 const stiffness = stiffnessFromDamping(1, damping);
-const getRect = createBatchedGetRect(document.documentElement);
 
 export default function GridLayoutRoute() {
-  let parentElement!: HTMLDivElement;
-  let childElement!: HTMLDivElement;
   const [index, setIndex] = createSignal(0);
+  let element!: HTMLDivElement;
 
   onSettled(() => {
-    const controller = new TransformController(childElement);
+    const posSpring = new SpringController2(undefined, { stiffness, damping });
+    const sizeSpring = new SpringController2(undefined, { stiffness, damping });
+    const controller = new TransformController(element);
 
     const batcher = new Batcher();
     batcher.addEventListener("pre-enqueue", () => {
@@ -29,11 +31,21 @@ export default function GridLayoutRoute() {
 
     const observer = new ResizeObserver(() => {
       batcher.enqueue(() => {
-        const rect = getRect(childElement);
-        console.log(rect);
+        const rect = getRect(element);
+        posSpring.next(rect.pos);
+        sizeSpring.next(rect.size);
+        if (posSpring.spring && sizeSpring.spring) {
+          controller.animate(
+            comp(
+              delay(performance.now()),
+              rectSpringTx(posSpring.spring, sizeSpring.spring),
+              map((value) => untransform33([], rect, value)),
+            ),
+          );
+        }
       });
     });
-    observer.observe(childElement);
+    observer.observe(element);
 
     return () => {
       observer.disconnect();
@@ -42,7 +54,6 @@ export default function GridLayoutRoute() {
 
   return (
     <div
-      ref={parentElement}
       style={{
         height: "100svh",
         display: "grid",
@@ -54,34 +65,23 @@ export default function GridLayoutRoute() {
       }}
     >
       <div
-        ref={childElement}
+        ref={element}
         style={{
           background: "pink",
-          "grid-row-start": areas[index()]?.[0],
-          "grid-column-start": areas[index()]?.[1],
           display: "flex",
           "align-items": "center",
+          "grid-row-start": areas[index()]?.[0],
+          "grid-column-start": areas[index()]?.[1],
         }}
       ></div>
     </div>
   );
 }
 
-function Child(props: {
-  parentTransform: Transducer<number, Mat | undefined>;
-  getRect: (element: HTMLElement) => Promise<Rect>;
-}) {
-  const [element, setElement] = createSignal<HTMLElement>();
-  const rect = createRect(getRect, element);
-
-  return (
-    <img
-      ref={setElement}
-      src="https://images.unsplash.com/photo-1591350832024-68c7491dd46e?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-      style={{ width: "100%", "user-select": "none" }}
-    />
-  );
-}
+// <img
+//   src="https://images.unsplash.com/photo-1591350832024-68c7491dd46e?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+//   style={{ width: "100%", "user-select": "none" }}
+// />
 
 // const transform = () => {
 //   const targetRectValue = targetRect();

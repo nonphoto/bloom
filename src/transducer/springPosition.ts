@@ -25,12 +25,12 @@ export function springPosition(
 }
 
 export function springPosition2(
-  s: VecSpring | undefined,
+  s: VecSpring,
   epsilon?: number,
-): Transducer<number, Vec | undefined> {
+): Transducer<number, Vec> {
   return comp(
-    duration(s ? springDuration2(s, epsilon) : 0),
-    map((t) => (s ? springPositionAt2([], s, t) : undefined)),
+    duration(springDuration2(s, epsilon)),
+    map((t) => springPositionAt2([], s, t)),
   );
 }
 

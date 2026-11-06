@@ -2,13 +2,11 @@ import {
   defaultDamping,
   defaultStiffness,
   positionAt,
-  positionAt2,
   positionAt3,
   positionAt4,
   Spring,
   VecSpring,
   velocityAt,
-  velocityAt2,
   velocityAt3,
   velocityAt4,
 } from "@nonphoto/spring";
@@ -16,6 +14,8 @@ import { access, MaybeAccessor } from "@solid-primitives/utils";
 import { copy, Vec, zeroes } from "@thi.ng/vectors";
 import { Accessor, createMemo } from "solid-js";
 import { Clock } from "./clock";
+import { continueSpring2 } from "./continueSpring";
+import { SpringController2 } from "./springController";
 
 export function createSpring(
   target?: MaybeAccessor<number | undefined>,
@@ -47,21 +47,18 @@ export function createSpring2(
     damping?: MaybeAccessor<number | undefined>;
   },
 ): Accessor<VecSpring | undefined> {
-  const clock = new Clock();
-  return createMemo((prev) => {
-    clock.tick();
-    const targetValue = access(target);
-    return targetValue
-      ? {
-          position: prev
-            ? positionAt2([], prev, clock.deltaTime)
-            : copy(targetValue),
-          velocity: prev ? velocityAt2([], prev, clock.deltaTime) : zeroes(2),
-          target: copy(targetValue),
-          damping: access(options?.damping) ?? defaultDamping,
-          stiffness: access(options?.stiffness) ?? defaultStiffness,
-        }
-      : undefined;
+  const springController = new SpringController2();
+  return createMemo(() => {
+    springController.next(
+      access(target),
+      options
+        ? {
+            stiffness: access(options.stiffness),
+            damping: access(options.damping),
+          }
+        : undefined,
+    );
+    return springController.spring;
   });
 }
 

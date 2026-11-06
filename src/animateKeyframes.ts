@@ -1,11 +1,5 @@
 import { comp, iterator, take, Transducer } from "@thi.ng/transducers";
-import {
-  delay,
-  duration,
-  frameDuration,
-  maxKeyframes,
-  time,
-} from "./transducer";
+import { delay, frameDuration, maxKeyframes, time } from "./transducer";
 
 export function animateKeyframes(
   element: HTMLElement,
@@ -13,11 +7,11 @@ export function animateKeyframes(
 ): Animation {
   const keyframesArray = Array.from(
     iterator(
-      comp(duration(maxKeyframes), delay(-performance.now()), keyframes),
+      comp(take(maxKeyframes), delay(-performance.now()), keyframes),
       time(),
     ),
   );
   return element.animate(keyframesArray, {
-    duration: keyframes.length * frameDuration,
+    duration: keyframesArray.length * frameDuration,
   });
 }
