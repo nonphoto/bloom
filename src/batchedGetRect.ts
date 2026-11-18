@@ -9,7 +9,7 @@ export type BatchedGetRectCallback = (entries: BatchedGetRectEntry[]) => void;
 
 export type BatchedGetRectReturn = (element: Element) => void;
 
-export function newBatchedGetRect(
+export function batchedGetRect(
   callback: BatchedGetRectCallback,
 ): BatchedGetRectReturn {
   const batcher = new Batcher();

@@ -6,5 +6,4 @@ export * from "./createTransformAnimation";
 export * from "./dom";
 export * from "./matcher";
 export * from "./mouse";
-export * from "./rectObserver";
 export * from "./style";

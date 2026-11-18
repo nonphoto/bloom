@@ -5,10 +5,9 @@ import { rectTx } from "../../src/rectSpring";
 import { untransform33 } from "../../src/rect/untransform";
 import { SpringController2 } from "../../src/springController";
 import { ComponentProps, JSX } from "@solidjs/web";
-import {
-  RectController,
-  RectControllerCallback,
-} from "../../src/rectController";
+import { RectControllerCallback } from "../../src/rectController";
+import { batchedGetRect } from "../../src/batchedGetRect";
+import { animateTransform } from "../../src/animateTransform";
 
 const areas = [...permutations([1, 2, 3], [1, 2, 3])];
 const damping = dampingFromHalflife(200);
@@ -19,9 +18,16 @@ export default function GridLayoutRoute() {
 
   onSettled(() => {
     const callbacks = new Set<RectControllerCallback>();
-    const rectController = new RectController((entries) => {
+    const getRect = batchedGetRect((entries) => {
+      console.log(entries);
       for (const callback of callbacks) {
         callback(entries);
+      }
+    });
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        getRect(entry.target);
       }
     });
 
@@ -30,7 +36,7 @@ export default function GridLayoutRoute() {
     ) as HTMLElement[];
 
     for (const element of elements) {
-      rectController.observe(element);
+      resizeObserver.observe(element);
 
       const posSpring = new SpringController2(undefined, {
         stiffness,
@@ -48,7 +54,7 @@ export default function GridLayoutRoute() {
             posSpring.next(rect.pos);
             sizeSpring.next(rect.size);
             if (posSpring.position && sizeSpring.position) {
-              rectController.animate(
+              animateTransform(
                 element,
                 comp(
                   rectTx(posSpring.position, sizeSpring.position),
