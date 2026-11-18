@@ -1,6 +1,5 @@
 import { createContext, ParentProps, createSignal, onSettled } from "solid-js";
 import { respond } from "@solidjs/web";
-import { waitForTimeout } from "../../src/batcher";
 
 interface PageTransitionContextValue {
   setElement: (value: HTMLElement | undefined) => void;
@@ -53,6 +52,14 @@ const pages: { name: string; backgroundColor: string }[] = [
     backgroundColor: "lavender",
   },
 ];
+
+function waitForTimeout(duration: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve();
+    }, duration);
+  });
+}
 
 export async function fetchAllPages() {
   "use server";

@@ -1,7 +1,7 @@
-import { Batcher } from "./batcher";
 import { walkAncestors } from "./dom";
 import { Rect } from "@thi.ng/geom";
 import { rectFromDOMRect } from "./rect/fromDOMRect";
+import { batched } from "./batched";
 
 export type BatchedGetRectEntry = { target: Element; rect: Rect };
 
@@ -12,9 +12,6 @@ export type BatchedGetRectReturn = (element: Element) => void;
 export function batchedGetRect(
   callback: BatchedGetRectCallback,
 ): BatchedGetRectReturn {
-  const batcher = new Batcher();
-  const targets = new Set<Element>();
-
   const style = document.createElement("style");
   style.innerHTML = "* {transform: none !important}";
 
@@ -27,26 +24,14 @@ export function batchedGetRect(
     return rectFromDOMRect(r);
   };
 
-  batcher.addEventListener("pre-enqueue", () => {
+  return batched((elements) => {
     document.body.appendChild(style);
-  });
-
-  batcher.addEventListener("run", () => {
     callback(
-      Array.from(targets.values()).map((target) => ({
+      elements.map((target) => ({
         target,
         rect: getRect(target),
       })),
     );
-    targets.clear();
-  });
-
-  batcher.addEventListener("post-run", () => {
     document.body.removeChild(style);
   });
-
-  return (element) => {
-    targets.add(element);
-    batcher.enqueue();
-  };
 }
