@@ -75,6 +75,12 @@ declare module "virtual:file-routes" {
       page: true;
       $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/spring"), Extract<"default", keyof typeof import("./dev/routes/spring")>>>;
       $$route?: undefined;
+    },
+    {
+      path: "/suspend-animation";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/suspend-animation"), Extract<"default", keyof typeof import("./dev/routes/suspend-animation")>>>;
+      $$route?: undefined;
     }
   ];
   export default routes;
@@ -137,6 +143,14 @@ declare module "virtual:file-routes" {
           children?: undefined;
         }
       ];
+    },
+    {
+      path: "/suspend-animation";
+      id: "/suspend-animation";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/suspend-animation"), Extract<"default", keyof typeof import("./dev/routes/suspend-animation")>>>;
+      $$route?: undefined;
+      children?: undefined;
     }
   ];
 }

@@ -5,7 +5,7 @@ import { styleTransformMat33 } from "./style";
 import { keyframes } from "./transducer";
 
 export function animateTransform(
-  element: HTMLElement,
+  element: Element,
   transform: Transducer<number, Mat>,
 ): Animation {
   return animateKeyframes(

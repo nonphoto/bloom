@@ -2,7 +2,7 @@ import { comp, iterator, take, Transducer } from "@thi.ng/transducers";
 import { delay, frameDuration, maxKeyframes, time } from "./transducer";
 
 export function animateKeyframes(
-  element: HTMLElement,
+  element: Element,
   keyframes: Transducer<number, Keyframe>,
 ): Animation {
   const keyframesArray = Array.from(

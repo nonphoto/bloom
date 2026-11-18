@@ -1,12 +1,14 @@
 import { dampingFromHalflife, stiffnessFromDamping } from "@nonphoto/spring";
 import { comp, map, permutations } from "@thi.ng/transducers";
 import { createSignal, onSettled } from "solid-js";
-import { Batcher, getRect } from "../../src";
-import { TransformController } from "../../src/transformController";
-import { rectSpringTx } from "../../src/rectSpring";
+import { rectTx } from "../../src/rectSpring";
 import { untransform33 } from "../../src/rect/untransform";
 import { SpringController2 } from "../../src/springController";
-import { delay } from "../../src/transducer";
+import { ComponentProps, JSX } from "@solidjs/web";
+import {
+  RectController,
+  RectControllerCallback,
+} from "../../src/rectController";
 
 const areas = [...permutations([1, 2, 3], [1, 2, 3])];
 const damping = dampingFromHalflife(200);
@@ -14,42 +16,50 @@ const stiffness = stiffnessFromDamping(1, damping);
 
 export default function GridLayoutRoute() {
   const [index, setIndex] = createSignal(0);
-  let element!: HTMLDivElement;
 
   onSettled(() => {
-    const posSpring = new SpringController2(undefined, { stiffness, damping });
-    const sizeSpring = new SpringController2(undefined, { stiffness, damping });
-    const controller = new TransformController(element);
-
-    const batcher = new Batcher();
-    batcher.addEventListener("pre-enqueue", () => {
-      controller.disable();
-    });
-    batcher.addEventListener("post-run", () => {
-      controller.enable();
+    const callbacks = new Set<RectControllerCallback>();
+    const rectController = new RectController((entries) => {
+      for (const callback of callbacks) {
+        callback(entries);
+      }
     });
 
-    const observer = new ResizeObserver(() => {
-      batcher.enqueue(() => {
-        const rect = getRect(element);
-        posSpring.next(rect.pos);
-        sizeSpring.next(rect.size);
-        if (posSpring.spring && sizeSpring.spring) {
-          controller.animate(
-            comp(
-              delay(performance.now()),
-              rectSpringTx(posSpring.spring, sizeSpring.spring),
-              map((value) => untransform33([], rect, value)),
-            ),
-          );
+    const elements = Array.from(
+      document.querySelectorAll(".box"),
+    ) as HTMLElement[];
+
+    for (const element of elements) {
+      rectController.observe(element);
+
+      const posSpring = new SpringController2(undefined, {
+        stiffness,
+        damping,
+      });
+
+      const sizeSpring = new SpringController2(undefined, {
+        stiffness,
+        damping,
+      });
+
+      callbacks.add((entries) => {
+        for (const { rect, target } of entries) {
+          if (target === element) {
+            posSpring.next(rect.pos);
+            sizeSpring.next(rect.size);
+            if (posSpring.position && sizeSpring.position) {
+              rectController.animate(
+                element,
+                comp(
+                  rectTx(posSpring.position, sizeSpring.position),
+                  map((value) => untransform33([], rect, value)),
+                ),
+              );
+            }
+          }
         }
       });
-    });
-    observer.observe(element);
-
-    return () => {
-      observer.disconnect();
-    };
+    }
   });
 
   return (
@@ -61,20 +71,33 @@ export default function GridLayoutRoute() {
         "grid-template-rows": "3fr 2fr 1fr",
       }}
       onClick={() => {
-        setIndex((index) => (index + 1) % areas.length);
+        setIndex((index) => index + 1);
       }}
     >
-      <div
-        ref={element}
-        style={{
-          background: "pink",
-          display: "flex",
-          "align-items": "center",
-          "grid-row-start": areas[index()]?.[0],
-          "grid-column-start": areas[index()]?.[1],
-        }}
-      ></div>
+      <Box index={index() + 2} style={{ background: "pink" }} />
+      <Box index={index() + 4} style={{ background: "skyblue" }} />
+      <Box index={index() + 6} style={{ background: "palegoldenrod" }} />
     </div>
+  );
+}
+
+interface BoxProps extends ComponentProps<"div"> {
+  index: number;
+  style?: JSX.CSSProperties;
+}
+
+function Box(props: BoxProps) {
+  return (
+    <div
+      class="box"
+      style={{
+        ...props.style,
+        display: "flex",
+        "align-items": "center",
+        "grid-row-start": areas[props.index % areas.length]?.[0],
+        "grid-column-start": areas[props.index % areas.length]?.[1],
+      }}
+    />
   );
 }
 

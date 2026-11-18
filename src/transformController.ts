@@ -3,12 +3,12 @@ import { Mat } from "@thi.ng/matrices";
 import { animateTransform } from "./animateTransform";
 
 export class TransformController {
-  #element: HTMLElement;
+  #element: Element;
   #transform: Transducer<number, Mat> | undefined;
   #animation: Animation | undefined;
   #enabled = true;
 
-  constructor(element: HTMLElement) {
+  constructor(element: Element) {
     this.#element = element;
   }
 
@@ -31,14 +31,13 @@ export class TransformController {
 
   animate(transform: Transducer<number, Mat>): Animation | undefined {
     this.#transform = transform;
-    if (this.#enabled) {
-      this.#apply();
-    }
+    this.#apply();
     return this.#animation;
   }
 
-  #apply() {
-    if (this.#transform) {
+  #apply(): void {
+    if (this.#transform && this.#enabled) {
+      this.#animation?.cancel();
       this.#animation = animateTransform(this.#element, this.#transform);
     }
   }

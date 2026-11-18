@@ -1,11 +1,14 @@
 import { comp, map, Transducer } from "@thi.ng/transducers";
-import { springPosition2, tuples } from "./transducer";
-import { VecSpring } from "@nonphoto/spring";
+import { tuples } from "./transducer";
 import { rect, Rect } from "@thi.ng/geom";
+import { Vec } from "@thi.ng/vectors";
 
-export function rectSpringTx(pos: VecSpring, size: VecSpring): Transducer<number, Rect> {
+export function rectTx(
+  pos: Transducer<number, Vec>,
+  size: Transducer<number, Vec>,
+): Transducer<number, Rect> {
   return comp(
-    tuples(springPosition2(pos), springPosition2(size)),
+    tuples(pos, size),
     map(([pos, size]) => rect(pos, size)),
   );
 }

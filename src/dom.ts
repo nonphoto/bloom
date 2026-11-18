@@ -81,8 +81,8 @@ export function getContainingElement(element: HTMLElement): HTMLElement | null {
 }
 
 export function walkAncestors(
-  element: HTMLElement,
-  callback: (element: HTMLElement) => void,
+  element: Element,
+  callback: (element: Element) => void,
 ) {
   let parent = element.parentElement;
   while (parent) {
