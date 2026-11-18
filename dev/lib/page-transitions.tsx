@@ -1,6 +1,6 @@
 import { createContext, ParentProps, createSignal, onSettled } from "solid-js";
 import { respond } from "@solidjs/web";
-import { waitForTimeout } from "../../src";
+import { waitForTimeout } from "../../src/batcher";
 
 interface PageTransitionContextValue {
   setElement: (value: HTMLElement | undefined) => void;

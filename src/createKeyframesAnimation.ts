@@ -3,7 +3,7 @@ import { Transducer } from "@thi.ng/transducers";
 import { Accessor, createMemo } from "solid-js";
 import { animateKeyframes } from "./animateKeyframes";
 
-export function createAnimation(
+export function createKeyframesAnimation(
   element: MaybeAccessor<HTMLElement | undefined>,
   keyframes: MaybeAccessor<Transducer<number, Keyframe> | undefined>,
 ): Accessor<Animation | undefined> {

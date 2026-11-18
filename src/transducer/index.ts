@@ -1,4 +1,3 @@
-export * from "./animations";
 export * from "./const";
 export * from "./delay";
 export * from "./duration";

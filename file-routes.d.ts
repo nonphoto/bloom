@@ -35,12 +35,6 @@ declare module "virtual:file-routes" {
   /** The flat route manifest, in scan order. */
   const routes: readonly [
     {
-      path: "/batcher";
-      page: true;
-      $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/batcher"), Extract<"default", keyof typeof import("./dev/routes/batcher")>>>;
-      $$route?: undefined;
-    },
-    {
       path: "/grid-layout";
       page: true;
       $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/grid-layout"), Extract<"default", keyof typeof import("./dev/routes/grid-layout")>>>;
@@ -63,24 +57,6 @@ declare module "virtual:file-routes" {
       page: true;
       $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/page-transitions/index"), Extract<"default", keyof typeof import("./dev/routes/page-transitions/index")>>>;
       $$route?: undefined;
-    },
-    {
-      path: "/rect-observer";
-      page: true;
-      $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/rect-observer"), Extract<"default", keyof typeof import("./dev/routes/rect-observer")>>>;
-      $$route?: undefined;
-    },
-    {
-      path: "/spring";
-      page: true;
-      $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/spring"), Extract<"default", keyof typeof import("./dev/routes/spring")>>>;
-      $$route?: undefined;
-    },
-    {
-      path: "/suspend-animation";
-      page: true;
-      $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/suspend-animation"), Extract<"default", keyof typeof import("./dev/routes/suspend-animation")>>>;
-      $$route?: undefined;
     }
   ];
   export default routes;
@@ -88,34 +64,10 @@ declare module "virtual:file-routes" {
   /** The page entries, nested by path with grouping segments stripped. */
   export const pageRoutes: readonly [
     {
-      path: "/spring";
-      id: "/spring";
-      page: true;
-      $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/spring"), Extract<"default", keyof typeof import("./dev/routes/spring")>>>;
-      $$route?: undefined;
-      children?: undefined;
-    },
-    {
-      path: "/batcher";
-      id: "/batcher";
-      page: true;
-      $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/batcher"), Extract<"default", keyof typeof import("./dev/routes/batcher")>>>;
-      $$route?: undefined;
-      children?: undefined;
-    },
-    {
       path: "/grid-layout";
       id: "/grid-layout";
       page: true;
       $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/grid-layout"), Extract<"default", keyof typeof import("./dev/routes/grid-layout")>>>;
-      $$route?: undefined;
-      children?: undefined;
-    },
-    {
-      path: "/rect-observer";
-      id: "/rect-observer";
-      page: true;
-      $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/rect-observer"), Extract<"default", keyof typeof import("./dev/routes/rect-observer")>>>;
       $$route?: undefined;
       children?: undefined;
     },
@@ -143,14 +95,6 @@ declare module "virtual:file-routes" {
           children?: undefined;
         }
       ];
-    },
-    {
-      path: "/suspend-animation";
-      id: "/suspend-animation";
-      page: true;
-      $component: FileRouteLazyRef<Pick<typeof import("./dev/routes/suspend-animation"), Extract<"default", keyof typeof import("./dev/routes/suspend-animation")>>>;
-      $$route?: undefined;
-      children?: undefined;
     }
   ];
 }

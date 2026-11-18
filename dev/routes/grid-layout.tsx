@@ -5,8 +5,10 @@ import { rectTx } from "../../src/rectSpring";
 import { untransform33 } from "../../src/rect/untransform";
 import { SpringController2 } from "../../src/springController";
 import { ComponentProps, JSX } from "@solidjs/web";
-import { RectControllerCallback } from "../../src/rectController";
-import { batchedGetRect } from "../../src/batchedGetRect";
+import {
+  batchedGetRect,
+  BatchedGetRectCallback,
+} from "../../src/batchedGetRect";
 import { animateTransform } from "../../src/animateTransform";
 
 const areas = [...permutations([1, 2, 3], [1, 2, 3])];
@@ -17,9 +19,8 @@ export default function GridLayoutRoute() {
   const [index, setIndex] = createSignal(0);
 
   onSettled(() => {
-    const callbacks = new Set<RectControllerCallback>();
+    const callbacks = new Set<BatchedGetRectCallback>();
     const getRect = batchedGetRect((entries) => {
-      console.log(entries);
       for (const callback of callbacks) {
         callback(entries);
       }

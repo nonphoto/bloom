@@ -2,8 +2,7 @@ import { comp, map, partition, Transducer } from "@thi.ng/transducers";
 import { frameDuration, maxKeyframes } from "./const";
 
 export type AnimateOptions =
-  | Omit<KeyframeAnimationOptions, "duration" | "delay" | "easing">
-  | undefined;
+  Omit<KeyframeAnimationOptions, "duration" | "delay" | "easing"> | undefined;
 
 export function animations(
   target: Element,
