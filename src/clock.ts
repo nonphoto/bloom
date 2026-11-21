@@ -1,18 +1,13 @@
-export class Clock {
-  #time = performance.now();
-  #deltaTime = 0;
+export interface Clock {
+  time: number;
+  deltaTime: number;
+}
 
-  tick() {
-    const nextTime = performance.now();
-    this.#deltaTime = nextTime - this.#time;
-    this.#time = nextTime;
-  }
+export function create(): Clock {
+  return { time: performance.now(), deltaTime: 0 };
+}
 
-  get time() {
-    return this.#time;
-  }
-
-  get deltaTime() {
-    return this.#deltaTime;
-  }
+export function tick(clock: Clock): Clock {
+  const time = performance.now();
+  return { time, deltaTime: time - clock.time };
 }

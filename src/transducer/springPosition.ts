@@ -1,55 +1,59 @@
 import {
-  Spring,
   duration as springDuration,
   duration2 as springDuration2,
   duration3 as springDuration3,
   duration4 as springDuration4,
-  positionAt as springPositionAt,
-  positionAt2 as springPositionAt2,
-  positionAt3 as springPositionAt3,
-  positionAt4 as springPositionAt4,
-  VecSpring,
+  positionAt,
+  positionAt2,
+  positionAt3,
+  positionAt4,
 } from "@nonphoto/spring";
 import { comp, map, Transducer } from "@thi.ng/transducers";
 import { Vec } from "@thi.ng/vectors";
 import { duration } from "./duration";
+import { GenericSpring } from "../continueSpring";
 
-export function springPosition(
-  s: Spring,
+export type SpringPositionTx<T> = (
+  s: GenericSpring<T>,
+  epsilon?: number,
+) => Transducer<number, T>;
+
+export function springPositionTx(
+  s: GenericSpring<number>,
   epsilon?: number,
 ): Transducer<number, number> {
   return comp(
     duration(springDuration(s, epsilon)),
-    map((t) => springPositionAt(s, t)),
+    map((t) => positionAt(s, t)),
   );
 }
 
-export function springPosition2(
-  s: VecSpring,
+export function springPositionTx2(
+  s: GenericSpring<Vec>,
   epsilon?: number,
 ): Transducer<number, Vec> {
   return comp(
     duration(springDuration2(s, epsilon)),
-    map((t) => springPositionAt2([], s, t)),
+    map((t) => positionAt2([], s, t)),
   );
 }
 
-export function springPosition3(
-  s: VecSpring | undefined,
+export function springPositionTx3(
+  s: GenericSpring<Vec>,
   epsilon?: number,
-): Transducer<number, Vec | undefined> {
+): Transducer<number, Vec> {
   return comp(
-    duration(s ? springDuration3(s, epsilon) : 0),
-    map((t) => (s ? springPositionAt3([], s, t) : undefined)),
+    duration(springDuration3(s, epsilon)),
+    map((t) => positionAt3([], s, t)),
   );
 }
 
-export function springPosition4(
-  s: VecSpring | undefined,
+export function springPositionTx4(
+  s: GenericSpring<Vec>,
   epsilon?: number,
-): Transducer<number, Vec | undefined> {
+): Transducer<number, Vec> {
   return comp(
-    duration(s ? springDuration4(s, epsilon) : 0),
-    map((t) => (s ? springPositionAt4([], s, t) : undefined)),
+    duration(springDuration4(s, epsilon)),
+    map((t) => positionAt4([], s, t)),
   );
 }

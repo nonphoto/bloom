@@ -3,13 +3,15 @@ import { comp, map, permutations } from "@thi.ng/transducers";
 import { createSignal, onSettled } from "solid-js";
 import { rectTx } from "../../src/rectSpring";
 import { untransform33 } from "../../src/rect/untransform";
-import { SpringController2 } from "../../src/springController";
 import { ComponentProps, JSX } from "@solidjs/web";
 import {
   batchedGetRect,
   BatchedGetRectCallback,
 } from "../../src/batchedGetRect";
 import { animateTransform } from "../../src/animateTransform";
+import { continueSpring, continueSpring2 } from "../../src/continueSpring";
+import { create, tick } from "../../src/clock";
+import { springPositionTx2 } from "../../src/transducer";
 
 const areas = [...permutations([1, 2, 3], [1, 2, 3])];
 const damping = dampingFromHalflife(200);
@@ -39,26 +41,39 @@ export default function GridLayoutRoute() {
     for (const element of elements) {
       resizeObserver.observe(element);
 
-      const posSpring = new SpringController2(undefined, {
+      let posSpring = continueSpring2(undefined, undefined, 0, {
         stiffness,
         damping,
       });
 
-      const sizeSpring = new SpringController2(undefined, {
+      let sizeSpring = continueSpring2(undefined, undefined, 0, {
         stiffness,
         damping,
       });
+
+      let clock = create();
+
+      let animation: Animation | null = null;
 
       callbacks.add((entries) => {
         for (const { rect, target } of entries) {
           if (target === element) {
-            posSpring.next(rect.pos);
-            sizeSpring.next(rect.size);
-            if (posSpring.position && sizeSpring.position) {
-              animateTransform(
+            clock = tick(clock);
+            posSpring = continueSpring2(posSpring, rect.pos, clock.deltaTime);
+            sizeSpring = continueSpring2(
+              sizeSpring,
+              rect.size,
+              clock.deltaTime,
+            );
+            if (posSpring && sizeSpring) {
+              animation?.cancel();
+              animation = animateTransform(
                 element,
                 comp(
-                  rectTx(posSpring.position, sizeSpring.position),
+                  rectTx(
+                    springPositionTx2(posSpring),
+                    springPositionTx2(sizeSpring),
+                  ),
                   map((value) => untransform33([], rect, value)),
                 ),
               );
