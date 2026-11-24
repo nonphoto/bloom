@@ -11,15 +11,15 @@ import {
 import { comp, map, Transducer } from "@thi.ng/transducers";
 import { Vec } from "@thi.ng/vectors";
 import { duration } from "./duration";
-import { GenericSpring } from "../continueSpring";
+import { Spring } from "../continueSpring";
 
 export type SpringPositionTx<T> = (
-  s: GenericSpring<T>,
+  s: Spring<T>,
   epsilon?: number,
 ) => Transducer<number, T>;
 
 export function springPositionTx(
-  s: GenericSpring<number>,
+  s: Spring<number>,
   epsilon?: number,
 ): Transducer<number, number> {
   return comp(
@@ -29,7 +29,7 @@ export function springPositionTx(
 }
 
 export function springPositionTx2(
-  s: GenericSpring<Vec>,
+  s: Spring<Vec>,
   epsilon?: number,
 ): Transducer<number, Vec> {
   return comp(
@@ -39,7 +39,7 @@ export function springPositionTx2(
 }
 
 export function springPositionTx3(
-  s: GenericSpring<Vec>,
+  s: Spring<Vec>,
   epsilon?: number,
 ): Transducer<number, Vec> {
   return comp(
@@ -49,7 +49,7 @@ export function springPositionTx3(
 }
 
 export function springPositionTx4(
-  s: GenericSpring<Vec>,
+  s: Spring<Vec>,
   epsilon?: number,
 ): Transducer<number, Vec> {
   return comp(

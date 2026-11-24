@@ -13,7 +13,7 @@ export interface SpringOptions {
   damping?: number;
 }
 
-export type GenericSpring<T> = {
+export type Spring<T> = {
   position: T;
   velocity: T;
   target: T;
@@ -22,20 +22,20 @@ export type GenericSpring<T> = {
 };
 
 export type ContinueSpring<V> = (
-  spring: GenericSpring<V> | undefined,
+  spring: Spring<V> | undefined,
   target: V | undefined,
   dt: number,
   options?: SpringOptions,
-) => GenericSpring<V> | undefined;
+) => Spring<V> | undefined;
 
 function continueSpringFactory<V>(
-  positionAt: (out: V, s: GenericSpring<V>, t: number) => V,
-  velocityAt: (out: V, s: GenericSpring<V>, t: number) => V,
+  positionAt: (out: V, s: Spring<V>, t: number) => V,
+  velocityAt: (out: V, s: Spring<V>, t: number) => V,
   copy: (v: V) => V,
   zero: () => V,
 ): ContinueSpring<V> {
   return (spring, target, dt, options) =>
-    target
+    target // TODO: this conditional needs to be removed somehow
       ? {
           position: spring ? positionAt(zero(), spring, dt) : copy(target),
           velocity: spring ? velocityAt(zero(), spring, dt) : zero(),

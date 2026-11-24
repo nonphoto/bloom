@@ -3,7 +3,7 @@ export interface Clock {
   deltaTime: number;
 }
 
-export function create(): Clock {
+export function clock(): Clock {
   return { time: performance.now(), deltaTime: 0 };
 }
 

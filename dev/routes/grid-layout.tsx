@@ -1,17 +1,36 @@
-import { dampingFromHalflife, stiffnessFromDamping } from "@nonphoto/spring";
-import { comp, map, permutations } from "@thi.ng/transducers";
+import {
+  dampingFromHalflife,
+  stiffnessFromDamping,
+  VecSpring,
+} from "@nonphoto/spring";
+import {
+  comp,
+  map,
+  permutations,
+  reducer,
+  scan,
+  step,
+  Transducer,
+} from "@thi.ng/transducers";
 import { createSignal, onSettled } from "solid-js";
 import { rectTx } from "../../src/rectSpring";
-import { untransform33 } from "../../src/rect/untransform";
+import { divide4, untransform33 } from "../../src/rect/untransform";
 import { ComponentProps, JSX } from "@solidjs/web";
 import {
   batchedGetRect,
   BatchedGetRectCallback,
 } from "../../src/batchedGetRect";
 import { animateTransform } from "../../src/animateTransform";
-import { continueSpring, continueSpring2 } from "../../src/continueSpring";
-import { create, tick } from "../../src/clock";
-import { springPositionTx2 } from "../../src/transducer";
+import {
+  continueSpring,
+  continueSpring2,
+  continueSpring4,
+  Spring,
+} from "../../src/continueSpring";
+import { clock, tick } from "../../src/clock";
+import { springPositionTx2, springPositionTx4 } from "../../src/transducer";
+import { Vec, Vec4 } from "@thi.ng/vectors";
+import { Rect } from "@thi.ng/geom";
 
 const areas = [...permutations([1, 2, 3], [1, 2, 3])];
 const damping = dampingFromHalflife(200);
@@ -41,38 +60,41 @@ export default function GridLayoutRoute() {
     for (const element of elements) {
       resizeObserver.observe(element);
 
-      let posSpring = continueSpring2(undefined, undefined, 0, {
-        stiffness,
-        damping,
-      });
+      const a = comp(
+        scan(
+          reducer<[number, Vec | undefined], Spring<Vec> | undefined>(
+            () => undefined,
+            (acc, [dt, target]) => continueSpring4(acc, target, dt),
+          ),
+        ),
+        map((s) => (s ? divide4([], s.target, s.position) : undefined)),
+      );
 
-      let sizeSpring = continueSpring2(undefined, undefined, 0, {
-        stiffness,
-        damping,
-      });
+      let posSpring: Transducer<[number, Vec], Spring<Vec>>;
+      let posSpringStep = step(posSpring);
 
-      let clock = create();
+      let sizeSpring = chain(
+        continueSpring2(undefined, undefined, 0, { stiffness, damping }),
+        continueSpring2,
+      );
+
+      let animationClock = clock();
 
       let animation: Animation | null = null;
 
       callbacks.add((entries) => {
         for (const { rect, target } of entries) {
           if (target === element) {
-            clock = tick(clock);
-            posSpring = continueSpring2(posSpring, rect.pos, clock.deltaTime);
-            sizeSpring = continueSpring2(
-              sizeSpring,
-              rect.size,
-              clock.deltaTime,
-            );
-            if (posSpring && sizeSpring) {
+            const posSpringValue = posSpringStep([performance.now(), rect.pos]);
+            sizeSpring = step(sizeSpring, rect.size);
+            if (posSpringValue && sizeSpring.value) {
               animation?.cancel();
               animation = animateTransform(
                 element,
                 comp(
                   rectTx(
-                    springPositionTx2(posSpring),
-                    springPositionTx2(sizeSpring),
+                    springPositionTx2(posSpring.value),
+                    springPositionTx2(sizeSpring.value),
                   ),
                   map((value) => untransform33([], rect, value)),
                 ),
